@@ -53,6 +53,7 @@ private:
 	bool auto_clear;
 	Color bg_color;
 	mutable bool first_render;
+	mutable unsigned long frame_count;
 	mutable unsigned long poly_count;
 	unsigned long scene_poly_count;
 	

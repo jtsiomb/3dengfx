@@ -56,6 +56,7 @@ Scene::Scene() {
 	cubic_cam[CUBE_MAP_INDEX_NY]->SetUpVector(Vector3(0, 0, 1));
 
 	first_render = true;
+	frame_count = 0;
 }
 
 Scene::~Scene() {
@@ -259,8 +260,9 @@ void Scene::Render(unsigned long msec) const {
 	bool rendered_cubemaps = false;
 	if(!level) {
 		poly_count = 0;
-		rendered_cubemaps = RenderAllCubeMaps();
+		rendered_cubemaps = RenderAllCubeMaps(msec);
 		first_render = false;
+		frame_count++;
 	}
 
 	if(auto_clear || rendered_cubemaps) {
@@ -364,7 +366,13 @@ bool Scene::RenderAllCubeMaps(unsigned long msec) const {
 		Texture *env;
 		Material *mat = obj->GetMaterialPtr();
 		RenderParams rp = obj->GetRenderParams();
-		if(rp.hidden || (!mat->auto_refl && !first_render)) continue;
+		if(rp.hidden) continue;
+
+		if(mat->auto_refl) {
+			if(mat->auto_refl_upd > 1 && frame_count % mat->auto_refl_upd) continue;
+		} else {
+			if(!first_render) continue;
+		}
 		
 		if((env = mat->GetTexture(TEXTYPE_ENVMAP))) {
 			if(env->GetType() == TEX_CUBE) {

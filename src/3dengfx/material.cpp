@@ -37,6 +37,8 @@ Material::Material() {
 
 	auto_refl = true;
 	auto_refl_upd = 1;
+
+	tex_count = 0;
 	
 	memset(tex, 0, MAX_TEXTURES * sizeof(Texture*));
 }
@@ -52,6 +54,8 @@ Material::Material(const Color &col) {
 	
 	auto_refl = true;
 	auto_refl_upd = 1;
+
+	tex_count = 0;
 	
 	memset(tex, 0, MAX_TEXTURES * sizeof(Texture*));
 }

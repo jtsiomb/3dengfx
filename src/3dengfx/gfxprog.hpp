@@ -49,7 +49,9 @@ public:
 	GfxProg(const char *fname = 0, int ptype = -1);
 	virtual ~GfxProg();
 
-	int GetType() const;
+	virtual bool IsValid() const;
+
+	virtual int GetType() const;
 
 	virtual bool LoadProgram(const char *fname, int ptype = -1);
 

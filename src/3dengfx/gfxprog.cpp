@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -67,6 +67,10 @@ GfxProg::~GfxProg() {
 	if(asm_prog) {
 		glext::glDeletePrograms(1, &asm_prog);
 	}
+}
+
+bool GfxProg::IsValid() const {
+	return cg_prog || asm_prog;
 }
 
 int GfxProg::GetType() const {

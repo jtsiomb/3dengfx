@@ -52,6 +52,9 @@ Material::Material(const Color &col) {
 	bump_intensity = 1.0f;
 	alpha = 1.0f;
 	
+	wireframe = false;
+	shading = SHADING_GOURAUD;
+
 	auto_refl = true;
 	auto_refl_upd = 1;
 

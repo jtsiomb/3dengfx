@@ -1,2 +1,2 @@
-obj += src/fxwt/fxwt.o src/fxwt/init.o
+obj += src/fxwt/fxwt.o src/fxwt/init.o src/fxwt/text.o
 # src/fxwt/widget.o

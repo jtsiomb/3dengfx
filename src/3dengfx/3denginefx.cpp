@@ -280,8 +280,6 @@ SysCaps GetSystemCapabilities() {
 	info("Point parameters: %s", sys_caps.point_params ? "yes" : "no");
 	info("Texture units: %d", sys_caps.max_texture_units);
 
-	set_verbosity(3);
-	
 	return sys_caps;
 }
 

@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3dengfx/3denginefx.hpp"
 #include "common/err_msg.h"
 #include "fxwt.hpp"
+#include "text.hpp"
 #include "gfx_library.h"
 
 using std::list;
@@ -105,6 +106,8 @@ void fxwt::SwapBuffers() {
 
 int fxwt::MainLoop() {
 
+	fxwt::TextInit();
+
 	/*
 	fxwt::WidgetInit();
 	SetDisplayHandler(WidgetDisplayHandler);
@@ -112,6 +115,8 @@ int fxwt::MainLoop() {
 	SetMotionHandler(WidgetMotionHandler);
 	SetButtonHandler(WidgetButtonHandler);
 	*/
+	
+	set_verbosity(3);
 	
 #if GFX_LIBRARY == SDL
 	SDL_EnableKeyRepeat(300, 20);

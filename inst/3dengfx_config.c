@@ -2,16 +2,15 @@
 #include <string.h>
 #include "3dengfx_config.h"
 
+#define CFLAGS	"pkg-config --cflags freetype2"
+#define LIBS	"pkg-config --libs freetype2"
+
 #if GFX_LIBRARY == SDL
-#define CFLAGS_CMD	"sdl-config --cflags"
-#define LIBS_CMD	"sdl-config --libs"
-#define CFLAGS		"-I/usr/include/SDL -D_REENTRANT"
-#define LIBS		"-lSDL -lpthread"
+#define GFX_CFLAGS	"sdl-config --cflags"
+#define GFX_LIBS	"sdl-config --libs"
 #elif GFX_LIBRARY == GTK
-#define CFLAGS_CMD	"pkg-config --cflags gtk+-2.0 gtkglext-1.0"
-#define LIBS_CMD	"pkg-config --libs gtk+-2.0 gtkglext-1.0"
-#define CFLAGS	"-DXTHREADS -I/usr/include/gtkglext-1.0 -I/usr/lib/gtkglext-1.0/include -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/X11R6/include -I/usr/include/pango-1.0 -I/usr/include/freetype2 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/atk-1.0"
-#define LIBS	"-Wl,--export-dynamic -L/usr/X11R6/lib -lgtkglext-x11-1.0 -lgdkglext-x11-1.0 -lstdc++ -lXmu -lXt -lSM -lICE -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgdk_pixbuf-2.0 -lm -lpangoxft-1.0 -lpangox-1.0 -lpango-1.0 -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0"
+#define GFX_CFLAGS	"pkg-config --cflags gtk+-2.0 gtkglext-1.0"
+#define GFX_LIBS	"pkg-config --libs gtk+-2.0 gtkglext-1.0"
 #endif	/* GFX_LIBRARY */
 
 #ifndef IMGLIB_NO_PNG
@@ -79,12 +78,18 @@ void print_cflags(void) {
 
 	printf("-I%s/include/3dengfx ", PREFIX);
 	
-	if((p = popen(CFLAGS_CMD, "r"))) {
+	if((p = popen(GFX_CFLAGS, "r"))) {
+		while((c = fgetc(p)) != -1) {
+			if(c != '\n') putchar(c);
+		}
+		putchar(' ');
+		pclose(p);
+	}
+
+	if((p = popen(CFLAGS, "r"))) {
 		while((c = fgetc(p)) != -1) putchar(c);
 		putchar(' ');
 		pclose(p);
-	} else {
-		printf("%s ", LIBS);
 	}
 }
 
@@ -99,11 +104,18 @@ void print_libs_no_3dengfx(void) {
 		
 	printf("-lGL -lGLU -l3ds -lbz2 %s %s %s ", LD_JPEG, LD_PNG, LD_CG);
 
-	if((p = popen(LIBS_CMD, "r"))) {
+	if((p = popen(GFX_LIBS, "r"))) {
+		while((c = fgetc(p)) != -1) {
+			if(c != '\n') putchar(c);
+		}
+		putchar(' ');
+		pclose(p);
+	}
+
+	if((p = popen(LIBS, "r"))) {
 		while((c = fgetc(p)) != -1) putchar(c);
 		putchar(' ');
 		pclose(p);
-	} else {
-		printf("%s ", LIBS);
 	}
+
 }

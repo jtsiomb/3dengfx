@@ -44,7 +44,7 @@ static void InvertImage(unsigned long *img, int x, int y) {
 static PixelBuffer undef_pbuf;
 
 static void GenUndefImage(int x, int y) {
-	if((int)undef_pbuf.width != x && (int)undef_pbuf.height != y) {
+	if((int)undef_pbuf.width != x || (int)undef_pbuf.height != y) {
 		if(undef_pbuf.buffer) {
 			delete [] undef_pbuf.buffer;
 		}

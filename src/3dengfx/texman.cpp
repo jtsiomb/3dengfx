@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/image.h"
 #include "gfx/color.hpp"
 #include "n3dmath2/n3dmath2.hpp"
+#include "common/string_hash.hpp"
 
 using std::string;
 
@@ -41,33 +42,8 @@ static HashTable<string, Texture*> textures;
 static bool texman_initialized = false;
 static Texture *normal_cubemap;
 
-/*
- * Hashing algorithm for strings from:
- * Sedgewick's "Algorithms in C++, third edition" 
- * parts 1-4, Chapter 14 (hashing) p.593
- */
-template <class KeyType>
-static unsigned int Hash(const KeyType &key, unsigned long size) {
-	int hash = 0, a = 31415, b = 27183;
-	char *str = new char[((string)key).length() + 1];
-	strcpy(str, ((string)key).c_str());
-
-	char *sptr = str;
-	
-	while(*sptr) {
-		hash = (a * hash + *sptr++) % size;
-		a = a * b % (size - 1);
-	}
-	
-	delete [] str;
-	
-	return (unsigned int)(hash < 0 ? (hash + size) : hash);
-}
-		
-
-
 static void InitTexMan() {
-	textures.SetHashFunction(Hash);
+	textures.SetHashFunction(StringHash);
 	texman_initialized = true;
 }
 

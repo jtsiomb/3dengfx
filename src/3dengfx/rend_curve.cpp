@@ -107,4 +107,6 @@ bool RendCurve::Render(unsigned long time) {
 	SetAlphaBlending(false);
 	SetZWrite(true);
 	DisableTextureUnit(0);
+
+	return true;
 }

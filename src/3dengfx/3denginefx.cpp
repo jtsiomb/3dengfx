@@ -621,7 +621,7 @@ void DrawLine(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2) {
 	Vector3 vec = p2 - p1;
 	scalar_t len = vec.Length();
 	
-	Base basis;
+	Basis basis;
 	basis.k = -(cam_pos - ((p2 + p1) / 2)).Normalized();
 	basis.j = vec / len;
 	basis.i = CrossProduct(basis.j, basis.k).Normalized();
@@ -643,6 +643,37 @@ void DrawLine(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2) {
 	Draw(VertexArray(quad, 4));
 	SetPrimitiveType(TRIANGLE_LIST);
 	SetLighting(true);
+}
+
+void DrawPoint(const Vertex &pt, scalar_t size) {
+
+	Vector3 p = pt.pos;
+	
+	Vector3 cam_pos = Vector3(0,0,0).Transformed(inv_view_matrix);
+
+	Basis basis;
+	basis.k = -(cam_pos - p).Normalized();
+	basis.j = Vector3(0, 1, 0);
+	basis.i = CrossProduct(basis.j, basis.k).Normalized();
+	basis.j = CrossProduct(basis.k, basis.i).Normalized();
+
+	world_matrix.SetTranslation(p);
+	world_matrix = world_matrix * Matrix4x4(basis.CreateRotationMatrix());
+	LoadXFormMatrices();
+
+	Vertex quad[] = {
+		Vertex(Vector3(-size, -size, 0), 0.0, 0.0, pt.color),
+		Vertex(Vector3(-size, size, 0), 0.0, 1.0, pt.color),
+		Vertex(Vector3(size, size, 0), 1.0, 1.0, pt.color),
+		Vertex(Vector3(size, -size, 0), 1.0, 0.0, pt.color)
+	};
+
+	SetLighting(false);
+	SetPrimitiveType(QUAD_LIST);
+	Draw(VertexArray(quad, 4));
+	SetPrimitiveType(TRIANGLE_LIST);
+	SetLighting(true);
+
 }
 
 int GetTextureUnitCount() {

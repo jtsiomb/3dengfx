@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texman.hpp"
 #include "psys.hpp"
 #include "common/config_parser.h"
+#include "common/err_msg.h"
 
 #ifdef SINGLE_PRECISION_MATH
 #define GL_SCALAR_TYPE	GL_FLOAT
@@ -114,10 +115,19 @@ void BillboardParticle::Draw() const {
 	static int times;
 
 	if(!times) {
-		std::cout << "WARNING: BillboardParticle::Draw() is just a stub, due efficiency reasons\n";
+		warning("WARNING: BillboardParticle::Draw() is just a stub, due efficiency reasons");
 		times++;
 	}
 }
+
+
+
+ParticleSysParams::ParticleSysParams() {
+	friction = 0.95;
+	billboard_tex = 0;
+	halo = 0;
+}
+
 
 
 ParticleSystem::ParticleSystem(const char *fname) {
@@ -127,7 +137,7 @@ ParticleSystem::ParticleSystem(const char *fname) {
 
 	if(fname) {
 		if(!psys::LoadParticleSysParams(fname, &psys_params)) {
-			std::cerr << "Error loading particle file: " << fname << std::endl;
+			error("Error loading particle file: %s", fname);
 		}
 	}
 }
@@ -181,7 +191,7 @@ void ParticleSystem::Update(const Vector3 &ext_force) {
 			break;
 
 		default:
-			std::cerr << "Only billboarded particles implemented currently\n";
+			error("Only billboarded particles implemented currently");
 			exit(-1);
 			break;
 		}
@@ -294,6 +304,20 @@ void ParticleSystem::Draw() const {
 			(*iter++)->Draw();
 		}
 	} 
+
+	if(psys_params.halo) {
+		SetAlphaBlending(true);
+		SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE);
+		EnableTextureUnit(0);
+		DisableTextureUnit(1);
+		SetTexture(0, psys_params.halo);
+		SetZWrite(false);
+		Vertex v(GetPosition((unsigned long)(global_time * 1000.0)), 0, 0, psys_params.halo_color);
+		DrawPoint(v, psys_params.halo_size());
+		SetZWrite(true);
+		DisableTextureUnit(0);
+		SetAlphaBlending(false);
+	}
 }
 
 
@@ -424,7 +448,7 @@ bool psys::LoadParticleSysParams(const char *fname, ParticleSysParams *psp) {
 		} else if(!strcmp(opt->option, "tex")) {
 			psp->billboard_tex = GetTexture(opt->str_value);
 			if(!psp->billboard_tex) {
-				std::cerr << "Could not load texture: \"" << opt->str_value << "\"\n";
+				error("Could not load texture: \"%s\"", opt->str_value);
 			}
 
 		} else if(!strcmp(opt->option, "color")) {
@@ -438,6 +462,22 @@ bool psys::LoadParticleSysParams(const char *fname, ParticleSysParams *psp) {
 		} else if(!strcmp(opt->option, "color_end")) {
 			Vector4 v = GetVector4(opt->str_value);
 			psp->end_color = Color(v.x, v.y, v.z, v.w);
+			
+		} else if(!strcmp(opt->option, "halo")) {
+			psp->halo = GetTexture(opt->str_value);
+			if(!psp->halo) {
+				error("Could not load texture: \"%s\"", opt->str_value);
+			}
+
+		} else if(!strcmp(opt->option, "halo_color")) {
+			Vector4 v = GetVector4(opt->str_value);
+			psp->halo_color = Color(v.x, v.y, v.z, v.w);
+
+		} else if(!strcmp(opt->option, "halo_size")) {
+			psp->halo_size.num = opt->flt_value;
+
+		} else if(!strcmp(opt->option, "halo_size-r")) {
+			psp->halo_size.range = opt->flt_value;
 		}
 			
 	}

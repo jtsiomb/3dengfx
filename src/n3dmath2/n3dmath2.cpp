@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the n3dmath2 library.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 The n3dmath2 library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -132,19 +132,19 @@ Vector3 BezierTangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, c
 	return p8 - p7;
 }
 
-Base::Base() {
+Basis::Basis() {
 	i = Vector3(1, 0, 0);
 	j = Vector3(0, 1, 0);
 	k = Vector3(0, 0, 1);
 }
 
-Base::Base(const Vector3 &i, const Vector3 &j, const Vector3 &k) {
+Basis::Basis(const Vector3 &i, const Vector3 &j, const Vector3 &k) {
 	this->i = i;
 	this->j = j;
 	this->k = k;
 }
 
-Base::Base(const Vector3 &dir, bool LeftHanded) {
+Basis::Basis(const Vector3 &dir, bool LeftHanded) {
 	k = dir;
 	j = VECTOR3_J;
 	i = CrossProduct(j, k);
@@ -152,7 +152,7 @@ Base::Base(const Vector3 &dir, bool LeftHanded) {
 }
 
 
-void Base::Rotate(scalar_t x, scalar_t y, scalar_t z) {
+void Basis::Rotate(scalar_t x, scalar_t y, scalar_t z) {
 	Matrix4x4 RotMat;
 	RotMat.SetRotation(Vector3(x, y, z));
 	i.Transform(RotMat);
@@ -160,7 +160,7 @@ void Base::Rotate(scalar_t x, scalar_t y, scalar_t z) {
 	k.Transform(RotMat);
 }
 
-void Base::Rotate(const Vector3 &axis, scalar_t angle) {
+void Basis::Rotate(const Vector3 &axis, scalar_t angle) {
 	Quaternion q;
 	q.SetRotation(axis, angle);
 	i.Transform(q);
@@ -168,19 +168,19 @@ void Base::Rotate(const Vector3 &axis, scalar_t angle) {
 	k.Transform(q);
 }
 
-void Base::Rotate(const Matrix4x4 &mat) {
+void Basis::Rotate(const Matrix4x4 &mat) {
 	i.Transform(mat);
 	j.Transform(mat);
 	k.Transform(mat);
 }
 
-void Base::Rotate(const Quaternion &quat) {
+void Basis::Rotate(const Quaternion &quat) {
 	i.Transform(quat);
 	j.Transform(quat);
 	k.Transform(quat);
 }
 
-Matrix3x3 Base::CreateRotationMatrix() const {
+Matrix3x3 Basis::CreateRotationMatrix() const {
 	return Matrix3x3(	i.x, j.x, k.x,
 						i.y, j.y, k.y,
 						i.z, j.z, k.z);

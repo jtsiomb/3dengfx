@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, 3d visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -77,6 +77,27 @@ void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int sub
 		varray[i].normal = Vector3(0, 0, -1);
 	}
 
+	// reorient the plane to match the specification
+	Vector3 normal = plane.GetNormal();
+	Basis b;
+	b.k = normal;
+	
+	if(fabs(DotProduct(normal, Vector3(1, 0, 0))) > small_number) {
+		b.i = Vector3(1, 0, 0);
+		b.j = CrossProduct(b.i, b.k);
+		b.i = CrossProduct(b.k, b.j);
+	} else {
+		b.j = Vector3(0, 1, 0);
+		b.i = CrossProduct(b.j, b.k);
+		b.j = CrossProduct(b.k, b.i);
+	}
+	
+	Matrix3x3 rot = b.CreateRotationMatrix();
+
+	for(unsigned long i=0; i<vcount; i++) {
+		varray[i].pos.Transform(rot);
+	}
+
 	mesh->SetData(varray, vcount, tarray, tcount);
 
 	delete [] quads;
@@ -117,7 +138,7 @@ void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int ud
 			vptr->normal.y = 0.0;
 			vptr->normal /= rad;
 			scalar_t u = (scalar_t)j / (scalar_t)udiv;
-			scalar_t v = (scalar_t)i / len;
+			scalar_t v = (scalar_t)i / (scalar_t)(vdiv + 1);
 			vptr->tex[0] = vptr->tex[1] = TexCoord(u, v);
 			vptr++;
 		}

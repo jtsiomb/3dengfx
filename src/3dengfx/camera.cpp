@@ -51,12 +51,7 @@ void Camera::Activate(unsigned long msec) const {
 }
 
 
-TargetCamera::TargetCamera(const Vector3 &trans, const Vector3 &target) {
-	SetPosition(trans);
-	fov = quarter_pi;
-	near_clip = 1.0;
-	far_clip = 1000.0;
-
+TargetCamera::TargetCamera(const Vector3 &trans, const Vector3 &target) : Camera(trans) {
 	SetTarget(target);
 }
 

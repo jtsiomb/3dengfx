@@ -121,6 +121,12 @@ struct ParticleSysParams {
 	Texture *billboard_tex;	// texture used for billboards
 	Color start_color;		// start color
 	Color end_color;		// end color
+	
+	Texture *halo;			// halo texture
+	Color halo_color;		// halo color
+	Fuzzy halo_size;		// halo size
+
+	ParticleSysParams();
 };
 
 enum ParticleType {PTYPE_PSYS, PTYPE_BILLBOARD, PTYPE_MESH};

@@ -82,13 +82,13 @@ Vector3 BezierTangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, c
 #include "n3dmath2_ray.hpp"
 #include "n3dmath2_qdr.hpp"
 
-class Base {
+class Basis {
 public:
 	Vector3 i, j, k;
 
-	Base();
-	Base(const Vector3 &i, const Vector3 &j, const Vector3 &k);
-	Base(const Vector3 &dir, bool LeftHanded=true);
+	Basis();
+	Basis(const Vector3 &i, const Vector3 &j, const Vector3 &k);
+	Basis(const Vector3 &dir, bool LeftHanded=true);
 
 	void Rotate(scalar_t x, scalar_t y, scalar_t z);
 	void Rotate(const Vector3 &axis, scalar_t angle);

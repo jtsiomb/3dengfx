@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "camera.hpp"
 #include "light.hpp"
 #include "object.hpp"
+#include "psys.hpp"
 #include "gfx/curves.hpp"
 
 /*
@@ -41,6 +42,8 @@ private:
 	std::list<Object *> objects;
 	//std::list<ShadowVolume> static_shadow_volumes;
 	std::list<Curve *> curves;
+	std::list<ParticleSystem*> psys;
+	
 	bool manage_data;
 	const Camera *active_camera;
 	bool shadows;
@@ -75,6 +78,7 @@ public:
 	void AddObject(Object *obj);
 	//void AddStaticShadowVolume(TriMesh *mesh, const Light *light);
 	void AddCurve(Curve *curve);
+	void AddParticleSys(ParticleSystem *p);
 
 	void RemoveObject(const Object *obj);
 	void RemoveLight(const Light *light);
@@ -83,6 +87,7 @@ public:
 	Light *GetLight(const char *name);
 	Object *GetObject(const char *name);
 	Curve *GetCurve(const char *name);
+	ParticleSystem *GetParticleSys(const char *name);
 
 	XFormNode *GetNode(const char *name);
 

@@ -57,7 +57,7 @@ BaseCamera::BaseCamera(const Vector3 &trans, const Quaternion &rot) {
 	up = Vector3(0, 1, 0);
 	fov = quarter_pi;
 	near_clip = 1.0;
-	far_clip = 1000.0;
+	far_clip = 10000.0;
 	aspect = 1.33333;
 	flip.x = flip.y = flip.z = false;
 }

@@ -78,6 +78,14 @@ public:
 	TriMesh *GetTriMeshPtr();
 	TriMesh GetTriMesh() const;
 
+	// shortcut functions for accessing the geometry easily
+	unsigned long GetVertexCount() const;
+	const Vertex *GetVertexData() const;
+	Vertex *GetModVertexData();
+	unsigned long GetTriangleCount() const;
+	const Triangle *GetTriangleData() const;
+	Triangle *GetModTriangleData();
+
 	void SetDynamic(bool enable);
 	bool GetDynamic() const;
 	

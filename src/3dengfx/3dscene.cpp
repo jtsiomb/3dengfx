@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -84,6 +84,11 @@ Scene::~Scene() {
 		while(citer != curves.end()) {
 			delete *citer++;
 		}
+
+		std::list<ParticleSystem*>::iterator piter = psys.begin();
+		while(piter != psys.end()) {
+			delete *piter++;
+		}
 	}
 
 }
@@ -126,6 +131,9 @@ void Scene::AddCurve(Curve *curve) {
 	curves.push_back(curve);
 }
 
+void Scene::AddParticleSys(ParticleSystem *p) {
+	psys.push_back(p);
+}
 
 void Scene::RemoveObject(const Object *obj) {
 	std::list<Object *>::iterator iter = objects.begin();
@@ -176,6 +184,15 @@ Object *Scene::GetObject(const char *name) {
 Curve *Scene::GetCurve(const char *name) {
 	std::list<Curve *>::iterator iter = curves.begin();
 	while(iter != curves.end()) {
+		if(!strcmp((*iter)->name.c_str(), name)) return *iter;
+		iter++;
+	}
+	return 0;
+}
+
+ParticleSystem *Scene::GetParticleSys(const char *name) {
+	std::list<ParticleSystem*>::iterator iter = psys.begin();
+	while(iter != psys.end()) {
 		if(!strcmp((*iter)->name.c_str(), name)) return *iter;
 		iter++;
 	}
@@ -263,6 +280,14 @@ void Scene::Render(unsigned long msec) const {
 		rendered_cubemaps = RenderAllCubeMaps(msec);
 		first_render = false;
 		frame_count++;
+
+		// update particle systems
+		psys::SetGlobalTime(msec);
+		
+		std::list<ParticleSystem*>::const_iterator iter = psys.begin();
+		while(iter != psys.end()) {
+			(*iter++)->Update();
+		}
 	}
 
 	if(auto_clear || rendered_cubemaps) {
@@ -291,6 +316,12 @@ void Scene::Render(unsigned long msec) const {
 				poly_count += obj->GetTriMeshPtr()->GetTriangleArray()->GetCount();
 			}
 		}
+	}
+
+	// render particles
+	std::list<ParticleSystem*>::const_iterator piter = psys.begin();
+	while(piter != psys.end()) {
+		(*piter++)->Draw();
 	}
 
 	level--;

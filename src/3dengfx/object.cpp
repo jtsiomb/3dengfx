@@ -73,6 +73,30 @@ TriMesh Object::GetTriMesh() const {
 	return mesh;
 }
 
+unsigned long Object::GetVertexCount() const {
+	return mesh.GetVertexArray()->GetCount();
+}
+
+const Vertex *Object::GetVertexData() const {
+	return mesh.GetVertexArray()->GetData();
+}
+
+Vertex *Object::GetModVertexData() {
+	return mesh.GetModVertexArray()->GetModData();
+}
+
+unsigned long Object::GetTriangleCount() const {
+	return mesh.GetTriangleArray()->GetCount();
+}
+
+const Triangle *Object::GetTriangleData() const {
+	return mesh.GetTriangleArray()->GetData();
+}
+
+Triangle *Object::GetModTriangleData() {
+	return mesh.GetModTriangleArray()->GetModData();
+}
+
 void Object::SetDynamic(bool enable) {
 	const_cast<VertexArray*>(mesh.GetVertexArray())->SetDynamic(enable);
 	const_cast<TriangleArray*>(mesh.GetTriangleArray())->SetDynamic(enable);
@@ -425,7 +449,7 @@ void Object::SetupBumpLight(unsigned long time) {
 		tan = (tan - normal * DotProduct(normal, tan)).Normalized();
 		Vector3 bitan = CrossProduct(normal, tan);
 
-		Base tbn(tan, bitan, normal);
+		Basis tbn(tan, bitan, normal);
 		lvec.Transform(tbn.CreateRotationMatrix());
 		//lvec.Normalize();
 		

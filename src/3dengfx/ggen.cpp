@@ -69,3 +69,75 @@ void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int sub
 	delete [] varray;
 	delete [] tarray;
 }
+
+
+void CreateSphere(TriMesh *mesh, const Sphere &sphere, scalar_t radius, int subdiv) {
+	// Solid of revolution. A slice of pi rads is rotated
+	// for 2pi rads. Subdiv in this revolution should be
+	// double than subdiv of the slice, because the angle
+	// is double.
+	
+	unsigned long edges_pi  = 2 * subdiv;
+	unsigned long edges_2pi = 4 * subdiv;
+	
+	unsigned long vcount_pi  = edges_pi  + 1;
+	unsigned long vcount_2pi = edges_2pi + 1;
+
+	unsigned long vcount = vcount_pi * vcount_2pi;
+	
+	unsigned long quad_count = edges_pi * edges_2pi;
+	unsigned long tcount = quad_count * 2;
+	
+    	Vertex *varray = new Vertex[vcount];
+	Triangle *tarray = new Triangle[tcount];
+
+	for(unsigned long j = 0; j < vcount_pi; j++) {
+		for(unsigned long i = 0; i < vcount_2pi; i++) {
+
+			Vector3 up_vec(0,1,0);
+
+			scalar_t rotx,roty;
+			rotx = -(pi * j) / (vcount_pi - 1);
+			roty = -(two_pi * i) / (vcount_2pi - 1);
+			
+			Matrix4x4 rot_mat;
+			rot_mat.SetRotation(Vector3(rotx, 0, 0));
+			up_vec.Transform(rot_mat);
+			rot_mat.SetRotation(Vector3(0, roty, 0));
+			up_vec.Transform(rot_mat);
+
+			scalar_t u = (scalar_t)i / (scalar_t)(vcount_2pi - 1);
+			scalar_t v = (scalar_t)j / (scalar_t)(vcount_pi - 1);
+			varray[j * vcount_2pi + i] = Vertex(up_vec * radius, u, v, Color(1.0f));
+			varray[j * vcount_2pi + i].normal = up_vec; 
+		}
+	}
+
+	// first seperate the quads and then triangulate
+	Quad *quads = new Quad[quad_count];
+
+	for(unsigned long i=0; i<quad_count; i++) {
+
+		unsigned long hor_edge,vert_edge;
+		hor_edge  = i % edges_2pi;
+		vert_edge = i / edges_2pi;
+		
+		quads[i].vertices[0] = hor_edge + vert_edge * vcount_2pi;
+		quads[i].vertices[1] = quads[i].vertices[0] + 1;
+		quads[i].vertices[2] = quads[i].vertices[0] + vcount_2pi;
+		quads[i].vertices[3] = quads[i].vertices[1] + vcount_2pi;
+	}
+
+	for(unsigned long i=0; i<quad_count; i++) {
+		tarray[i * 2] = Triangle(quads[i].vertices[0], quads[i].vertices[1], quads[i].vertices[3]);
+		tarray[i * 2 + 1] = Triangle(quads[i].vertices[0], quads[i].vertices[3], quads[i].vertices[2]);
+	}
+
+	mesh->SetData(varray, vcount, tarray, tcount);
+
+	delete [] quads;
+	delete [] varray;
+	delete [] tarray;
+}
+
+

@@ -35,5 +35,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "psys.hpp"
 #include "fxwt/fxwt.hpp"
 #include "common/timer.h"
+#include "common/locator.h"
 
 #endif	// _3DENGFX_HPP_

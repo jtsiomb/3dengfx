@@ -41,6 +41,14 @@ Matrix3x3::Matrix3x3(	scalar_t m11, scalar_t m12, scalar_t m13,
 	//memcpy(m, &m11, 9 * sizeof(scalar_t));	// args are adjacent in the stack
 }
 
+Matrix3x3::Matrix3x3(const Matrix4x4 &mat4x4) {
+	for(int i=0; i<3; i++) {
+		for(int j=0; j<3; j++) {
+			m[i][j] = mat4x4[i][j];
+		}
+	}
+}
+
 Matrix3x3 operator +(const Matrix3x3 &m1, const Matrix3x3 &m2) {
 	Matrix3x3 res;
 	const scalar_t *op1 = m1.m[0], *op2 = m2.m[0];

@@ -35,6 +35,8 @@ public:
 				scalar_t m21, scalar_t m22, scalar_t m23,
 				scalar_t m31, scalar_t m32, scalar_t m33);
 	
+	Matrix3x3(const Matrix4x4 &mat4x4);
+	
 	// binary operations matrix (op) matrix
 	friend Matrix3x3 operator +(const Matrix3x3 &m1, const Matrix3x3 &m2);
 	friend Matrix3x3 operator -(const Matrix3x3 &m1, const Matrix3x3 &m2);

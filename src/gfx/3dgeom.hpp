@@ -21,7 +21,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* fundamendal data structures for 3D graphics
  *
  * Author: John Tsiombikas 2004
+ * Modified: 
+ * 		Mihalis Georgoulopoulos 2004
+ * 		John Tsiombikas 2005
  */
+
 
 #ifndef _3DGEOM_HPP_
 #define _3DGEOM_HPP_
@@ -199,6 +203,7 @@ public:
 	void SetData(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount);	
 		
 	void CalculateNormals();
+	void InvertWinding();
 
 	void ApplyXForm(const Matrix4x4 &xform);
 

@@ -21,7 +21,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* fundamendal data structures for 3D graphics
  *
  * Author: John Tsiombikas 2004
- * Modified: Mihalis Georgoulopoulos 2004
+ * Modified: 
+ * 		Mihalis Georgoulopoulos 2004
+ * 		John Tsiombikas 2005
  */
 
 #include "3dengfx_config.h"
@@ -287,12 +289,38 @@ void TriMesh::CalculateNormals() {
 	delete [] tri_indices;
 }
 
+/* TriMesh::InvertWinding() - (JT)
+ * inverts the order of vertices (cw/ccw) as well as the normals
+ */
+void TriMesh::InvertWinding() {
+	Triangle *tptr = tarray.GetModData();
+	int tcount = tarray.GetCount();
+
+	for(int i=0; i<tcount; i++) {
+		Index tmp = tptr->vertices[1];
+		tptr->vertices[1] = tptr->vertices[2];
+		tptr->vertices[2] = tmp;
+		tptr->normal = -tptr->normal;
+		tptr++;
+	}
+
+	Vertex *vptr = varray.GetModData();
+	int vcount = varray.GetCount();
+
+	for(int i=0; i<vcount; i++) {
+		vptr->normal = -vptr->normal;
+		vptr++;
+	}
+}
+
+
 void TriMesh::ApplyXForm(const Matrix4x4 &xform) {
 	Vertex *vptr = varray.GetModData();
 	unsigned long count = varray.GetCount();
 
 	for(unsigned long i=0; i<count; i++) {
-		(*vptr++).pos.Transform(xform);
+		vptr->pos.Transform(xform);
+		(vptr++)->normal.Transform((Matrix3x3)xform);
 	}
 }
 

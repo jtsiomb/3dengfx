@@ -26,11 +26,26 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfxprog.hpp"
 #include "3denginefx.hpp"
 #include "opengl.h"
+#include "common/err_msg.h"
 
 using namespace std;
 using namespace glext;
 
 extern _CGcontext *cgc;
+
+#ifdef USING_CG_TOOLKIT
+
+#ifdef SINGLE_PRECISION_MATH
+static void (*cg_set_param)(_CGparameter*, scalar_t) = cgGLSetParameter1f;
+static void (*cg_set_param_vec3)(_CGparameter*, scalar_t x, scalar_t y, scalar_t z) = cgGLSetParameter3f;
+static void (*cg_set_param_mat4x4)(_CGparameter*, const scalar_t*) = cgGLSetMatrixParameterfr;
+#else	// !defined(SINGLE_PRECISION_MATH)
+static void (*cg_set_param)(_CGparameter*, scalar_t) = cgGLSetParameter1d;
+static void (*cg_set_param_vec3)(_CGparameter*, scalar_t x, scalar_t y, scalar_t z) = cgGLSetParameter3d;
+static void (*cg_set_param_mat4x4)(_CGparameter*, const scalar_t*) = cgGLSetMatrixParameterdr;
+#endif	// SINGLE_PRECISION_MATH
+
+#endif	// USING_CG_TOOLKIT
 
 GfxProg::GfxProg(const char *fname, int ptype) {
 	cg_prog = 0;
@@ -46,7 +61,7 @@ GfxProg::~GfxProg() {
 #ifdef USING_CG_TOOLKIT
 		cgDestroyProgram(cg_prog);
 #else
-		EngineLog("Tried to destroy a Cg program, but this 3dengfx lib is not compiled with Cg support");
+		error("Tried to destroy a Cg program, but this 3dengfx lib is not compiled with Cg support");
 #endif	// USING_CG_TOOLKIT
 	}
 	if(asm_prog) {
@@ -128,10 +143,51 @@ bool GfxProg::LoadProgram(const char *fname, int ptype) {
 
 		cgGLLoadProgram(cg_prog);
 #else
-		EngineLog("tried to load a Cg program, but this 3dengfx lib is not compiled with Cg support");
+		error("tried to load a Cg program, but this 3dengfx lib is not compiled with Cg support");
 #endif	// USING_CG_TOOLKIT
 	}
 
 	delete [] prog_buf;
 	return true;
 }
+
+
+void GfxProg::SetParameter(const char *pname, scalar_t val) {
+	if(prog_type == PROG_VP || prog_type == PROG_FP) {
+		error("Parameters to ARB fp/vp NOT implemented yet");
+	} else {
+#ifdef USING_CG_TOOLKIT
+		_CGparameter *cgparam = cgGetNamedParameter(cg_prog, pname);
+		cg_set_param(cgparam, val);
+#else
+		error("tried to set a Cg program parameter, but this 3dengfx lib is not compiled with Cg support");
+#endif	// USING_CG_TOOLKIT
+	}
+}
+
+void GfxProg::SetParameter(const char *pname, const Vector3 &val) {
+	if(prog_type == PROG_VP || prog_type == PROG_FP) {
+		error("Parameters to ARB fp/vp NOT implemented yet");
+	} else {
+#ifdef USING_CG_TOOLKIT
+		_CGparameter *cgparam = cgGetNamedParameter(cg_prog, pname);
+		cg_set_param_vec3(cgparam, val.x, val.y, val.z);
+#else
+		error("tried to set a Cg program parameter, but this 3dengfx lib is not compiled with Cg support");
+#endif	// USING_CG_TOOLKIT
+	}
+}
+
+void GfxProg::SetParameter(const char *pname, const Matrix4x4 &val) {
+	if(prog_type == PROG_VP || prog_type == PROG_FP) {
+		error("Parameters to ARB fp/vp NOT implemented yet");
+	} else {
+#ifdef USING_CG_TOOLKIT
+		_CGparameter *cgparam = cgGetNamedParameter(cg_prog, pname);
+		cg_set_param_mat4x4(cgparam, val.OpenGLMatrix());
+#else
+		error("tried to set a Cg program parameter, but this 3dengfx lib is not compiled with Cg support");
+#endif	// USING_CG_TOOLKIT
+	}
+}
+

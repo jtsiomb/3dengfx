@@ -469,7 +469,7 @@ void Flip() {
 }
 
 void LoadXFormMatrices() {
-	for(int i=0; i<8; i++) {
+	for(int i=0; i<sys_caps.max_texture_units; i++) {
 		SelectTextureUnit(i);
 		glMatrixMode(GL_TEXTURE);
 		LoadMatrixGL(tex_matrix[i]);
@@ -537,10 +537,8 @@ void Draw(const VertexArray &varray) {
 }
 
 void Draw(const VertexArray &varray, const IndexArray &iarray) {
-	static int dbg;
-	dbg++;
 	LoadXFormMatrices();
-
+	
 	bool use_vbo = !varray.GetDynamic() && sys_caps.vertex_buffers;
 	bool use_ibo = false;//!iarray.GetDynamic() && sys_caps.vertex_buffers;
 	

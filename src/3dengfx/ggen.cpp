@@ -21,12 +21,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* geometry generation
  * 
  * author: John Tsiombikas 2004
- * modified: Mihalis Georgoulopoulos 2004
+ * modified: 
+ * 		Mihalis Georgoulopoulos 2004
+ * 		John Tsiombikas 2005
  */
 
 #include "3dengfx_config.h"
 #include "gfx/curves.hpp"
 #include "ggen.hpp"
+
+#define GGEN_SOURCE
+#include "teapot.h"
  
 /* CreatePlane - (JT)
  * creates a planar mesh of arbitrary subdivision
@@ -77,6 +82,104 @@ void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int sub
 	delete [] quads;
 	delete [] varray;
 	delete [] tarray;
+}
+
+/* CreateCylinder - (JT)
+ * creates a cylinder by extruding a circle along the y axis, with optional
+ * caps at each end.
+ */
+void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int udiv, int vdiv) {
+	if(udiv < 3) udiv = 3;
+	Vector3 *circle = new Vector3[udiv + 1];
+
+	// generate the circle
+	Vector3 cgen(0.0, -len / 2.0, rad);
+	
+	for(int i=0; i<udiv; i++) {
+		Matrix3x3 mat;
+		mat.SetRotation(Vector3(0.0, two_pi * (scalar_t)i / (scalar_t)udiv, 0.0));
+		circle[i] = cgen.Transformed(mat);
+	}
+	circle[udiv] = cgen;
+
+	// extrude along y
+	int slices = vdiv + 2;
+	int vcount = (udiv + 1) * slices + (caps ? 2 * (udiv + 2) : 0);
+	Vertex *verts = new Vertex[vcount];
+	scalar_t yoffs = len / (vdiv + 1);
+
+	Vertex *vptr = verts;
+	for(int i=0; i<slices; i++) {
+		for(int j=0; j<=udiv; j++) {
+			vptr->pos = circle[j];
+			vptr->pos.y += yoffs * i;
+			vptr->normal = circle[j];
+			vptr->normal.y = 0.0;
+			vptr->normal /= rad;
+			scalar_t u = (scalar_t)j / (scalar_t)udiv;
+			scalar_t v = (scalar_t)i / len;
+			vptr->tex[0] = vptr->tex[1] = TexCoord(u, v);
+			vptr++;
+		}
+	}
+
+	if(caps) {
+		Vertex *cap1 = vptr;
+		Vertex *cap2 = vptr + udiv + 2;
+		
+		for(int i=0; i<=udiv; i++) {
+			circle[i].y = -len/2.0;
+			cap1->pos = circle[i];
+			cap1->normal = Vector3(0.0, -1.0, 0.0);
+			cap1->tex[0] = vptr->tex[1] = TexCoord((scalar_t)i / (scalar_t)udiv, 0.0);
+			
+			*cap2 = *cap1;
+			cap2->pos.y = len/2.0;
+			cap2->normal.y *= -1.0;
+			cap2->tex[0].v = cap2->tex[1].v = 1.0;
+
+			cap1++;
+			cap2++;
+		}
+
+		*cap1 = Vertex(Vector3(0.0, -len/2.0, 0.0), 0.0, 0.0);
+		cap1->normal = Vector3(0.0, -1.0, 0.0);
+
+		*cap2 = *cap1;
+		cap2->pos.y = len/2.0;
+		cap2->normal.y *= -1.0;
+		cap2->tex[0].v = cap2->tex[1].v = 1.0;
+	}
+			
+
+	// triangulate
+	int tcount = 2 * udiv * (slices - 1) + (caps ? udiv * 2 : 0);
+	Triangle *triangles = new Triangle[tcount];
+	Triangle *tptr = triangles;
+	int v = 0;
+	for(int i=0; i<slices-1; i++) {
+		for(int j=0; j<udiv; j++) {
+			*tptr++ = Triangle(v + udiv + 1, v + 1, v + udiv + 2);
+			*tptr++ = Triangle(v + udiv + 1, v, v + 1);
+			v++;
+		}
+		v++;
+	}
+
+	if(caps) {
+		v += udiv + 1;
+		int v2 = v + udiv + 2;
+		Triangle *tcap2 = tptr + udiv;
+		for(int i=0; i<udiv; i++) {
+			*tptr++ = Triangle(v + udiv + 1, v + i + 1, v + i);
+			*tcap2++ = Triangle(v2 + udiv + 1, v2 + i, v2 + i + 1);
+		}		
+	}
+	
+	mesh->SetData(verts, vcount, triangles, tcount);
+
+	delete [] verts;
+	delete [] triangles;
 }
 
 /* CreateSphere - (MG)
@@ -413,15 +516,13 @@ void CreateBezierPatch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline
  * TODO : Make a bezier patch class , like Triangle
  * and Quad. Store indices
  */
-void CreateBezierMesh(TriMesh *mesh, Vector3 *cp, 
-		unsigned long patch_count, unsigned long *patches,
-		int subdiv)
+void CreateBezierMesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, int patch_count, int subdiv)
 {
 	TriMesh tmp_mesh;
-	Vector3 *control_pts = new Vector3[16];
-	for (unsigned long i=0; i<patch_count; i++)
+	Vector3 control_pts[16];
+	for(int i=0; i<patch_count; i++)
 	{
-		for (int j=0; j<16; j++)
+		for(int j=0; j<16; j++)
 		{
 			control_pts[j] = cp[ patches[16 * i + j] ];
 		}
@@ -430,43 +531,41 @@ void CreateBezierMesh(TriMesh *mesh, Vector3 *cp,
 
 		JoinTriMesh(mesh, mesh, &tmp_mesh);
 	}
-	delete [] control_pts;
 }
 
 /* CreateTeapot - (MG)
  * Creates a teapot TriMesh, using the original
  * data file from Newell
  */
-#include "gfx/teapot.h"
 void CreateTeapot(TriMesh *mesh, int subdiv)
 {
-	unsigned long *patches = new unsigned long [Teapot_num_patches * 16];
+	unsigned int *patches = new unsigned int[teapot_num_patches * 16];
+	
 	// fix indices to start from zero
-	for (unsigned long i=0; i<Teapot_num_patches * 16; i++)
+	for(int i=0; i<teapot_num_patches * 16; i++)
 	{
-		patches[i] = Teapot_patches[i] - 1;
+		patches[i] = teapot_patches[i] - 1;
 	}
 
 	// rearrange patches to clockwise order
-	for (unsigned long p=0; p<Teapot_num_patches; p++)
+	for(int p=0; p<teapot_num_patches; p++)
 	{
-		unsigned long new_order[16];
-		for (unsigned long j=0; j<4; j++)
+		unsigned int new_order[16];
+		for(int j=0; j<4; j++)
 		{
-			for (unsigned long i=0; i<4; i++)
+			for(int i=0; i<4; i++)
 			{
 				new_order[i * 4 + (3 - j)] = patches[p * 16 + j * 4 + i];
 			}
 		}
 
-		for (unsigned long k=0; k<16; k++)
+		for(int k=0; k<16; k++)
 		{
 			patches[16 * p + k] = new_order[k];
 		}
 	}
 	
-	CreateBezierMesh(mesh, (Vector3*)Teapot_vertices, 
-			Teapot_num_patches, patches, subdiv);
+	CreateBezierMesh(mesh, (Vector3*)teapot_vertices, patches, teapot_num_patches, subdiv);
 
 	delete [] patches;
 }

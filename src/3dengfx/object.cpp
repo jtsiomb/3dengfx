@@ -160,11 +160,11 @@ void Object::SetShowNormalsScale(scalar_t scale) {
 	render_params.show_normals_scale = scale;
 }
 
-void Object::ApplyXForm(unsigned long time) {
+void Object::ApplyXForm(bool recalc_normals, unsigned long time) {
 	world_mat = GetPRS(time).GetXFormMatrix();
 	mesh.ApplyXForm(world_mat);
 	ResetXForm(time);
-	mesh.CalculateNormals();
+	if(recalc_normals) mesh.CalculateNormals();
 }
 
 void Object::Render8TexUnits() {
@@ -258,9 +258,6 @@ void Object::Render(unsigned long time) {
 	//Render8TexUnits();
 	RenderHack(time);
 
-	if(render_params.show_normals) {
-		DrawNormals();
-	}
 }
 
 void Object::RenderHack(unsigned long time) {
@@ -346,13 +343,13 @@ void Object::RenderHack(unsigned long time) {
 	Draw(*mesh.GetVertexArray(), *mesh.GetIndexArray());
 
 	if(render_params.pprog) SetPixelProgramming(false);
-	if(render_params.vprog) SetVertexProgramming(false);
 	
 	if(render_params.wire) ::SetWireframe(false);
 	//SetAlphaBlending(false);
 	if(render_params.blending) SetAlphaBlending(false);
 	if(render_params.zwrite) ::SetZWrite(true);
 	if(render_params.shading == SHADING_FLAT) SetShadingMode(SHADING_GOURAUD);
+
 
 	for(int i=0; i<tex_unit; i++) {
 		DisableTextureUnit(i);
@@ -365,6 +362,11 @@ void Object::RenderHack(unsigned long time) {
 		SetMatrix(XFORM_TEXTURE, Matrix4x4::identity_matrix, i);
 		SetTextureAddressing(tex_unit, TEXADDR_WRAP, TEXADDR_WRAP);
 	}
+
+	if(render_params.show_normals) {
+		DrawNormals();
+	}
+	if(render_params.vprog) SetVertexProgramming(false);
 }
 
 void Object::DrawNormals() {

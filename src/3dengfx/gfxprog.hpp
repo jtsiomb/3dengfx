@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _GFXPROG_HPP_
 #define _GFXPROG_HPP_
 
+#include "n3dmath2/n3dmath2.hpp"
+
 #ifdef USING_CG_TOOLKIT
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
@@ -50,6 +52,11 @@ public:
 	int GetType() const;
 
 	virtual bool LoadProgram(const char *fname, int ptype = -1);
+
+	virtual void SetParameter(const char *pname, scalar_t val);
+	virtual void SetParameter(const char *pname, const Vector3 &val);
+	virtual void SetParameter(const char *pname, const Matrix4x4 &val);
+	
 	friend void SetGfxProgram(GfxProg *prog, bool enable);
 };
 	

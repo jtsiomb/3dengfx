@@ -18,6 +18,14 @@ namespace fxwt {
 	void SetKeyboardHandler(void (*handler)(int));
 	void SetMotionHandler(void (*handler)(int, int));
 	void SetButtonHandler(void (*handler)(int, int, int, int));
+
+	void RemoveDisplayHandler(void (*handler)());
+	void RemoveIdleHandler(void (*handler)());
+	void RemoveKeyboardHandler(void (*handler)(int));
+	void RemoveMotionHandler(void (*handler)(int, int));
+	void RemoveButtonHandler(void (*handler)(int, int, int, int));
+
+	void SetWindowTitle(const char *title);
 	
 	int MainLoop();
 }

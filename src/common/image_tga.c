@@ -18,6 +18,11 @@ along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* targa support
+ * 
+ * author: John Tsiombikas 2004
+ */
+
 #include "3dengfx_config.h"
 #include "image.h"
 #include <stdio.h>

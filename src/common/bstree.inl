@@ -1,22 +1,3 @@
-/*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
-This file is part of the eternal demo.
-
-The eternal library is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-The eternal demo is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with the eternal demo; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
 // Template definitions, included in the bstree.h header file
 
 template <class T>
@@ -162,22 +143,67 @@ BSTreeNode<T> *BSTree<T>::Find(T data) {
 
 
 template <class T>
-void BSTree<T>::RecTraverse(BSTreeNode<T> *tree, void (*action)(BSTreeNode<T> *node), TraversalOrder order) const {
+void BSTree<T>::RecTraverse(BSTreeNode<T> *tree, void (*action)(BSTreeNode<T> *node), TraversalOrder order, bool rev) const {
 	if(!tree) return;
 
 	if(order == TRAVERSE_PREORDER) action(tree);
-	RecTraverse(tree->left, action, order);
+	RecTraverse(rev ? tree->right : tree->left, action, order);
 	if(order == TRAVERSE_INORDER) action(tree);
-	RecTraverse(tree->right, action, order);
+	RecTraverse(rev ? tree->left : tree->right, action, order);
 	if(order == TRAVERSE_POSTORDER) action(tree);
 }
 
 template <class T>
 inline void BSTree<T>::Traverse(void (*action)(BSTreeNode<T> *node), TraversalOrder order) const {
-	RecTraverse(root, action, order);
+	RecTraverse(root, action, order, false);
+}
+
+template <class T>
+inline void BSTree<T>::TraverseRev(void (*action)(BSTreeNode<T> *node), TraversalOrder order) const {
+	RecTraverse(root, action, order, true);
 }
 
 template <class T>
 int BSTree<T>::Size() const {
-	return ElementCount;
+	return elem_count;
+}
+
+
+template <class T>
+void BSTree<T>::ResetIterator() const {
+	while(!node_stack.empty()) node_stack.pop();
+
+	node_stack.push(root);
+}
+
+template <class T>
+T *BSTree<T>::Next() const {
+	if(node_stack.empty()) return 0;
+
+	BSTreeNode<T> *next = 0;
+	BSTreeNode<T> *top = node_stack.top();
+
+	if(top->visit_count == 0) {
+		if(top->left) top->left->visit_count = 0;
+		if(top->right) top->right->visit_count = 0;
+	}
+	top->visit_count++;
+
+	if(top->left && top->left->visit_count == 0) {
+		next = top->left;
+	} else if(top->right && top->right->visit_count == 0) {
+		next = top->right;
+	}
+
+	if(next) {
+		node_stack.push(next);
+	} else {
+		node_stack.pop();
+	}
+
+	if(top->visit_count == 1) {
+		return &top->data;
+	} else {
+		return Next();
+	}
 }

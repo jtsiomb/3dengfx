@@ -32,11 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/color.hpp"
 
 // Macros
-#define PACK_ARGB32(a,r,g,b) \
-	((((a) & ALPHA_MASK32) << ALPHA_SHIFT32) | \
-	(((r) & RED_MASK32) << RED_SHIFT32) | \
-	(((g) & GREEN_MASK32) << GREEN_SHIFT32) | \
-	(((b) & BLUE_MASK32) << BLUE_SHIFT32))
+#define PACK_ARGB32(a,r,g,b)	PACK_COLOR32(a,r,g,b)
 
 #define GETA(c) 		(((c) >> ALPHA_SHIFT32) & ALPHA_MASK32)
 #define GETR(c) 		(((c) >> RED_SHIFT32) & RED_MASK32)
@@ -506,6 +502,9 @@ int* LoadKernel(const char* filename, int *dim)
 	return kernel;
 }
 
+/* SobelEdge - (JT)
+ * Applies the sobel edge detection algorithm to the pixel buffer
+ */
 bool SobelEdge(PixelBuffer *pb, ImgSamplingMode sampling) {
 	int sobel_horiz[] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
 	int sobel_vert[] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
@@ -568,13 +567,13 @@ bool Blur(PixelBuffer *pb,ImgSamplingMode sampling)
 
 	unsigned long *temp = (unsigned long*)malloc(pb->width * pb->height * sizeof(unsigned long));
 
-	unsigned long* scanline = pb->buffer;
-	unsigned long* dst_scanline = temp;
+	unsigned long *scanline = pb->buffer;
+	unsigned long *dst_scanline = temp;
 
 	// blur horizontally
-	for (int j=0;j<pb->height;j++)
+	for(unsigned int j=0; j<pb->height; j++)
 	{
-		for (int i=0;i<pb->width;i++)
+		for(unsigned int i=0; i<pb->width; i++)
 		{
 			dst_scanline[i] = BlurPixels(scanline[MapIndex(i-1 , pb->width)], scanline[MapIndex(i+1 , pb->width)]);
 		}	
@@ -583,9 +582,9 @@ bool Blur(PixelBuffer *pb,ImgSamplingMode sampling)
 	}
 
 	// blur vertically
-	for (int i=0;i<pb->width;i++)
+	for(unsigned int i=0; i<pb->width; i++)
 	{
-		for (int j=0;j<pb->height;j++)
+		for(unsigned int j=0;j<pb->height;j++)
 		{
 			pb->buffer[i+j*pb->width] = BlurPixels(temp[i+MapIndex(j-1,pb->height)*pb->width], temp[i+MapIndex(j+1,pb->height)*pb->width]);
 		}

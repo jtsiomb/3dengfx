@@ -18,10 +18,19 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* geometry generation
+ * 
+ * author: John Tsiombikas 2004
+ * modified: Mihalis Georgoulopoulos 2004
+ */
+
 #include "3dengfx_config.h"
 
 #include "ggen.hpp"
  
+/* CreatePlane - (JT)
+ * creates a planar mesh of arbitrary subdivision
+ */
 void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int subdiv) {
 	unsigned long vcount = (subdiv + 2) * (subdiv + 2);
 	unsigned long tcount = (subdiv + 1) * (subdiv + 1) * 2;
@@ -70,7 +79,9 @@ void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int sub
 	delete [] tarray;
 }
 
-
+/* CreateSphere - (MG)
+ * creates a sphere as a solid of revolution
+ */
 void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv) {
 	// Solid of revolution. A slice of pi rads is rotated
 	// for 2pi rads. Subdiv in this revolution should be
@@ -142,8 +153,10 @@ void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv) {
 	delete [] tarray;
 }
 
+/* CreateTorus - (MG)
+ * Creates a toroid mesh
+ */
 void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv) {
-
 	unsigned long edges_2pi  = 4 * subdiv;
 	unsigned long vcount_2pi = edges_2pi + 1;
 

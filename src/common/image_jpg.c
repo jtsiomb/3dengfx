@@ -18,7 +18,11 @@ along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* 23/11/2004 - jpeg loading implemented by Mihalis Georgoulopoulos */
+/* jpeg support
+ * 
+ * author: Mihalis Georgoulopoulos 2004
+ * modified: John Tsiombikas 2004
+ */
 
 #include "3dengfx_config.h"
 #include "image.h"
@@ -28,14 +32,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <stdlib.h>
 #include <jpeglib.h>
+#include "gfx/color_bits.h"
 
 typedef struct
 {
-    unsigned char r,g,b;
-}RGBTriplet;
-
-/* change this macro to support big endian machines */
-#define PACK32RGB(r,g,b) ((0<<24) | (r<<16) | (g<<8) | b)
+	unsigned char r,g,b;
+} RGBTriplet;
 
 /*jpeg signature*/
 int check_jpeg(FILE *fp){
@@ -98,9 +100,8 @@ void *load_jpeg(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
             
             for (i=0;i<cinfo.image_width;i++)
             {
-				/* packing to 32 bit. take care for big endian*/
-                image[i+(cinfo.output_scanline-1)*cinfo.output_width]
-                    = PACK32RGB(buffer[i].r , buffer[i].g , buffer[i].b);    
+				int offs = i + (cinfo.output_scanline-1) * cinfo.output_width;
+                image[offs] = PACK_COLOR24(buffer[i].r, buffer[i].g, buffer[i].b);
             }
         }
     }

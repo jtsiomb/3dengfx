@@ -2,43 +2,81 @@
 #include <SDL.h>
 #include "fxwt.hpp"
 
+using std::list;
+
 static void HandleEvent(const SDL_Event &event);
 
-static void (*disp_handler)() = 0;
-static void (*idle_handler)() = 0;
-static void (*keyb_handler)(int) = 0;
-static void (*motion_handler)(int, int) = 0;
-static void (*button_handler)(int, int, int, int) = 0;
+static list<void (*)()> disp_handlers;
+static list<void (*)()> idle_handlers;
+static list<void (*)(int)> keyb_handlers;
+static list<void (*)(int, int)> motion_handlers;
+static list<void (*)(int, int, int, int)> button_handlers;
+
 
 void fxwt::SetDisplayHandler(void (*handler)()) {
-	disp_handler = handler;
+	disp_handlers.push_back(handler);
 }
 
 void fxwt::SetIdleHandler(void (*handler)()) {
-	idle_handler = handler;
+	idle_handlers.push_back(handler);
 }
 
 void fxwt::SetKeyboardHandler(void (*handler)(int)) {
-	keyb_handler = handler;
+	keyb_handlers.push_back(handler);
 }
 
 void fxwt::SetMotionHandler(void (*handler)(int, int)) {
-	motion_handler = handler;
+	motion_handlers.push_back(handler);
 }
 
 void fxwt::SetButtonHandler(void (*handler)(int, int, int, int)) {
-	button_handler = handler;
+	button_handlers.push_back(handler);
+}
+
+void fxwt::RemoveDisplayHandler(void (*handler)()) {
+	disp_handlers.remove(handler);
+}
+
+void fxwt::RemoveIdleHandler(void (*handler)()) {
+	idle_handlers.remove(handler);
+}
+
+void fxwt::RemoveKeyboardHandler(void (*handler)(int)) {
+	keyb_handlers.remove(handler);
+}
+
+void fxwt::RemoveMotionHandler(void (*handler)(int, int)) {
+	motion_handlers.remove(handler);
+}
+
+void fxwt::RemoveButtonHandler(void (*handler)(int, int, int, int)) {
+	button_handlers.remove(handler);
+}
+
+void fxwt::SetWindowTitle(const char *title) {
+	SDL_WM_SetCaption(title, 0);
 }
 
 int fxwt::MainLoop() {
+
+	fxwt::WidgetInit();
+	SetDisplayHandler(WidgetDisplayHandler);
+	SetKeyboardHandler(WidgetKeyboardHandler);
+	SetMotionHandler(WidgetMotionHandler);
+	SetButtonHandler(WidgetButtonHandler);
+	
 	while(1) {
 		SDL_Event event;
 
-		if(idle_handler) {
+		if(!idle_handlers.empty()) {
 			while(SDL_PollEvent(&event)) {
 				HandleEvent(event);
 			}
-			idle_handler();
+
+			list<void (*)()>::iterator iter = idle_handlers.begin();
+			while(iter != idle_handlers.end()) {
+				(*iter)();
+			}
 		} else {
 			SDL_WaitEvent(&event);
 			HandleEvent(event);
@@ -51,20 +89,40 @@ int fxwt::MainLoop() {
 static void HandleEvent(const SDL_Event &event) {
 	switch(event.type) {
 	case SDL_KEYDOWN:
-		if(keyb_handler) keyb_handler(event.key.keysym.sym);
+		{
+			list<void (*)(int)>::iterator iter = keyb_handlers.begin();
+			while(iter != keyb_handlers.end()) {
+				(*iter)(event.key.keysym.sym);
+			}
+		}
 		break;
 
 	case SDL_VIDEOEXPOSE:
-		if(disp_handler) disp_handler();
+		{
+			list<void (*)()>::iterator iter = disp_handlers.begin();
+			while(iter != disp_handlers.end()) {
+				(*iter)();
+			}
+		}
 		break;
 
 	case SDL_MOUSEMOTION:
-		if(motion_handler) motion_handler(event.motion.x, event.motion.y);
+		{
+			list<void (*)(int, int)>::iterator iter = motion_handlers.begin();
+			while(iter != motion_handlers.end()) {
+				(*iter)(event.motion.x, event.motion.y);
+			}
+		}
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_MOUSEBUTTONUP:
-		if(button_handler) button_handler(event.button.button, event.button.state == SDL_PRESSED, event.button.x, event.button.y);
+		{
+			list<void (*)(int, int, int, int)>::iterator iter = button_handlers.begin();
+			while(iter != button_handlers.end()) {
+				(*iter)(event.button.button, event.button.state == SDL_PRESSED, event.button.x, event.button.y);
+			}
+		}
 		break;
 
 	case SDL_QUIT:

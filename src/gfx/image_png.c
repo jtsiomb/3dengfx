@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <stdlib.h>
 #include <png.h>
+#include "color_bits.h"
 
 #define FILE_SIG_BYTES	8
 
@@ -87,7 +88,7 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 				for(j=0; j<*xsz; j++) {
 			
 					unsigned long pixel;
-					pixel = 0xff << 24 | ((unsigned long)*(ptr+2) << 16) | ((unsigned long)*(ptr+1) << 8) | (unsigned long)*ptr;
+					pixel = PACK_COLOR24(*(ptr+2), *(ptr+1), *ptr);
 					ptr+=3;
 					pixels[i * *xsz + j] = pixel;			
 				}

@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "textures.hpp"
 #include "material.hpp"
 #include "gfx/3dgeom.hpp"
-#include "common/image.h"
+#include "gfx/image.h"
 
 extern Matrix4x4 world_matrix, view_matrix;
 

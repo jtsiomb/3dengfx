@@ -147,9 +147,9 @@ void BSTree<T>::RecTraverse(BSTreeNode<T> *tree, void (*action)(BSTreeNode<T> *n
 	if(!tree) return;
 
 	if(order == TRAVERSE_PREORDER) action(tree);
-	RecTraverse(rev ? tree->right : tree->left, action, order);
+	RecTraverse(rev ? tree->right : tree->left, action, order, rev);
 	if(order == TRAVERSE_INORDER) action(tree);
-	RecTraverse(rev ? tree->left : tree->right, action, order);
+	RecTraverse(rev ? tree->left : tree->right, action, order, rev);
 	if(order == TRAVERSE_POSTORDER) action(tree);
 }
 

@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <stdlib.h>
 #include <jpeglib.h>
-#include "gfx/color_bits.h"
+#include "color_bits.h"
 
 typedef struct
 {

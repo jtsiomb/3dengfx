@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cstring>
 #include <cctype>
 #include "img_manip.hpp"
-#include "gfx/color.hpp"
+#include "color.hpp"
 
 // Macros
 #define PACK_ARGB32(a,r,g,b)	PACK_COLOR32(a,r,g,b)

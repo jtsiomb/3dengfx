@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _COLOR2_H_
 #define _COLOR2_H_
 
+#include "3dengfx_config.h"
 #include "color_bits.h"
 
 #ifdef SINGLE_PRECISION_MATH

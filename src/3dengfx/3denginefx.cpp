@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/3dgeom.hpp"
 #include "except.hpp"
 #include "gfxprog.hpp"
-#include "common/image.h"
+#include "gfx/image.h"
 #include "common/logger.h"
 #include "common/config_parser.h"
 

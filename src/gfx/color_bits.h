@@ -82,21 +82,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 /* color packing macros */
 #define PACK_COLOR32(a,r,g,b) \
-	((((a) & ALPHA_MASK32) << ALPHA_SHIFT32) | \
-	(((r) & RED_MASK32) << RED_SHIFT32) | \
-	(((g) & GREEN_MASK32) << GREEN_SHIFT32) | \
-	(((b) & BLUE_MASK32) << BLUE_SHIFT32))
+	((((unsigned long)(a) & ALPHA_MASK32) << ALPHA_SHIFT32) | \
+	(((unsigned long)(r) & RED_MASK32) << RED_SHIFT32) | \
+	(((unsigned long)(g) & GREEN_MASK32) << GREEN_SHIFT32) | \
+	(((unsigned long)(b) & BLUE_MASK32) << BLUE_SHIFT32))
 
 #define PACK_COLOR24(r,g,b)		PACK_COLOR32(0xff,r,g,b)
 
 #define PACK_COLOR16(r,g,b) \
-	((((r) & RED_MASK16) << RED_SHIFT16) | \
-	(((g) & GREEN_MASK16) << GREEN_SHIFT16) | \
-	(((b) & BLUE_MASK16) << BLUE_SHIFT16))
+	((((unsigned short)(r) & RED_MASK16) << RED_SHIFT16) | \
+	(((unsigned short)(g) & GREEN_MASK16) << GREEN_SHIFT16) | \
+	(((unsigned short)(b) & BLUE_MASK16) << BLUE_SHIFT16))
 
 #define PACK_COLOR15(r,g,b) \
-	((((r) & RED_MASK15) << RED_SHIFT15) | \
-	(((g) & GREEN_MASK15) << GREEN_SHIFT15) | \
-	(((b) & BLUE_MASK15) << BLUE_SHIFT15))
+	((((unsigned short)(r) & RED_MASK15) << RED_SHIFT15) | \
+	(((unsigned short)(g) & GREEN_MASK15) << GREEN_SHIFT15) | \
+	(((unsigned short)(b) & BLUE_MASK15) << BLUE_SHIFT15))
 
 #endif	/* _COLOR_BITS_H_ */

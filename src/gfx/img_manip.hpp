@@ -25,10 +25,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * modified: John Tsiombikas 2004
  */
 
-#include "gfx/pbuffer.hpp"
+#include "pbuffer.hpp"
+#include "color.hpp"
 #include "3dengfx/3denginefx_types.hpp"
 #include "n3dmath2/n3dmath2_types.hpp"
-#include "gfx/color.hpp"
 
 enum ImgSamplingMode {SAMPLE_CLAMP, SAMPLE_WRAP, SAMPLE_MIRROR};
 

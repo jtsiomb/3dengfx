@@ -1,0 +1,1 @@
+obj += dsys/dsys.o dsys/fx.o dsys/part.o dsys/script.o

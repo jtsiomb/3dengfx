@@ -64,3 +64,9 @@ public:
 };
 
 #endif	// _TEXTURES_HPP_
+char *fname);
+
+Texture *GetTexture(const char *fname);
+
+
+enum Cube

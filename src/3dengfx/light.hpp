@@ -67,3 +67,5 @@ public:
 	
 
 #endif	// _LIGHT_HPP_
+CHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Genera

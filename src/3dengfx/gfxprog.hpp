@@ -55,3 +55,6 @@ public:
 	
 
 #endif	// _GFXPROG_HPP_
+ later version.
+
+3dengfx is distributed in the hope that 

@@ -50,3 +50,5 @@ public:
 };
 
 #endif	// _CAMERA_HPP_
+oid AddCamera(Camera *cam);
+	void AddLight(Light *li

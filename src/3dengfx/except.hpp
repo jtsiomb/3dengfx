@@ -38,3 +38,6 @@ public:
 };
 
 #endif	// _EXCEPT_HPP_
+etCamera : public Camera {
+public:
+	XFor

@@ -33,3 +33,6 @@ const char *GetDataPath(DataPathType dtype);
 Object *LoadObject(const char *name, char *src, int flags);
 
 #endif	// _LOAD_GEOM_HPP_
+olor;
+	scalar_t intensity;
+	scalar_

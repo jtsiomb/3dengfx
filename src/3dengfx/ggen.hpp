@@ -26,3 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int subdiv);
 
 #endif	// _GGEN_HPP_
+USING_CG_TOOLKIT
+
+enum {
+	PR

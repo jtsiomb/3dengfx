@@ -177,3 +177,11 @@ enum ChunkID {
 
 #endif	// _3DSCHUNKS_H_
 
+EX_PY]);
+	Clear(0);
+	ClearZBufferStencil(1.0, 0);
+	Render(msec);
+	SetRenderTarget(0);
+	
+	SetRenderTarget(tex, CUBE_MAP_NY);
+	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_IND

@@ -34,3 +34,7 @@ namespace SceneLoader {
 }
 
 #endif	// _SCENELOADER_H_
+ z;
+
+public:
+	FuzzyVec3(const Fuzzy 

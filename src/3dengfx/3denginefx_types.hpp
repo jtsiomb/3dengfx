@@ -177,3 +177,12 @@ enum TransformType {
 
 
 #endif	// _3DENGINEFX_TYPES_HPP_
+ojectionMatrix(scalar_t vfov, scalar_t aspect, scalar_t near, scalar_t far);
+
+
+////////////// function prototypes ///////////////
+GraphicsInitParameters LoadGraphicsContextConfig(const char *fname);
+void EngineLog(const char *log_data, const char *subsys = 0);
+SysCaps GetSystemCapabilities();
+const char *GetGLErrorString(GLenum error);
+extern void (*LoadMatrix

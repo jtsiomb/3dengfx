@@ -65,7 +65,16 @@ bool Init() {
 	GraphicsInitParameters *gip;
 	if(!cfg_file || !(gip = LoadGraphicsContextConfig(cfg_file))) {
 		warning("couldn't %s the config file \"3dengfx.conf\", using defaults\n", cfg_file ? "load" : "locate");
-		// use defaults
+		
+		static GraphicsInitParameters init;
+		init.x = 800;
+		init.y = 600;
+		init.bpp = 32;
+		init.depth_bits = 32;
+		init.fullscreen = false;
+		init.stencil_bits = 8;
+		init.dont_care_flags = DONT_CARE_DEPTH | DONT_CARE_STENCIL | DONT_CARE_BPP;
+		gip = &init;
 	}
 	
 	if(!CreateGraphicsContext(*gip)) {
@@ -81,7 +90,7 @@ bool Init() {
 	fxwt::SetButtonHandler(BnHandler);
 	atexit(CleanUp);
 
-	SetSceneDataPath(data_dir);
+	if(data_dir) SetSceneDataPath(data_dir);
 	if(!(scene = LoadScene(scene_file))) {
 		return false;
 	}

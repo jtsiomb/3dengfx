@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="src"
 				PreprocessorDefinitions="HAVE_CONFIG_H;WIN32"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -59,7 +59,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="src"
 				PreprocessorDefinitions="HAVE_CONFIG_H;WIN32"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -94,212 +94,244 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="config.h">
+				RelativePath="src\3dengfx_config.h">
 			</File>
 			<Filter
 				Name="3dengfx"
 				Filter="">
 				<File
-					RelativePath="3dengfx\3dengfx.hpp">
+					RelativePath="src\3dengfx\3dengfx.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\3denginefx.cpp">
+					RelativePath="src\3dengfx\3denginefx.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\3denginefx.hpp">
+					RelativePath="src\3dengfx\3denginefx.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\3denginefx_types.hpp">
+					RelativePath="src\3dengfx\3denginefx_types.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\3dscene.cpp">
+					RelativePath="src\3dengfx\3dscene.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\3dscene.hpp">
+					RelativePath="src\3dengfx\3dscene.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\3dschunks.h">
+					RelativePath="src\3dengfx\camera.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\camera.cpp">
+					RelativePath="src\3dengfx\camera.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\camera.hpp">
+					RelativePath="src\3dengfx\gfxprog.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\except.cpp">
+					RelativePath="src\3dengfx\gfxprog.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\except.hpp">
+					RelativePath="src\3dengfx\ggen.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\gfxprog.cpp">
+					RelativePath="src\3dengfx\ggen.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\gfxprog.hpp">
+					RelativePath="src\3dengfx\glext.h">
 				</File>
 				<File
-					RelativePath="3dengfx\ggen.cpp">
+					RelativePath="src\3dengfx\isosurf.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\ggen.hpp">
+					RelativePath="src\3dengfx\isosurf.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\light.cpp">
+					RelativePath="src\3dengfx\light.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\light.hpp">
+					RelativePath="src\3dengfx\light.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\load_geom.cpp">
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="TRUE">
-						<Tool
-							Name="VCCLCompilerTool"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="TRUE">
-						<Tool
-							Name="VCCLCompilerTool"/>
-					</FileConfiguration>
+					RelativePath="src\3dengfx\load_geom.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\load_geom.hpp">
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="TRUE">
-						<Tool
-							Name="VCCustomBuildTool"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="TRUE">
-						<Tool
-							Name="VCCustomBuildTool"/>
-					</FileConfiguration>
+					RelativePath="src\3dengfx\load_geom.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\material.cpp">
+					RelativePath="src\3dengfx\material.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\material.hpp">
+					RelativePath="src\3dengfx\material.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\object.cpp">
+					RelativePath="src\3dengfx\mcube_tables.h">
 				</File>
 				<File
-					RelativePath="3dengfx\object.hpp">
+					RelativePath="src\3dengfx\object.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\opengl.h">
+					RelativePath="src\3dengfx\object.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\sceneloader.cpp">
+					RelativePath="src\3dengfx\opengl.h">
 				</File>
 				<File
-					RelativePath="3dengfx\sceneloader.hpp">
+					RelativePath="src\3dengfx\psys.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\texman.cpp">
+					RelativePath="src\3dengfx\psys.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\texman.hpp">
+					RelativePath="src\3dengfx\sceneloader.cpp">
 				</File>
 				<File
-					RelativePath="3dengfx\textures.cpp">
+					RelativePath="src\3dengfx\sceneloader.hpp">
 				</File>
 				<File
-					RelativePath="3dengfx\textures.hpp">
+					RelativePath="src\3dengfx\teapot.h">
 				</File>
-				<Filter
-					Name="3dwt"
-					Filter="">
-					<File
-						RelativePath="3dengfx\3dwt\3dwt.cpp">
-					</File>
-					<File
-						RelativePath="3dengfx\3dwt\3dwt.hpp">
-					</File>
-				</Filter>
+				<File
+					RelativePath="src\3dengfx\texman.cpp">
+				</File>
+				<File
+					RelativePath="src\3dengfx\texman.hpp">
+				</File>
+				<File
+					RelativePath="src\3dengfx\textures.cpp">
+				</File>
+				<File
+					RelativePath="src\3dengfx\textures.hpp">
+				</File>
 			</Filter>
 			<Filter
 				Name="gfx"
 				Filter="">
 				<File
-					RelativePath="gfx\3dgeom.cpp">
+					RelativePath="src\gfx\3dgeom.cpp">
 				</File>
 				<File
-					RelativePath="gfx\3dgeom.hpp">
+					RelativePath="src\gfx\3dgeom.hpp">
 				</File>
 				<File
-					RelativePath="gfx\3dgeom.inl">
+					RelativePath="src\gfx\3dgeom.inl">
 				</File>
 				<File
-					RelativePath="gfx\base_cam.cpp">
+					RelativePath="src\gfx\animation.cpp">
 				</File>
 				<File
-					RelativePath="gfx\base_cam.hpp">
+					RelativePath="src\gfx\animation.hpp">
 				</File>
 				<File
-					RelativePath="gfx\color.cpp">
+					RelativePath="src\gfx\animation.inl">
 				</File>
 				<File
-					RelativePath="gfx\color.hpp">
+					RelativePath="src\gfx\base_cam.cpp">
 				</File>
 				<File
-					RelativePath="gfx\controller.cpp">
+					RelativePath="src\gfx\base_cam.hpp">
 				</File>
 				<File
-					RelativePath="gfx\controller.hpp">
+					RelativePath="src\gfx\color.cpp">
 				</File>
 				<File
-					RelativePath="gfx\curves.cpp">
+					RelativePath="src\gfx\color.hpp">
 				</File>
 				<File
-					RelativePath="gfx\curves.hpp">
+					RelativePath="src\gfx\color.inl">
 				</File>
 				<File
-					RelativePath="gfx\pbuffer.hpp">
+					RelativePath="src\gfx\color_bits.h">
+				</File>
+				<File
+					RelativePath="src\gfx\controller.cpp">
+				</File>
+				<File
+					RelativePath="src\gfx\controller.hpp">
+				</File>
+				<File
+					RelativePath="src\gfx\curves.cpp">
+				</File>
+				<File
+					RelativePath="src\gfx\curves.hpp">
+				</File>
+				<File
+					RelativePath="src\gfx\image.c">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="src\gfx\image.h">
+				</File>
+				<File
+					RelativePath="src\gfx\image_jpg.c">
+				</File>
+				<File
+					RelativePath="src\gfx\image_png.c">
+				</File>
+				<File
+					RelativePath="src\gfx\image_tga.c">
+				</File>
+				<File
+					RelativePath="src\gfx\img_manip.cpp">
+				</File>
+				<File
+					RelativePath="src\gfx\img_manip.hpp">
+				</File>
+				<File
+					RelativePath="src\gfx\pbuffer.hpp">
+				</File>
+				<File
+					RelativePath="src\gfx\timeline.cpp">
+				</File>
+				<File
+					RelativePath="src\gfx\timeline.hpp">
 				</File>
 			</Filter>
 			<Filter
 				Name="dsys"
 				Filter="">
 				<File
-					RelativePath="dsys\demosys.hpp">
+					RelativePath="src\dsys\demosys.hpp">
 				</File>
 				<File
-					RelativePath="dsys\dsys.cpp">
+					RelativePath="src\dsys\dsys.cpp">
 				</File>
 				<File
-					RelativePath="dsys\dsys.hpp">
+					RelativePath="src\dsys\dsys.hpp">
 				</File>
 				<File
-					RelativePath="dsys\fx.cpp">
+					RelativePath="src\dsys\fx.cpp">
 				</File>
 				<File
-					RelativePath="dsys\fx.hpp">
+					RelativePath="src\dsys\fx.hpp">
 				</File>
 				<File
-					RelativePath="dsys\part.cpp">
+					RelativePath="src\dsys\part.cpp">
 				</File>
 				<File
-					RelativePath="dsys\part.hpp">
+					RelativePath="src\dsys\part.hpp">
 				</File>
 				<File
-					RelativePath="dsys\script.c">
+					RelativePath="src\dsys\script.c">
 				</File>
 				<File
-					RelativePath="dsys\script.h">
+					RelativePath="src\dsys\script.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="nlibase"
 				Filter="">
 				<File
-					RelativePath="nlibase\nlibase.c">
+					RelativePath="src\nlibase\nlibase.c">
 					<FileConfiguration
 						Name="Debug|Win32"
 						ExcludedFromBuild="TRUE">
@@ -314,141 +346,177 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="nlibase\nlibase.h">
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="TRUE">
-						<Tool
-							Name="VCCustomBuildTool"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="TRUE">
-						<Tool
-							Name="VCCustomBuildTool"/>
-					</FileConfiguration>
+					RelativePath="src\nlibase\nlibase.h">
 				</File>
 				<File
-					RelativePath="nlibase\nlibase_types.h">
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="TRUE">
-						<Tool
-							Name="VCCustomBuildTool"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="TRUE">
-						<Tool
-							Name="VCCustomBuildTool"/>
-					</FileConfiguration>
+					RelativePath="src\nlibase\nlibase_types.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="common"
 				Filter="">
 				<File
-					RelativePath="common\bstree.hpp">
+					RelativePath="src\common\bstree.hpp">
 				</File>
 				<File
-					RelativePath="common\bstree.inl">
+					RelativePath="src\common\bstree.inl">
 				</File>
 				<File
-					RelativePath="common\config_parser.c">
+					RelativePath="src\common\byteorder.h">
 				</File>
 				<File
-					RelativePath="common\config_parser.h">
+					RelativePath="src\common\config_parser.c">
 				</File>
 				<File
-					RelativePath="common\err_msg.c">
+					RelativePath="src\common\config_parser.h">
 				</File>
 				<File
-					RelativePath="common\err_msg.h">
+					RelativePath="src\common\err_msg.c">
 				</File>
 				<File
-					RelativePath="common\fps_counter.c">
+					RelativePath="src\common\err_msg.h">
 				</File>
 				<File
-					RelativePath="common\fps_counter.h">
+					RelativePath="src\common\fps_counter.c">
 				</File>
 				<File
-					RelativePath="common\hashtable.hpp">
+					RelativePath="src\common\fps_counter.h">
 				</File>
 				<File
-					RelativePath="common\image.c">
+					RelativePath="src\common\hashtable.hpp">
 				</File>
 				<File
-					RelativePath="common\image.h">
+					RelativePath="src\common\linkedlist.hpp">
 				</File>
 				<File
-					RelativePath="common\linkedlist.hpp">
+					RelativePath="src\common\locator.c">
 				</File>
 				<File
-					RelativePath="common\logger.c">
+					RelativePath="src\common\locator.h">
 				</File>
 				<File
-					RelativePath="common\logger.h">
+					RelativePath="src\common\timer.c">
 				</File>
 				<File
-					RelativePath="common\timer.c">
-				</File>
-				<File
-					RelativePath="common\timer.h">
+					RelativePath="src\common\timer.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="n3dmath2"
 				Filter="">
 				<File
-					RelativePath="n3dmath2\src\n3dmath2.cpp">
+					RelativePath="src\n3dmath2\n3dmath2.cpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2.hpp">
+					RelativePath="src\n3dmath2\n3dmath2.hpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_mat.cpp">
+					RelativePath="src\n3dmath2\n3dmath2.inl">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_mat.hpp">
+					RelativePath="src\n3dmath2\n3dmath2_mat.cpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_mat.inl">
+					RelativePath="src\n3dmath2\n3dmath2_mat.hpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_qdr.cpp">
+					RelativePath="src\n3dmath2\n3dmath2_mat.inl">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_qdr.hpp">
+					RelativePath="src\n3dmath2\n3dmath2_qdr.cpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_qua.cpp">
+					RelativePath="src\n3dmath2\n3dmath2_qdr.hpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_qua.hpp">
+					RelativePath="src\n3dmath2\n3dmath2_qua.cpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_ray.cpp">
+					RelativePath="src\n3dmath2\n3dmath2_qua.hpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_ray.hpp">
+					RelativePath="src\n3dmath2\n3dmath2_ray.cpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_types.hpp">
+					RelativePath="src\n3dmath2\n3dmath2_ray.hpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_vec.cpp">
+					RelativePath="src\n3dmath2\n3dmath2_types.hpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_vec.hpp">
+					RelativePath="src\n3dmath2\n3dmath2_vec.cpp">
 				</File>
 				<File
-					RelativePath="n3dmath2\src\n3dmath2_vec.inl">
+					RelativePath="src\n3dmath2\n3dmath2_vec.hpp">
+				</File>
+				<File
+					RelativePath="src\n3dmath2\n3dmath2_vec.inl">
+				</File>
+			</Filter>
+			<Filter
+				Name="sim"
+				Filter="">
+				<File
+					RelativePath="src\sim\rope.cpp">
+				</File>
+				<File
+					RelativePath="src\sim\rope.hpp">
+				</File>
+				<File
+					RelativePath="src\sim\sim.cpp">
+				</File>
+				<File
+					RelativePath="src\sim\sim.hpp">
+				</File>
+				<File
+					RelativePath="src\sim\spring.cpp">
+				</File>
+				<File
+					RelativePath="src\sim\spring.hpp">
+				</File>
+			</Filter>
+			<Filter
+				Name="fxwt"
+				Filter="">
+				<File
+					RelativePath="src\fxwt\fxwt.cpp">
+				</File>
+				<File
+					RelativePath="src\fxwt\fxwt.hpp">
+				</File>
+				<File
+					RelativePath="src\fxwt\gfx_library.h">
+				</File>
+				<File
+					RelativePath="src\fxwt\init.cpp">
+				</File>
+				<File
+					RelativePath="src\fxwt\init.hpp">
+				</File>
+				<File
+					RelativePath="src\fxwt\keysyms.hpp">
+				</File>
+				<File
+					RelativePath="src\fxwt\widget.cpp">
+				</File>
+				<File
+					RelativePath="src\fxwt\widget.hpp">
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath="libs\libpng.lib">
-		</File>
+		<Filter
+			Name="libs"
+			Filter="">
+			<File
+				RelativePath="..\jpeg-6b\Release\jpeg-6b.lib">
+			</File>
+			<File
+				RelativePath="..\lib3ds-1.2.0\msvc\Build\Release\lib3ds-120s.lib">
+			</File>
+			<File
+				RelativePath="..\libpng\libpng.lib">
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

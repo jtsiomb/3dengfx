@@ -325,7 +325,7 @@ void Object::DrawNormals() {
 }
 
 void Object::SetupBumpLight(unsigned long time) {
-	extern Light *bump_light;
+	extern const Light *bump_light;
 	Vector3 lpos = bump_light->GetPRS(time).position;
 
 	Matrix4x4 inv_world = world_mat.Inverse();

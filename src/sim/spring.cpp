@@ -67,7 +67,7 @@ void Spring::SetEnds(SpringConn *end1, SpringConn *end2) {
 }
 
 void Spring::SetStiffness(scalar_t stiffness) {
-	this->stiffness = stiffnes;
+	this->stiffness = stiffness;
 }
 
 void Spring::SetLength(scalar_t len) {
@@ -75,4 +75,5 @@ void Spring::SetLength(scalar_t len) {
 }
 
 Vector3 Spring::CalcForce(int end) const {
+	return Vector3();
 }

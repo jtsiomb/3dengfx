@@ -125,7 +125,7 @@ XFormNode::~XFormNode() {
 Keyframe *XFormNode::GetNearestKey(int start, int end, unsigned long time) {
 	if(start == end) return &keys[start];
 	if(end - start == 1) {
-		return abs(time - keys[start].time) < abs(keys[end].time - time) ? &keys[start] : &keys[end];
+		return abs((int)(time - keys[start].time)) < abs((int)(keys[end].time - time)) ? &keys[start] : &keys[end];
 	}
 
 	int mid = (start + end) / 2;

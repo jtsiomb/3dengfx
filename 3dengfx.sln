@@ -1,6 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 7.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3dengfx", "3dengfx.vcproj", "{0EE76710-17E0-46DE-9EE6-266F11C436BD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scene_view", "examples\scene_view\scene_view.vcproj", "{25E8BE3C-DC2E-49C5-A19F-44A081DEACF2}"
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		ConfigName.0 = Debug
@@ -13,6 +15,10 @@ Global
 		{0EE76710-17E0-46DE-9EE6-266F11C436BD}.Debug.Build.0 = Debug|Win32
 		{0EE76710-17E0-46DE-9EE6-266F11C436BD}.Release.ActiveCfg = Release|Win32
 		{0EE76710-17E0-46DE-9EE6-266F11C436BD}.Release.Build.0 = Release|Win32
+		{25E8BE3C-DC2E-49C5-A19F-44A081DEACF2}.Debug.ActiveCfg = Debug|Win32
+		{25E8BE3C-DC2E-49C5-A19F-44A081DEACF2}.Debug.Build.0 = Debug|Win32
+		{25E8BE3C-DC2E-49C5-A19F-44A081DEACF2}.Release.ActiveCfg = Release|Win32
+		{25E8BE3C-DC2E-49C5-A19F-44A081DEACF2}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

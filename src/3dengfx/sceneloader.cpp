@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3dengfx_config.h"
 
 #include <iostream>	// REMOVE
+#include <algorithm>
 
 #include <cstdio>
 #include <cassert>
@@ -233,7 +234,7 @@ static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 		mat->emissive_color = 1.0;
 	}
 	
-	scalar_t s = pow(2, 10.0 * m->shininess);
+	scalar_t s = pow(2.0, 10.0 * m->shininess);
 	mat->specular_power = s > 128.0 ? 128.0 : s;
 
 	mat->alpha = 1.0 - m->transparency;

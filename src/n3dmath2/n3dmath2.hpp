@@ -53,6 +53,10 @@ extern const scalar_t error_margin;
 
 #define SQ(x) ((x) * (x))
 
+#ifndef __GNUC__
+#define round(x)	((x) >= 0 ? (x) + 0.5 : (x) - 0.5)
+#endif	// __GNUC__
+
 // -- mathematical & helper functions --
 scalar_t frand(scalar_t range);
 scalar_t Integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samples);

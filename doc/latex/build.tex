@@ -1,0 +1,109 @@
+\chapter{Building 3dengfx}
+
+In order to build the 3dengfx library you must go through three distinct steps,
+configure, compile and install. This chapter will try to guide you through these
+steps on the various Operating Systems supported by 3dengfx.
+
+\section{Configuration}
+
+The first step is to configure the library to meet your needs. And there are
+various options to choose from mostly affecting the external library
+dependencies of 3dengfx. To configure the library you must edit the file
+\verb|src/3dengfx_config.h|. The file is heavily commented to assist you in
+choosing the correct options, what you must do is change or comment / uncomment
+various \verb|#define| directives in this file to reflect your choices. Please
+note that this file is included both in C and C++ source files, so use only C
+comments \verb|/* ... */|, not C++ comments \verb|// ....|.
+
+\subsection{Installation path prefix}
+
+This is used by the Unix installer to determine where to install the library, by
+default \verb|/usr/local| is defined as the prefix. Header files are installed
+in \verb|$PREFIX/include/3dengfx|, the shared or static library at
+\verb|$PREFIX/lib|, and any binaries (like the 3dengfx-config program) at
+\verb|$PREFIX/bin|.
+
+On windows this option is ignored and you should just unpack the library and
+compile it at some directory which you subsequently add to your compiler
+include/library search path.
+
+\subsection{Underlying library}
+
+The 3dengfx library works on top of some library that provides (at least) the
+basic functionality of OpenGL rendering context creation, window creation and
+event handling. This is done in a modular way and thus various such libraries
+can be used; at this point there is support for SDL (Simple Directmedia Layer)
+and GTK+. SDL is preferable as a base when we don't need any GUI functionality
+rather just a window to render graphics, when there is need for a GUI, GTK+
+provides a very powerful and easy to use API, which combined with 3dengfx can be
+used to easily create graphical content creation tools etc.
+
+The library selection is done with the \verb|GFX_LIBRARY| directive which can be
+either \verb|#define GFX_LIBRARY SDL| or \verb|#define GFX_LIBRARY GTK|. Other
+options (GLUT, GTKMM, NATIVE) will be available later on.
+
+\subsection{Floating point precision}
+
+By default \verb|SINGLE_PRECISION_MATH| is defined which makes the library use
+floats for mostly everything. If for some reason you need more precise
+arithmetic comment this definition out.
+
+\subsection{Cg runtime library}
+
+3dengfx gives supports direct loading of vertex/fragment programs in the Cg
+language through the use of a library provided by nvidia (the Cg runtime
+library). If you wish to drop the dependency on this (relatively large) library
+you may comment out the \verb|USING_CG_TOOLKIT| directive. Note that you may
+still use Cg with 3dengfx by compiling Cg programs to ARB vertex/fragment
+program assembly with the standalone Cg compiler and have those loaded in
+3dengfx.
+
+\subsection{Image libraries}
+
+By default 3dengfx depends on libpng and libjpeg to load images in png and jpeg
+formats. If you do not wish to have this dependency uncomment the
+\verb|IMGLIB_NO_PNG| or \verb|IMGLIB_NO_JPEG| directives, in which case you may
+only load uncompressed 32bpp targa (tga) images which is implemented directly in
+3dengfx.
+
+\section{Building the library}
+
+After you have configured the library, the next step is to actually build it,
+the build process varies from system to system and must be covered seperately
+for each.
+
+\subsection{Unix}
+
+The easiest is to build the library on unix, just go to the root directory of
+the library distribution and type \verb|make| to build as a shared library or
+\verb|make lib3dengfx.a| to build as a static library.
+
+\subsection{Windows, MS Visual Studio .NET}
+First of all, make sure you have MS Visual Studio .NET 2003 or later. Older
+versions will not be able to compile the library due to the absence of proper
+support for C++ templates, the free of charge compiler from Microsoft's web site
+can be used as well. Use the included project files to build the static library
+(3dengfx.lib), at this point there is no thought of providing a dll version of
+the library like the available unix shared libraries, because in order to do
+this we would need to uglify the code with declspec(dllexport) all over the
+place. However the library is free so you are free to do it yourself if you need
+a dll version.
+
+In order to use 3dengfx in your programs you must add the 3dengfx/src directory
+to the VS include paths and link 3dengfx.lib with your program. Also if you are
+trying to link with the SDL version of 3dengfx, don't forget to make your
+program use the Multithreaded DLL version of the C library and make sure your
+\verb|main| function has the full argument form (due to a dirty hack in SDL to
+bypass windows' \verb|WinMain|).
+
+\subsection{Windows, Bloodshed DevC++ (MinGW)}
+DevC++ is a free IDE for windows that uses MinGW as its compiler, which is a
+port of GCC to windows. It is also acompanied by a handy library package management
+system that simplifies getting and installing precompiled versions of various
+libraries. To get the libraries that 3dengfx may need (depending on your
+configuration options) visit the web site: \verb|http://devpaks.org/|. Libraries
+that you may need are libpng, libjpeg, zlib (required by libpng) and cg.
+
+Use the \verb|3dengfx_devcpp.dev| project file (you may still need to adjust
+your include directory settings), which will produce the lib3dengfx.a static
+library that you may subsequently link with your programs.

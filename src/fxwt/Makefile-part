@@ -1,1 +1,1 @@
-obj += fxwt/fxwt.o
+obj += src/fxwt/fxwt.o

@@ -330,14 +330,3 @@ void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
 }
 
 void Scene::RenderAllCubeMaps(unsigned long msec) const {}
-2D		= GL_TEXTURE_2D,
-	TEX_3D		= GL_TEXTURE_3D,
-	TEX_CUBE	= GL_TEXTURE_CUBE_MAP
-};
-
-enum CubeMapFace {
-	CUBE_MAP_PX		= GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-	CUBE_MAP_NX		= GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-	CUBE_MAP_PY		= GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-	CUBE_MAP_NY		= GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-	CUBE_MAP_PZ		= GL_TEXTURE_CUBE_MAP_PO

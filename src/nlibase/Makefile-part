@@ -1,1 +1,1 @@
-obj += nlibase/nlibase.o
+obj += src/nlibase/nlibase.o

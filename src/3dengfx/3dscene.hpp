@@ -104,12 +104,3 @@ public:
 
 
 #endif	// _3DSCENE_HPP_
-Scene::RemoveLight(const Light *light) {
-	for(int i=0; i<8; i++) {
-		if(light == lights[i]) {
-			lights[i]MirrorOnce		= D3DTADDRESS_MIRRORONCE
-};
-
-enum TextureDim {
-	TEX_1D		= GL_TEXTURE_1D,
-	TEX_2D		= GL_TEXTURE_2D

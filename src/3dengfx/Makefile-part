@@ -1,4 +1,4 @@
-obj +=  3dengfx/3denginefx.o 3dengfx/textures.o 3dengfx/camera.o 3dengfx/except.o\
-	3dengfx/material.o 3dengfx/object.o 3dengfx/texman.o 3dengfx/light.o 3dengfx/load_geom.o\
-	3dengfx/ggen.o 3dengfx/3dscene.o 3dengfx/sceneloader.o 3dengfx/gfxprog.o\
-	3dengfx/psys.o 3dengfx/3dwt/3dwt.o
+obj +=  src/3dengfx/3denginefx.o src/3dengfx/textures.o src/3dengfx/camera.o src/3dengfx/except.o\
+	src/3dengfx/material.o src/3dengfx/object.o src/3dengfx/texman.o src/3dengfx/light.o src/3dengfx/load_geom.o\
+	src/3dengfx/ggen.o src/3dengfx/3dscene.o src/3dengfx/sceneloader.o src/3dengfx/gfxprog.o\
+	src/3dengfx/3dwt/3dwt.o

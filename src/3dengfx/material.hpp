@@ -65,5 +65,3 @@ public:
 	
 
 #endif	// _MATERIALS_HPP_
-seful,
-but WITHOUT ANY WARRANTY; without even the implied warranty 

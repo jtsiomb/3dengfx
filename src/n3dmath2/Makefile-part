@@ -1,2 +1,2 @@
-obj += n3dmath2/n3dmath2.o n3dmath2/n3dmath2_mat.o n3dmath2/n3dmath2_vec.o\
-	n3dmath2/n3dmath2_qua.o n3dmath2/n3dmath2_ray.o n3dmath2/n3dmath2_qdr.o
+obj += src/n3dmath2/n3dmath2.o src/n3dmath2/n3dmath2_mat.o src/n3dmath2/n3dmath2_vec.o\
+	src/n3dmath2/n3dmath2_qua.o src/n3dmath2/n3dmath2_ray.o src/n3dmath2/n3dmath2_qdr.o

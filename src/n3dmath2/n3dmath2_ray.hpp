@@ -34,6 +34,7 @@ public:
 	scalar_t ior;
 	
 	Ray();
+	Ray(const Vector3 &origin, const Vector3 &dir);
 	
 	void Enter(scalar_t new_ior);
 	void Leave();

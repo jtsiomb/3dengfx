@@ -75,5 +75,3 @@ public:
 };
 
 #endif	// _OBJECT_HPP_
-RANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A 

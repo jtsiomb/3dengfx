@@ -23,8 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "n3dmath2.hpp"
 
-// used to store intersections of a ray on the surface
-// of a quadratic object
+/* used to store intersections of a ray on the surface
+ * of a quadratic object
+ */
 struct SurfPoint {
 	Vector3 pos, normal;		// position and normal of surface at this position
 	scalar_t t;					// parametric distance of intersection along ray
@@ -39,6 +40,11 @@ protected:
 public:
 	Quadratic(const Vector3 &pos=Vector3(0,0,0));
 	virtual ~Quadratic();
+
+	virtual void SetPosition(const Vector3 &pos);
+	virtual Vector3 GetPosition() const;
+
+	virtual Vector2 InvMap(const Vector3 &pt, const Quaternion &rot) const = 0;
 	
 	virtual bool CheckIntersection(const Ray &ray) const = 0;
 	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const = 0;
@@ -52,6 +58,11 @@ protected:
 public:
 	Sphere(const Vector3 &pos=Vector3(0,0,0), scalar_t rad=1.0);
 	virtual ~Sphere();
+
+	virtual void SetRadius(scalar_t rad);
+	virtual scalar_t GetRadius() const;
+	
+	virtual Vector2 InvMap(const Vector3 &pt, const Quaternion &rot = Quaternion()) const;
 	
 	virtual bool CheckIntersection(const Ray &ray) const;
 	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;
@@ -65,7 +76,11 @@ protected:
 public:
 	Plane(const Vector3 &pos=Vector3(0,0,0), const Vector3 &normal=Vector3(0,0,-1));
 	virtual ~Plane();
+
+	virtual void SetNormal(const Vector3 &normal);
 	virtual Vector3 GetNormal() const;
+	
+	virtual Vector2 InvMap(const Vector3 &pt, const Quaternion &rot = Quaternion()) const;
 	
 	virtual bool CheckIntersection(const Ray &ray) const;
 	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;

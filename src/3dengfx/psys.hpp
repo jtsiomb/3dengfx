@@ -86,6 +86,3 @@ class MeshParticle : public Particle {
 /* particle system */
 
 #endif	// _PSYS_HPP_
-bikas <nuclear@siggraph.org>
-
-This file is part of the 3dengfx, realtime visualization s

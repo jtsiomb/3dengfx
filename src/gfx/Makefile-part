@@ -1,1 +1,1 @@
-obj += gfx/3dgeom.o gfx/controller.o gfx/base_cam.o gfx/curves.o gfx/color.o
+obj += src/gfx/3dgeom.o src/gfx/controller.o src/gfx/base_cam.o src/gfx/curves.o src/gfx/color.o

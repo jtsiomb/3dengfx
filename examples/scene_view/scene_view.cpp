@@ -110,6 +110,9 @@ bool Init() {
 	cam_light = new PointLight;
 	cam_light->SetIntensity(0.85);
 
+	fxwt::SetFontSize(20);
+	fxwt::SetFont(fxwt::FONT_SERIF);
+
 	timer_reset(&timer);
 	timer_start(&timer);
 
@@ -121,6 +124,8 @@ void UpdateGfx() {
 	unsigned long time = timer_getmsec(&timer);
 
 	scene->Render(time);
+
+	fxwt::PrintText("3dengfx scene viewer", Vector2(0.01, 0.01), 0.045);
 
 	Flip();
 

@@ -395,6 +395,12 @@
 					RelativePath="src\common\locator.h">
 				</File>
 				<File
+					RelativePath="src\common\string_hash.cpp">
+				</File>
+				<File
+					RelativePath="src\common\string_hash.hpp">
+				</File>
+				<File
 					RelativePath="src\common\timer.c">
 				</File>
 				<File
@@ -497,6 +503,12 @@
 					RelativePath="src\fxwt\keysyms.hpp">
 				</File>
 				<File
+					RelativePath="src\fxwt\text.cpp">
+				</File>
+				<File
+					RelativePath="src\fxwt\text.hpp">
+				</File>
+				<File
 					RelativePath="src\fxwt\widget.cpp">
 				</File>
 				<File
@@ -517,6 +529,9 @@
 				RelativePath="..\libpng\libpng.lib">
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\freetype-2.1.8-lib\lib\libfreetype.lib">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

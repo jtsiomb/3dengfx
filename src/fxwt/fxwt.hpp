@@ -41,6 +41,8 @@ namespace fxwt {
 		BN_WHEELDOWN	= 5
 	};
 
+	void Init();
+
 	void SetDisplayHandler(void (*handler)());
 	void SetIdleHandler(void (*handler)());
 	void SetKeyboardHandler(void (*handler)(int));

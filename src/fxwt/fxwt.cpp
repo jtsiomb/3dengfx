@@ -49,6 +49,17 @@ static GdkGLContext *gl_context;
 static GdkGLDrawable *gl_drawable;
 #endif	// GTK
 
+void fxwt::Init() {
+	fxwt::TextInit();
+
+	/*
+	fxwt::WidgetInit();
+	SetDisplayHandler(WidgetDisplayHandler);
+	SetKeyboardHandler(WidgetKeyboardHandler);
+	SetMotionHandler(WidgetMotionHandler);
+	SetButtonHandler(WidgetButtonHandler);
+	*/
+}
 
 void fxwt::SetDisplayHandler(void (*handler)()) {
 	disp_handlers.push_back(handler);
@@ -106,16 +117,6 @@ void fxwt::SwapBuffers() {
 
 int fxwt::MainLoop() {
 
-	fxwt::TextInit();
-
-	/*
-	fxwt::WidgetInit();
-	SetDisplayHandler(WidgetDisplayHandler);
-	SetKeyboardHandler(WidgetKeyboardHandler);
-	SetMotionHandler(WidgetMotionHandler);
-	SetButtonHandler(WidgetButtonHandler);
-	*/
-	
 	set_verbosity(3);
 	
 #if GFX_LIBRARY == SDL

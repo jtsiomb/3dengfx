@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <stdlib.h>
 #include "init.hpp"
+#include "fxwt.hpp"
 #include "gfx_library.h"
 #include "3dengfx/3denginefx.hpp"
 #include "common/err_msg.h"

@@ -78,12 +78,23 @@ static const char *font_names[] = {
 // update these lists when adding a new font
 static Font font_style_list[3][4] = {
 	// sans-serif fonts
-	{FONT_FREE_SANS, FONT_VERA_SANS, FONT_MS_SANS, FONT_NULL},
+	{FONT_FREE_SANS, FONT_MS_SANS, FONT_VERA_SANS, FONT_NULL},
 	// serif fonts
-	{FONT_FREE_SERIF, FONT_VERA_SERIF, FONT_MS_SERIF, FONT_NULL},
+	{FONT_FREE_SERIF, FONT_MS_SERIF, FONT_VERA_SERIF, FONT_NULL},
 	// monospaced fonts
-	{FONT_FREE_MONO, FONT_VERA_MONO, FONT_MS_MONO, FONT_NULL}
+	{FONT_FREE_MONO, FONT_MS_MONO, FONT_VERA_MONO, FONT_NULL}
 };
+
+
+#if defined(__unix__)
+#define VERDANA_FILE			"Verdana.ttf"
+#define TIMES_NEW_ROMAN_FILE	"Times_New_Roman.ttf"
+#define COURIER_NEW_FILE		"Courier_New.ttf"
+#elif defined(WIN32)
+#define VERDANA_FILE			"verdana.ttf"
+#define TIMES_NEW_ROMAN_FILE	"times.ttf"
+#define COURIER_NEW_FILE		"cour.ttf"
+#endif
 
 bool fxwt::TextInit() {
 
@@ -94,7 +105,7 @@ bool fxwt::TextInit() {
 	static const char *fonts[] = {
 		"FreeSans.ttf", "FreeSerif.ttf", "FreeMono.ttf",			// freefonts
 		"Vera.ttf", "VeraSe.ttf", "VeraMono.ttf",					// bitstream vera fonts
-		"Verdana.ttf", "Times_New_Roman.ttf", "Courier_New.ttf",	// MS fonts
+		VERDANA_FILE, TIMES_NEW_ROMAN_FILE, COURIER_NEW_FILE,		// MS fonts
 		0
 	};
 

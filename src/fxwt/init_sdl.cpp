@@ -115,6 +115,8 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 		return false;
 	}
 	
+	fxwt::Init();
+
 	return true;
 }
 

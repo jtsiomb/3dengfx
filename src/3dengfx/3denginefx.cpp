@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include <list>
 #include "opengl.h"
-#include "SDL.h"
+#include "SDL/SDL.h"
 #include "3denginefx.hpp"
 #include "gfx/3dgeom.hpp"
 #include "except.hpp"

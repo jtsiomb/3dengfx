@@ -18,6 +18,8 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "psys.hpp"
+
 Fuzzy::Fuzzy(scalar_t num, scalar_t range) {
 	this->num = num;
 	this->range = range;
@@ -28,13 +30,13 @@ scalar_t Fuzzy::operator()() const {
 }
 
 
-FuzzyVec::FuzzyVec(const Fuzzy &x, const Fuzzy &y, const Fuzzy &z) {
+FuzzyVec3::FuzzyVec3(const Fuzzy &x, const Fuzzy &y, const Fuzzy &z) {
 	this->x = x;
 	this->y = y;
 	this->z = z;
 }
 
-Vector3 FuzzyVec::operator()() const {
+Vector3 FuzzyVec3::operator()() const {
 	return Vector3(x(), y(), z());
 }
 
@@ -53,7 +55,7 @@ Particle::Particle(const Vector3 &pos, const Vector3 &vel, scalar_t friction, un
 	birth_time = global_time;
 }
 
-Particle::~Particle();
+Particle::~Particle(){}
 
 bool Particle::Alive() const {
 	return global_time - birth_time < lifespan;

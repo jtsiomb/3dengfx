@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <SDL.h>
+#include <SDL/SDL.h>
 #include "fxwt.hpp"
 
 static void HandleEvent(const SDL_Event &event);

@@ -64,11 +64,11 @@ int LoadConfigFile(const char *fname) {
 	fsize = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 	
-	if(!(temp = realloc(config_file, fsize))) return -1;
+	if(!(temp = (char*)realloc(config_file, fsize))) return -1;
 	config_file = temp;
 	
 	cfgptr = config_file;
-	temp = malloc(max_line_len + 1);
+	temp = (char*)malloc(max_line_len + 1);
 	while(fgets(temp, max_line_len, fp)) {
 		char *ptr = temp;
 		
@@ -95,7 +95,7 @@ int LoadConfigFile(const char *fname) {
 }
 
 const struct ConfigOption *GetNextOption() {
-	char *tmpbuf = malloc(max_line_len + 1);
+	char *tmpbuf = (char*)malloc(max_line_len + 1);
 	char *ptr = tmpbuf;
 	
 	if(!(*cfgptr)) {
@@ -117,10 +117,10 @@ const struct ConfigOption *GetNextOption() {
 	
 	cfg_opt.flags = 0;
 	
-	cfg_opt.option = realloc(cfg_opt.option, strlen(tmpbuf) + 1);
+	cfg_opt.option = (char*)realloc(cfg_opt.option, strlen(tmpbuf) + 1);
 	strcpy(cfg_opt.option, tmpbuf);
 	
-	cfg_opt.str_value = realloc(cfg_opt.str_value, strlen(ptr) + 1);
+	cfg_opt.str_value = (char*)realloc(cfg_opt.str_value, strlen(ptr) + 1);
 	strcpy(cfg_opt.str_value, ptr);
 	
 	if(isdigit(cfg_opt.str_value[0])) {

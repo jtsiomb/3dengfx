@@ -81,7 +81,7 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
 		
 	png_get_IHDR(png_ptr, info_ptr, xsz, ysz, &channel_bits, &color_type, &ilace_type, &compression, &filtering);
-	pixels = malloc(*xsz * *ysz * sizeof(unsigned long));
+	pixels = (unsigned long*)malloc(*xsz * *ysz * sizeof(unsigned long));
 	
 	lineptr = (unsigned long**)png_get_rows(png_ptr, info_ptr);
 	

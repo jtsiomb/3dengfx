@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "light.hpp"
 #include "camera.hpp"
 #include "texman.hpp"
+#include "gfx/curves.hpp"
 #include "common/err_msg.h"
 
 #define CONV_VEC3(v)		Vector3((v)[0], (v)[2], (v)[1])
@@ -55,8 +56,38 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene);
 static bool LoadLights(Lib3dsFile *file, Scene *scene);
 static bool LoadCameras(Lib3dsFile *file, Scene *scene);
 static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat);
+static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes type, XFormNode *node);
 
 static const char *TexPath(const char *path);
+static std::vector<int> *GetFrames(Lib3dsObjectData *o);
+static std::vector<int> *GetFrames(Lib3dsLightData *lt);
+static std::vector<int> *GetFrames(Lib3dsCameraData *cam);
+
+#define TPATH_SIZE	256
+
+#ifdef __unix__
+#define DIR_SEP	'/'
+#else
+#define DIR_SEP	'\\'
+#endif	/* __unix__ */
+
+static char data_path[TPATH_SIZE];
+
+void SetSceneDataPath(const char *path) {
+	if(!path || !*path) {
+		data_path[0] = 0;
+	} else {
+		strncpy(data_path, path, TPATH_SIZE);
+		data_path[TPATH_SIZE - 1] = 0;
+
+		char *ptr = data_path + strlen(data_path);
+		if(*ptr != DIR_SEP && ptr - data_path < TPATH_SIZE) {
+			*ptr++ = DIR_SEP;
+			*ptr = 0;
+		}
+	}
+}
+
 
 Scene *LoadScene(const char *fname) {
 
@@ -83,7 +114,6 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 	// load meshes
 	Lib3dsMesh *m = file->meshes;
 	while(m) {
-		assert(m->points == m->texels);
 
 		Lib3dsNode *node = lib3ds_file_node_by_name(file, m->name, LIB3DS_OBJECT_NODE);
 		Vector3 node_pos = CONV_VEC3(node->data.object.pos);
@@ -91,62 +121,74 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 		Vector3 node_scl = CONV_VEC3(node->data.object.scl);
 		Vector3 pivot = CONV_VEC3(node->data.object.pivot);
 
-		// ------------- DEBUG ---------------
-		std::cout << "object: " << m->name << std::endl;
-		std::cout << "\tpos: " << node_pos << " rot: " << node_rot << " scl: " << node_scl << std::endl;
-		std::cout << "\tpivot: " << pivot << std::endl;
-		// -----------------------------------
-		
-		Object *obj = new Object;
-		obj->name = std::string(m->name);
-
-		obj->SetPosition(node_pos - pivot);
-		obj->SetRotation(node_rot);
-		obj->SetScaling(node_scl);
-		
-		// let lib3ds calculate the vertex normals of each triangle
-		//Lib3dsVector *normals = new Lib3dsVector[3 * m->faces];
-		//lib3ds_mesh_calculate_normals(m, normals);
-		
 		// load the vertices
 		Vertex *varray = new Vertex[m->points];
 		Vertex *vptr = varray;
 		for(int i=0; i<(int)m->points; i++) {
 			vptr->pos = CONV_VEC3(m->pointL[i].pos) - node_pos;
 			vptr->pos.Transform(node_rot);
-			vptr->tex[0] = vptr->tex[1] = CONV_TEXCOORD(m->texelL[i]);
+			
+			if(m->texels) {
+				vptr->tex[0] = vptr->tex[1] = CONV_TEXCOORD(m->texelL[i]);
+			}
+			
 			vptr++;
 		}
 		
-		// load the polygons
-		Triangle *tarray = new Triangle[m->faces];
-		Triangle *tptr = tarray;
-		for(int i=0; i<(int)m->faces; i++) {
-			*tptr = CONV_TRIANGLE(m->faceL[i]);
-			tptr->normal = CONV_VEC3(m->faceL[i].normal);
-			tptr->smoothing_group = m->faceL[i].smoothing;
+		if(m->faces) {
+			// -------- object ---------
+			Object *obj = new Object;
+			obj->name = std::string(m->name);
 
-			/*for(int j=0; j<3; j++) {
-				// not correct, but the best we can do at this point
-				varray[tptr->vertices[j]].normal = CONV_VEC3(normals[i * 3 + j]);
-			}*/
+			obj->SetPosition(node_pos - pivot);
+			obj->SetRotation(node_rot);
+			obj->SetScaling(node_scl);
+		
+			// load the polygons
+			Triangle *tarray = new Triangle[m->faces];
+			Triangle *tptr = tarray;
+			for(int i=0; i<(int)m->faces; i++) {
+				*tptr = CONV_TRIANGLE(m->faceL[i]);
+				tptr->normal = CONV_VEC3(m->faceL[i].normal);
+				tptr->smoothing_group = m->faceL[i].smoothing;
+
+				tptr++;
+			}
+
+			// set the geometry data to the object
+			obj->GetTriMeshPtr()->SetData(varray, m->points, tarray, m->faces);
+			obj->GetTriMeshPtr()->CalculateNormals();
+		
+			delete [] tarray;
+
+			// load the material
+			LoadMaterial(file, m->faceL[0].material, obj->GetMaterialPtr());
+
+			// load the keyframes (if any)
+			if(LoadKeyframes(file, m->name, LIB3DS_OBJECT_NODE, obj)) {
+				obj->SetPosition(Vector3());
+				obj->SetRotation(Quaternion());
+				obj->SetScaling(Vector3(1, 1, 1));
+			}
+
+			scene->AddObject(obj);
 			
-			tptr++;
+		} else {
+			// --------- curve ------------
+			Curve *curve = new CatmullRomSplineCurve;
+			curve->name = m->name;
+
+			Vector3 offs = node_pos - pivot;
+			
+			for(int i=0; i<(int)m->points; i++) {
+				curve->AddControlPoint(varray[i].pos + offs);
+			}
+
+			scene->AddCurve(curve);
 		}
 
-		//delete [] normals;
-
-		// set the geometry data to the object
-		obj->GetTriMeshPtr()->SetData(varray, m->points, tarray, m->faces);
-		obj->GetTriMeshPtr()->CalculateNormals();
-
 		delete [] varray;
-		delete [] tarray;
 
-		// load the material
-		LoadMaterial(file, m->faceL[0].material, obj->GetMaterialPtr());
-
-		scene->AddObject(obj);
 
 		m = m->next;
 	}
@@ -157,7 +199,7 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 
 static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 	Lib3dsMaterial *m;
-	if(!name[0] || !(m = lib3ds_file_material_by_name(file, name))) {
+	if(!name || !*name || !(m = lib3ds_file_material_by_name(file, name))) {
 		return false;
 	}
 	
@@ -214,12 +256,23 @@ static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 	return true;
 }
 
-
-//TODO: todo ..
 static const char *TexPath(const char *path) {
 	if(!path || !*path) return 0;
 
-	return path;
+	static char texpath[TPATH_SIZE];
+
+	strncpy(texpath, data_path, TPATH_SIZE);
+	texpath[TPATH_SIZE - 1] = 0;
+
+	const char *tmp = strrchr(path, '\\');
+	if(tmp) path = tmp + 1;
+
+	char *tp_ptr = texpath + strlen(texpath);
+	do {
+		*tp_ptr++ = tolower(*path++);
+	} while(*path);
+		
+	return texpath;
 }
 
 
@@ -232,12 +285,18 @@ bool LoadLights(Lib3dsFile *file, Scene *scene) {
 			light = new PointLight;
 			light->SetPosition(CONV_VEC3(lt->position));
 			light->SetColor(CONV_RGB(lt->color));
+			light->SetIntensity(lt->multiplier);
 			//TODO: attenuation
 		} else {
 			light = 0;	// TODO: support spotlights at some point
 		}
 
-		if(light) scene->AddLight(light);
+		if(light) {
+			if(LoadKeyframes(file, lt->name, LIB3DS_LIGHT_NODE, light)) {
+				light->SetPosition(Vector3());
+			}
+			scene->AddLight(light);
+		}
 
 		lt = lt->next;
 	}
@@ -252,9 +311,171 @@ bool LoadCameras(Lib3dsFile *file, Scene *scene) {
 		cam->SetPosition(CONV_VEC3(c->position));
 		cam->SetTarget(CONV_VEC3(c->target));
 		cam->SetClippingPlanes(c->near_range, c->far_range);
-		cam->SetFOV(DEG_TO_RAD(c->fov));
+		
+		scalar_t angle = atan(1.0 / cam->GetAspect());
+		cam->SetFOV(sin(angle) * DEG_TO_RAD(c->fov));
+
+		if(LoadKeyframes(file, c->name, LIB3DS_CAMERA_NODE, cam)) {
+			cam->SetPosition(Vector3());
+		}
+		//TODO: LoadKeyframes(file, ... hmmm where is the target node?
+		
 		scene->AddCamera(cam);
 		c = c->next;
 	}
 	return true;
+}
+
+
+#define FPS	30
+#define FRAME_TO_TIME(x)	(((x) * 1000) / FPS)
+
+static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes type, XFormNode *node) {
+	if(!name || !*name) return false;
+	
+	Lib3dsNode *n = lib3ds_file_node_by_name(file, name, type);
+	if(!n) return false;
+
+	switch(type) {
+	case LIB3DS_OBJECT_NODE:
+		{
+			Lib3dsObjectData *obj = &n->data.object;
+			std::vector<int> *frames = GetFrames(obj);
+			if(!frames) return false;
+
+			for(int i=0; i<(int)frames->size(); i++) {
+				lib3ds_node_eval(n, (float)(*frames)[i]);
+					
+				Vector3 pos = CONV_VEC3(obj->pos) - CONV_VEC3(obj->pivot);
+				Quaternion rot = CONV_QUAT(obj->rot);
+				Vector3 scl = CONV_VEC3(obj->scl);
+
+				Keyframe key(PRS(pos, rot, scl), FRAME_TO_TIME((*frames)[i]));
+				node->AddKeyframe(key);
+			}
+		}
+		break;
+
+	case LIB3DS_LIGHT_NODE:
+		{
+			Lib3dsLightData *light = &n->data.light;
+			std::vector<int> *frames = GetFrames(light);
+			if(!frames) return false;
+
+			for(int i=0; i<(int)frames->size(); i++) {
+				lib3ds_node_eval(n, (float)(*frames)[i]);
+
+				Vector3 pos = CONV_VEC3(light->pos);
+
+				Keyframe key(PRS(pos, Quaternion()), FRAME_TO_TIME((*frames)[i]));
+				node->AddKeyframe(key);
+			}
+		}
+		break;
+
+	case LIB3DS_CAMERA_NODE:
+		{
+			Lib3dsCameraData *cam = &n->data.camera;
+			std::vector<int> *frames = GetFrames(cam);
+			if(!frames) return false;
+
+			for(int i=0; i<(int)frames->size(); i++) {
+				lib3ds_node_eval(n, (float)(*frames)[i]);
+
+				Vector3 pos = CONV_VEC3(cam->pos);
+
+				Keyframe key(PRS(pos, Quaternion()), FRAME_TO_TIME((*frames)[i]));
+				node->AddKeyframe(key);
+			}
+		}
+		break;
+
+		/*
+	case LIB3DS_TARGET_NODE:
+		{
+			Lib3dsCameraData *targ = &n->data.target;
+			std::vector<int> *frames = GetFrames(targ);
+			if(!frames) return false;
+
+			for(int i=0; i<(int)frames->size(); i++) {
+				lib3ds_node_eval(n, (float)(*frames)[i]);
+
+				Vector3 pos = CONV_VEC3(targ->pos);
+
+				Keyframe key(PRS(pos, Quaternion()), FRAME_TO_TIME((*frames)[i]));
+				node->AddKeyframe(key);
+			}
+
+		}
+		break;
+		*/
+
+	default:
+		break;
+	}
+
+	return true;
+}
+
+
+static std::vector<int> *GetFrames(Lib3dsObjectData *o) {
+	static std::vector<int> frames;
+	
+	Lib3dsLin3Key *pos_key = o->pos_track.keyL;
+	while(pos_key) {
+		int frame = pos_key->tcb.frame;
+		if(find(frames.begin(), frames.end(), frame) == frames.end()) {
+			frames.push_back(frame);
+		}
+		pos_key = pos_key->next;
+	}
+
+	Lib3dsQuatKey *rot_key = o->rot_track.keyL;
+	while(rot_key) {
+		int frame = rot_key->tcb.frame;
+		if(find(frames.begin(), frames.end(), frame) == frames.end()) {
+			frames.push_back(frame);
+		}
+		rot_key = rot_key->next;
+	}
+
+	Lib3dsLin3Key *scl_key = o->scl_track.keyL;
+	while(scl_key) {
+		int frame = scl_key->tcb.frame;
+		if(find(frames.begin(), frames.end(), frame) == frames.end()) {
+			frames.push_back(frame);
+		}
+		scl_key = scl_key->next;
+	}
+
+	if(frames.size() > 1) return &frames;
+	return 0;
+}
+
+static std::vector<int> *GetFrames(Lib3dsLightData *lt) {
+	static std::vector<int> frames;
+	
+	Lib3dsLin3Key *pos_key = lt->pos_track.keyL;
+	while(pos_key) {
+		int frame = pos_key->tcb.frame;
+		frames.push_back(frame);
+		pos_key = pos_key->next;
+	}
+
+	if(frames.size() > 1) return &frames;
+	return 0;
+}
+
+static std::vector<int> *GetFrames(Lib3dsCameraData *cam) {
+	static std::vector<int> frames;
+	
+	Lib3dsLin3Key *pos_key = cam->pos_track.keyL;
+	while(pos_key) {
+		int frame = pos_key->tcb.frame;
+		frames.push_back(frame);
+		pos_key = pos_key->next;
+	}
+
+	if(frames.size() > 1) return &frames;
+	return 0;
 }

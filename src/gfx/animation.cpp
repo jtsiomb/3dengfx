@@ -77,11 +77,11 @@ XFormNode::~XFormNode() {
 Keyframe *XFormNode::GetNearestKey(int start, int end, unsigned long time) {
 	if(start == end) return &keys[start];
 	if(end - start == 1) {
-		return time - keys[start].time < keys[end].time - time ? &keys[start] : &keys[end];
+		return abs(time - keys[start].time) < abs(keys[end].time - time) ? &keys[start] : &keys[end];
 	}
 
 	int mid = (start + end) / 2;
-	if(time < keys[mid].time) return GetNearestKey(start, mid - 1, time);
+	if(time < keys[mid].time) return GetNearestKey(start, mid, time);
 	if(time > keys[mid].time) return GetNearestKey(mid + 1, end, time);
 	return &keys[mid];
 }
@@ -344,17 +344,10 @@ PRS XFormNode::GetPRS(unsigned long time) const {
 			key_prs = start->prs;
 		}
 
-
-		/*
-		if(time < 66) {
-			std::cerr << "p(" << time << ") = " << key_prs.position << " ";
-			std::cerr << "r = " << key_prs.rotation << " ";
-			std::cerr << std::endl;
-		}
-		*/
-
 		prs.position += key_prs.position;
-		prs.scale += key_prs.scale;
+		prs.scale.x *= key_prs.scale.x;
+		prs.scale.y *= key_prs.scale.y;
+		prs.scale.z *= key_prs.scale.z;
 		prs.rotation = key_prs.rotation * prs.rotation;
 	}
 	

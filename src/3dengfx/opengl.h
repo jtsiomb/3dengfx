@@ -47,7 +47,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <GL/glu.h>
 
 #undef GL_GLEXT_PROTOTYPES
-#include <GL/glext.h>
+#include "glext.h"
 
 /* GL_ARB_transpose_matrix */
 

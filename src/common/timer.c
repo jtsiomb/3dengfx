@@ -65,13 +65,36 @@ void timer_reset(ntimer *timer) {
 	timer->start = sys_get_msec();
 	timer->stop = 0;
 	timer->stopped_interval = 0;
+	timer->offset = 0;
 }
+
+void timer_fwd(ntimer *timer, unsigned long msec) {
+	timer->offset += msec;
+	if(timer->state != TSTATE_RUNNING) {
+		timer->stop += msec;
+	}
+}
+
+void timer_back(ntimer *timer, unsigned long msec) {
+	timer->offset -= msec;
+	if(timer->state != TSTATE_RUNNING) {
+		timer->stop -= msec;
+	}
+}
+
+#define MAX(a, b)	((a) > (b) ? (a) : (b))
 
 unsigned long timer_getmsec(const ntimer *timer) {
 	if(timer->state == TSTATE_RUNNING) {
-		return sys_get_msec() - timer->start - timer->stopped_interval;
+		long time = (long)sys_get_msec() - timer->start - timer->stopped_interval + timer->offset;
+		if(time < 0) {
+			timer_reset(timer);
+			timer_start(timer);
+			return 0;
+		}
+		return time;
 	} else {
-		return timer->stop;
+		return MAX(timer->stop, 0);
 	}
 	return 0;	/* can't happen */
 }

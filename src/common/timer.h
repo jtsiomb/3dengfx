@@ -24,7 +24,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 enum timer_state {TSTATE_RUNNING, TSTATE_PAUSED, TSTATE_RESET};
 
 typedef struct ntimer {
-	unsigned long stop, start, stopped_interval;
+	long stop, start, stopped_interval;
+	long offset;
 	enum timer_state state;
 } ntimer;
 
@@ -35,6 +36,10 @@ extern "C" {
 void timer_start(ntimer *timer);
 void timer_stop(ntimer *timer);
 void timer_reset(ntimer *timer);
+
+void timer_fwd(ntimer *timer, unsigned long msec);
+void timer_back(ntimer *timer, unsigned long msec);
+
 unsigned long timer_getmsec(const ntimer *timer);
 unsigned long timer_getsec(const ntimer *timer); 
 

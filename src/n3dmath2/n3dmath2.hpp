@@ -48,7 +48,8 @@ extern const scalar_t error_margin;
 
 // angle conversion
 #define RAD_TO_DEG(a) ((((scalar_t)a) * 360.0) / two_pi)
-#define DEG_TO_RAD(a) ((((scalar_t)a) * two_pi) / 360.0)
+//#define DEG_TO_RAD(a) ((((scalar_t)a) * two_pi) / 360.0)
+#define DEG_TO_RAD(a) (((scalar_t)a) * (pi / 180.0))
 
 #define SQ(x) ((x) * (x))
 

@@ -34,6 +34,4 @@ void SetSceneDataPath(const char *path);
 
 Scene *LoadScene(const char *fname);
 
-bool LoadMaterial(const char *name, Material *mat);
-
 #endif	// _SCENELOADER_H_

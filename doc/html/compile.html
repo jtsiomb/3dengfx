@@ -15,7 +15,7 @@
 			Linker options: 3dengfx-config --libs
 		</p>
 		
-		<a name="win32"><h3>MS Windows</h3></a>
+		<a name="win32"><h3>MS Windows/Visual Studio</h3></a>
 		<p>
 			<ul>
 			
@@ -36,6 +36,38 @@
 				
 				<li>Press build...</li>
 			</ul>
+		</p>
+
+	<a name="win32"><h3>MS Windows/mingw (DevCpp)</h3></a>
+		<p>
+		DevCpp is a free IDE that comes with 
+		mingw , a port of gcc for windows. It also comes with a handy package manager
+		that allows for easy installation of libraries.
+			<ol>
+			<li><a href="DevCpp site">Download</a> DevCpp and install.</li>
+			<li>Go to <a href="DevPaks site">this page</a> and find the following 
+			packages:
+				<ul>
+				<li>zlib</li>
+				<li>libpng</li>
+				<li>cg</li>
+				</ul>
+			<li>Install them with a double click.</li>
+			<li>Go <a href="SDL downloads">here</a> and get the latest SDL
+			binaries for mingw.Copy the files libSDL.a and libSDLmain.a to the 
+			library folder of DevCpp (usually C:\Program Files\Dev-Cpp\lib). Rename
+			the "include" folder of the package to "SDL" and copy it to the include
+			directory of DevCpp (usually C:\Program Files\Dev-Cpp\include).</li>
+			<li>create a new folder for the output files at the directory where
+			you extracted this package. Name it "mingw_bin".</li>
+			<li>Double click 3dengfx_devcpp.dev</li>
+			<li>Go to project/project options/directories/include directories and
+			add the directory where you installed 3dengfx. If you installed 3dengfx
+			in C:\3dengfx , then add to the path "C:\3dengfx\src"</li>
+			<li>Execute/compile. After this you should see in the mingw_bin folder
+			among other intermediate files a file named "lib3dengfx.a" ...</li>
+			</li>	
+			</ol>
 		</p>
 		
 		<!-- Footer -->

@@ -1,1 +1,0 @@
-opt := -g #-O3 -mmmx -msse

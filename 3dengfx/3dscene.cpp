@@ -41,7 +41,6 @@ Scene::Scene() {
 	// setup the cube-map cameras
 	for(int i=0; i<6; i++) {
 		cubic_cam[i] = new Camera;
-		//cubic_cam[i]->SetFOV(half_pi);
 		cubic_cam[i]->SetFOV(half_pi);
 		cubic_cam[i]->Rotate(Vector3(pi, 0, 0));
 		cubic_cam[i]->SetAspect(1.0);

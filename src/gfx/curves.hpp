@@ -36,8 +36,8 @@ protected:
 	int ease_sample_count, ease_step;
 	
 	void SampleArcLengths();
-	scalar_t Parametrize(scalar_t t);
-	scalar_t Ease(scalar_t t);
+	scalar_t Parametrize(scalar_t t) const;
+	scalar_t Ease(scalar_t t) const;
 
 public:
 	std::string name;
@@ -51,20 +51,20 @@ public:
 	virtual void SetEaseCurve(Curve *curve);
 	virtual void SetEaseSampleCount(int count);
 
-	virtual Vector3 Interpolate(scalar_t t) = 0;
-	virtual Vector3 operator ()(scalar_t t);
+	virtual Vector3 Interpolate(scalar_t t) const = 0;
+	virtual Vector3 operator ()(scalar_t t) const;
 };
 
 class BSplineCurve : public Curve {
 public:
 	virtual int GetSegmentCount() const;
-	virtual Vector3 Interpolate(scalar_t t);	
+	virtual Vector3 Interpolate(scalar_t t) const;
 };
 
 class CatmullRomSplineCurve : public Curve {
 public:
 	virtual int GetSegmentCount() const;
-	virtual Vector3 Interpolate(scalar_t t);
+	virtual Vector3 Interpolate(scalar_t t) const;
 };
 
 #endif	// _CURVES_HPP_

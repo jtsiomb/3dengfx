@@ -84,8 +84,8 @@ static int BinarySearch(Vector2 *array, scalar_t key, int begin, int end) {
 	return -1;	// just to make the compiler shut the fuck up
 }
 
-scalar_t Curve::Parametrize(scalar_t t) {
-	if(!Samples) SampleArcLengths();
+scalar_t Curve::Parametrize(scalar_t t) const {
+	if(!Samples) const_cast<Curve*>(this)->SampleArcLengths();
 
 	int samplepos = BinarySearch(Samples, t, 0, SampleCount);
 	scalar_t par = Samples[samplepos][Param];
@@ -113,10 +113,10 @@ scalar_t Curve::Parametrize(scalar_t t) {
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-scalar_t Curve::Ease(scalar_t t) {
+scalar_t Curve::Ease(scalar_t t) const {
 	if(!ease_curve) return t;
 
-	ease_curve->SetArcParametrization(true);
+	const_cast<Curve*>(this)->ease_curve->SetArcParametrization(true);
 	scalar_t et = ease_curve->Interpolate(t).y;
 
 	return MIN(MAX(et, 0.0f), 1.0f);
@@ -138,7 +138,7 @@ void Curve::SetEaseSampleCount(int count) {
 	ease_step = (int)(1.0f / (scalar_t)ease_sample_count);
 }
 
-Vector3 Curve::operator ()(scalar_t t) {
+Vector3 Curve::operator ()(scalar_t t) const {
 	return Interpolate(t);
 }
 
@@ -148,7 +148,7 @@ int BSplineCurve::GetSegmentCount() const {
 	return ControlPoints.Size() - 3;
 }
 
-Vector3 BSplineCurve::Interpolate(scalar_t t) {
+Vector3 BSplineCurve::Interpolate(scalar_t t) const {
 
 	if(ControlPoints.Size() < 4) return Vector3(0, 0, 0);
 
@@ -165,7 +165,7 @@ Vector3 BSplineCurve::Interpolate(scalar_t t) {
 		t = 1.0f;
 	}
 	
-	ListNode<Vector3> *iter = ControlPoints.Begin();
+	ListNode<Vector3> *iter = const_cast<BSplineCurve*>(this)->ControlPoints.Begin();
 	for(int i=0; i<seg; i++) iter = iter->next;
 
 	Vector3 Cp[4];
@@ -211,7 +211,7 @@ int CatmullRomSplineCurve::GetSegmentCount() const {
 	return ControlPoints.Size() - 1;
 }
 
-Vector3 CatmullRomSplineCurve::Interpolate(scalar_t t) {
+Vector3 CatmullRomSplineCurve::Interpolate(scalar_t t) const {
 
 	if(ControlPoints.Size() < 2) return Vector3(0, 0, 0);
 
@@ -229,7 +229,7 @@ Vector3 CatmullRomSplineCurve::Interpolate(scalar_t t) {
 	}
 
 	Vector3 Cp[4];
-	ListNode<Vector3> *iter = ControlPoints.Begin();
+	ListNode<Vector3> *iter = const_cast<CatmullRomSplineCurve*>(this)->ControlPoints.Begin();
 	for(int i=0; i<seg; i++) iter = iter->next;
 
 	Cp[1] = iter->data;

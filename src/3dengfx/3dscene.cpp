@@ -144,7 +144,7 @@ Camera *Scene::GetCamera(const char *name) {
 
 Light *Scene::GetLight(const char *name) {
 	for(int i=0; i<8; i++) {
-		if(!strcmp(lights[i]->name.c_str(), name)) return lights[i];
+		if(lights[i] && !strcmp(lights[i]->name.c_str(), name)) return lights[i];
 	}
 	return 0;
 }
@@ -177,10 +177,13 @@ XFormNode *Scene::GetNode(const char *name) {
 	return 0;
 }
 
-std::list<Object*> *Scene::GetObjectsList() {
+std::list<Object*> *Scene::GetObjectList() {
 	return &objects;
 }
 
+std::list<Camera*> *Scene::GetCameraList() {
+	return &cameras;
+}
 
 void Scene::SetActiveCamera(const Camera *cam) {
 	active_camera = cam;

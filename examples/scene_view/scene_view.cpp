@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <list>
 #include <cassert>
 #include "3dengfx/3dengfx.hpp"
 #include "common/fps_counter.h"
@@ -15,7 +16,9 @@ void UpdateGfx();
 bool AssignShaders();
 
 Scene *scene;
-TargetCamera *cam;
+Camera *cam;
+std::list<Camera*> *cam_list;
+std::list<Camera*>::iterator cam_iter;
 ntimer timer;
 fps_counter fps;
 
@@ -95,7 +98,9 @@ bool Init() {
 		return false;
 	}
 
-	cam = (TargetCamera*)scene->GetActiveCamera();
+	cam = scene->GetActiveCamera();
+	cam_list = scene->GetCameraList();
+	cam_iter = cam_list->begin();
 
 	timer_reset(&timer);
 	timer_start(&timer);

@@ -78,7 +78,8 @@ public:
 
 	XFormNode *GetNode(const char *name);
 
-	std::list<Object*> *GetObjectsList();
+	std::list<Object*> *GetObjectList();
+	std::list<Camera*> *GetCameraList();
 
 	void SetActiveCamera(const Camera *cam);
 	Camera *GetActiveCamera() const;

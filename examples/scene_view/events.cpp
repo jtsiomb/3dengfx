@@ -1,7 +1,10 @@
 #include <iostream>
+#include <list>
 #include "3dengfx/3dengfx.hpp"
 
-extern TargetCamera *cam;
+extern Camera *cam;
+extern std::list<Camera*> *cam_list;
+extern std::list<Camera*>::iterator cam_iter;
 
 void KeyHandler(int key) {
 	static bool running = true;
@@ -44,6 +47,13 @@ void KeyHandler(int key) {
 
 	case fxwt::KEY_UP:
 		timer_fwd(&timer, 5000);
+		break;
+
+	case 'c':
+		if(++cam_iter == cam_list->end()) {
+			cam_iter = cam_list->begin();
+		}
+		scene->SetActiveCamera(cam = *cam_iter);
 		break;
 
 	case 27:

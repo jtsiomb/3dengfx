@@ -150,6 +150,8 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 		if(m->faces) {
 			// -------- object ---------
 			Object *obj = new Object;
+			obj->SetDynamic(false);
+
 			obj->name = m->name;
 
 			obj->SetPosition(node_pos - pivot);
@@ -252,38 +254,30 @@ static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 	const char *tpath;
 	
 	tpath = TexPath(m->texture1_map.name);
-	if(tpath && !(tex = GetTexture(tpath))) {
-		error("%s: Couldn't load texture image \"%s\"", __func__, tpath);
+	if(tpath && (tex = GetTexture(tpath))) {
+		mat->SetTexture(tex, TEXTYPE_DIFFUSE);
 	}
 
 	tpath = TexPath(m->texture2_map.name);
-	if(tpath && !(detail = GetTexture(tpath))) {
-		error("%s: Couldn't load texture image \"%s\"", __func__, tpath);
+	if(tpath && (detail = GetTexture(tpath))) {
+		mat->SetTexture(detail, TEXTYPE_DETAIL);
 	}
 
 	tpath = TexPath(m->reflection_map.name);
-	if(tpath && !(env = GetTexture(tpath))) {
-		error("%s: Couldn't load texture image \"%s\"", __func__, tpath);
-	}
-	
-	tpath = TexPath(m->bump_map.name);
-	if(tpath && !(bump = GetTexture(tpath))) {
-		error("%s: Couldn't load texture image \"%s\"", __func__, tpath);
-	}
-
-	tpath = TexPath(m->self_illum_map.name);
-	if(tpath && !(light = GetTexture(tpath))) {
-		error("%s: Couldn't load texture image \"%s\"", __func__, tpath);
-	}
-
-	if(tex) mat->SetTexture(tex, TEXTYPE_DIFFUSE);
-	if(detail) mat->SetTexture(detail, TEXTYPE_DETAIL);
-	if(env) {
+	if(tpath && (env = GetTexture(tpath))) {
 		mat->SetTexture(env, TEXTYPE_ENVMAP);
 		mat->env_intensity = m->reflection_map.percent;
 	}
-	if(bump) mat->SetTexture(bump, TEXTYPE_BUMPMAP);
-	if(light) mat->SetTexture(light, TEXTYPE_LIGHTMAP);
+	
+	tpath = TexPath(m->bump_map.name);
+	if(tpath && (bump = GetTexture(tpath))) {
+		mat->SetTexture(bump, TEXTYPE_BUMPMAP);
+	}
+
+	tpath = TexPath(m->self_illum_map.name);
+	if(tpath && (light = GetTexture(tpath))) {
+		mat->SetTexture(light, TEXTYPE_LIGHTMAP);
+	}
 
 	if(m->autorefl_map.flags & LIB3DS_USE_REFL_MAP) {
 		mat->env_intensity = m->reflection_map.percent;
@@ -335,6 +329,7 @@ bool LoadLights(Lib3dsFile *file, Scene *scene) {
 		
 		if(!lt->spot_light) {
 			light = new PointLight;
+			light->name = lt->name;
 			light->SetPosition(CONV_VEC3(lt->position));
 			light->SetColor(CONV_RGB(lt->color));
 			light->SetIntensity(lt->multiplier);
@@ -360,9 +355,10 @@ bool LoadCameras(Lib3dsFile *file, Scene *scene) {
 	Lib3dsCamera *c = file->cameras;
 	while(c) {
 		TargetCamera *cam = new TargetCamera;
+		cam->name = c->name;
 		cam->SetPosition(CONV_VEC3(c->position));
 		cam->SetTarget(CONV_VEC3(c->target));
-		cam->SetClippingPlanes(c->near_range, c->far_range);
+		//cam->SetClippingPlanes(c->near_range, c->far_range);
 		
 		//scalar_t angle = atan(1.0 / cam->GetAspect());
 		//cam->SetFOV(sin(angle) * DEG_TO_RAD(c->fov));
@@ -471,7 +467,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 }
 
 static void ConstructHierarchy(Lib3dsFile *file, Scene *scene) {
-	std::list<Object*> *list = scene->GetObjectsList();
+	std::list<Object*> *list = scene->GetObjectList();
 	std::list<Object*>::iterator iter = list->begin();
 	while(iter != list->end()) {
 		Object *obj = *iter;

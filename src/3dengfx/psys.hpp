@@ -49,7 +49,7 @@ public:
 
 /* particle abstract base class.
  * Derived from XFormNode for controller functionality
- * */
+ */
 class Particle : public XFormNode {
 protected:
 	Vector3 velocity;
@@ -57,7 +57,6 @@ protected:
 	unsigned long birth_time, lifespan;
 
 public:
-	static unsigned long global_time;
 	
 	Particle();
 	Particle(const Vector3 &pos, const Vector3 &vel, scalar_t friction, unsigned long lifespan);
@@ -83,6 +82,16 @@ class MeshParticle : public Particle {
 };
 
 
+struct ParticleSysParams {
+	Fuzzy lifespan;			// lifespan in seconds
+	Fuzzy birth_rate;		// birth rate in particles per second
+	Vector3 gravity;		// gravitual force to be applied to all particles
+	FuzzyVec3 shoot_dir;	// shoot direction (initial particle velocity)
+	
+};
+
+enum ParticleType {PTYPE_PSYS, PTYPE_BILLBOARD, PTYPE_MESH};
+
 /* Particle system
  * The design here gets a bit confusing but for good reason
  * the particle system is also a particle because it can be emmited by
@@ -93,18 +102,21 @@ class ParticleSystem : public Particle {
 protected:
 	std::list<Particle*> particles;
 
-	Fuzzy lifespan;
-	Vector3 gravity;
+	ParticleSysParams psys_params;
+	ParticleType ptype;
 
 public:
 	ParticleSystem();
 	virtual ~ParticleSystem();
 
-	virtual void SetLifespan(const Fuzzy &lifespan);
-	virtual void SetGravity(const Vector3 &gravity);
+	static void SetGlobalTime(unsigned long msec);
+
+	virtual void SetParams(const ParticleSysParams &psys_params);
+	virtual void SetParticleType(ParticleType ptype);
 
 	virtual void Update(const Vector3 &ext_force = Vector3());
 	virtual void Draw() const;
 };
+
 
 #endif	// _PSYS_HPP_

@@ -18,7 +18,10 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <cmath>
 #include "psys.hpp"
+
+static scalar_t global_time;
 
 Fuzzy::Fuzzy(scalar_t num, scalar_t range) {
 	this->num = num;
@@ -85,16 +88,27 @@ void BillboardParticle::Draw() const {
 ParticleSystem::ParticleSystem() {}
 ParticleSystem::~ParticleSystem() {}
 
-void ParticleSystem::SetLifespan(const Fuzzy &lifespan) {
-	this->lifespan = lifespan;
+static void ParticleSystem::SetGlobalTime(unsigned long msec) {
+	global_time = (scalar_t)msec / 1000.0;
 }
 
-void ParticleSystem::SetGravity(const Fuzzy &gravity) {
-	this->gravity = gravity;
+void ParticleSystem::SetParams(const ParticleSysParams &psys_params) {
+	this->psys_params = psys_params;
+}
+
+void ParticleSystem::SetParticleType(ParticleType ptype) {
+	this->ptype = ptype;
 }
 
 void ParticleSystem::Update(const Vector3 &ext_force) {
 	// spawn new particles
+	static float prev_update = -1.0;
+
+	int spawn_count = (int)std::round(birth_rate() * (global_time - prev_update));
+
+	for(int i=0; i<spawn_count; i++) {
+	}
+	
 
 	// update particles
 	typename std::list<Particle*>::iterator iter = particles.begin();
@@ -104,4 +118,6 @@ void ParticleSystem::Update(const Vector3 &ext_force) {
 		} else {
 		}
 	}
+
+	prev_update = global_time;
 }

@@ -32,12 +32,11 @@ GNU/Linux:
 MS Windows:
 	- Make sure you have MS Visual Studio .NET 2003 or newer, the old
 	VS.NET compiler won't be able to compile the code, and don't even
-	think about VS6 no fucking chance the compiler just sucks too much.
+	think about VS6, the compiler just sucks too much.
 	- Use the included project to build the static library
 	- link with the static library 3dengfx.lib
 	- make sure you link with the Multithreaded DLL version of the C runtime
-	- at the predefined macros define HAVE_CONFIG_H
-	- add ALL the libraries subdirectories at the include search path
+	- add the src directory of this library at the include search path
 	- kill a chicken with a sacrificial blade over the roaring flames
 	of an active volcano
 	- press build...

@@ -80,3 +80,28 @@ void BillboardParticle::Draw() const {
 	glVertex3f(pos.x, pos.y, pos.z);
 	glEnd();
 }
+
+
+ParticleSystem::ParticleSystem() {}
+ParticleSystem::~ParticleSystem() {}
+
+void ParticleSystem::SetLifespan(const Fuzzy &lifespan) {
+	this->lifespan = lifespan;
+}
+
+void ParticleSystem::SetGravity(const Fuzzy &gravity) {
+	this->gravity = gravity;
+}
+
+void ParticleSystem::Update(const Vector3 &ext_force) {
+	// spawn new particles
+
+	// update particles
+	typename std::list<Particle*>::iterator iter = particles.begin();
+	while(iter != particles.end()) {
+		if(iter->Alive()) {
+			iter->Update(gravity);
+		} else {
+		}
+	}
+}

@@ -88,7 +88,7 @@ static int BZipRemap(NASE_File *file) {
 		return -1;
 	}
 
-	tmpbuf = (char*)malloc(tmpbuf_size);
+	tmpbuf = malloc(tmpbuf_size);
 	do {
 		char *ptr;
 		bytes = BZ2_bzRead(&bzerr, bzfile, tmpbuf, tmpbuf_size);
@@ -97,7 +97,7 @@ static int BZipRemap(NASE_File *file) {
 			return 0;
 		}
 		
-		buffer = (char*)realloc(buffer, buf_size + bytes);
+		buffer = realloc(buffer, buf_size + bytes);
 		ptr = buffer + buf_size;
 		buf_size += bytes;
 
@@ -121,7 +121,7 @@ NASE_File *NASE_OpenFile(const char *fname) {
 	NASE_File *file;
 	struct stat sbuf;
 	
-	file = (NASE_File*)malloc(sizeof(NASE_File));
+	file = malloc(sizeof(NASE_File));
 
 	if((file->fd = open(fname, O_RDONLY)) == -1) {
 		char errstr[50];
@@ -189,7 +189,7 @@ NASE_Material *NASE_GetMaterials(NASE_File *file) {
 	}
 
 	mat_count = NASE_GetMaterialCount(file);
-	mat = (NASE_Material*)malloc(mat_count * sizeof(NASE_Material));
+	mat = malloc(mat_count * sizeof(NASE_Material));
 
 	for(i=0; i<mat_count; i++) {
 		NASE_Material *material = NASE_GetMaterial(file, 0, i);
@@ -296,7 +296,7 @@ NASE_Object *NASE_GetObject(NASE_File *file, const char *objname, int num) {
 				continue;
 			}
 			*/
-			obj = (NASE_Object)malloc(sizeof(NASE_Object));
+			obj = malloc(sizeof(NASE_Object));
 
 			obj->name = name;
 			/* get PRS */
@@ -437,7 +437,7 @@ static char *GetString(char *mem) {
 	}
 
 	size = end - mem;
-	str = (char*)malloc(size + 1);
+	str = malloc(size + 1);
 	memcpy(str, mem, size);
 	str[size] = 0;
 

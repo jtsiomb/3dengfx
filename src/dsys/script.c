@@ -29,16 +29,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define BUF_LEN		1024
 
 DemoScript *OpenScript(const char *fname) {
-	DemoScript *script = (DemoScript*)malloc(sizeof(DemoScript));
+	DemoScript *script = malloc(sizeof(DemoScript));
 	
 	if(!(script->file = fopen(fname, "r"))) {
 		free(script);
 		return 0;
 	}		
-	script->fname = (char*)malloc(strlen(fname)+1);
+	script->fname = malloc(strlen(fname)+1);
 	strcpy(script->fname, fname);
 
-	script->line_buffer = (char*)malloc(BUF_LEN);
+	script->line_buffer = malloc(BUF_LEN);
 	script->line_buffer[0] = 0;
 
 	script->line = 0;
@@ -105,7 +105,7 @@ int GetNextCommand(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
 	cmd->type = (CommandType)UINT_MAX;
 	for(i=0; i<VALID_CMD_COUNT; i++) {
 		if(!strcmp(cmd_tok, cmd_symb[i])) {
-			cmd->type = (CommandType)i;
+			cmd->type = i;
 			break;
 		}
 	}
@@ -121,7 +121,7 @@ int GetNextCommand(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
 		cmd->args = 0;
 	} else {
 		unsigned int len = strlen(ptr);
-		cmd->args = (char*)malloc(len + 1);
+		cmd->args = malloc(len + 1);
 		strcpy(cmd->args, ptr);
 		if(cmd->args[len - 1] == '\n') {
 			cmd->args[len - 1] = 0;

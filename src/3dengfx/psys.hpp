@@ -51,7 +51,7 @@ public:
  * Derived from XFormNode for controller functionality
  * */
 class Particle : public XFormNode {
-private:
+protected:
 	Vector3 velocity;
 	scalar_t friction;
 	unsigned long birth_time, lifespan;
@@ -65,7 +65,7 @@ public:
 
 	virtual bool Alive() const;
 
-	virtual void Update(const Vector3 &ext_force);
+	virtual void Update(const Vector3 &ext_force = Vector3());
 	virtual void Draw() const = 0;
 };
 
@@ -83,6 +83,28 @@ class MeshParticle : public Particle {
 };
 
 
-/* particle system */
+/* Particle system
+ * The design here gets a bit confusing but for good reason
+ * the particle system is also a particle because it can be emmited by
+ * another particle system. This way we get a tree structure of particle
+ * emmiters with the leaves being just billboards or mesh-particles.
+ */
+class ParticleSystem : public Particle {
+protected:
+	std::list<Particle*> particles;
+
+	Fuzzy lifespan;
+	Vector3 gravity;
+
+public:
+	ParticleSystem();
+	virtual ~ParticleSystem();
+
+	virtual void SetLifespan(const Fuzzy &lifespan);
+	virtual void SetGravity(const Vector3 &gravity);
+
+	virtual void Update(const Vector3 &ext_force = Vector3());
+	virtual void Draw() const;
+};
 
 #endif	// _PSYS_HPP_

@@ -41,7 +41,3 @@ inline const scalar_t *Matrix4x4::operator [](int index) const {
 inline void Matrix4x4::ResetIdentity() {
 	memcpy(this->m, identity_matrix.m, 16 * sizeof(scalar_t));
 }
-
-inline const scalar_t *Matrix4x4::OpenGLMatrix() const {
-	return (const scalar_t*)m;
-}

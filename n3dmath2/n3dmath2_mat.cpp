@@ -670,6 +670,10 @@ Matrix4x4 Matrix4x4::Inverse() const {
 	return AdjMat * (1.0f / Determinant());
 }
 
+const scalar_t *Matrix4x4::OpenGLMatrix() const {
+	return (const scalar_t*)m;
+}
+
 ostream &operator <<(ostream &out, const Matrix4x4 &mat) {
 	for(int i=0; i<4; i++) {
 		char str[100];

@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cstdio>
 #include <cstring>
 #include "gfxprog.hpp"
+#include "3denginefx.hpp"
 #include "opengl.h"
 
 using namespace std;
@@ -41,7 +42,11 @@ GfxProg::GfxProg(const char *fname, int ptype) {
 
 GfxProg::~GfxProg() {
 	if(cg_prog) {
+#ifdef USING_CG_TOOLKIT
 		cgDestroyProgram(cg_prog);
+#else
+		EngineLog("Tried to destroy a Cg program, but this 3dengfx lib is not compiled with Cg support");
+#endif	// USING_CG_TOOLKIT
 	}
 	if(asm_prog) {
 		glDeleteProgramsARB(1, &asm_prog);
@@ -109,6 +114,7 @@ bool GfxProg::LoadProgram(const char *fname, int ptype) {
 			return false;
 		}
 	} else {
+#ifdef USING_CG_TOOLKIT
 		if(cg_prog) cgDestroyProgram(cg_prog);
 
 		CGprofile cg_profile = ptype == PROG_CGFP ? CG_PROFILE_ARBFP1 : CG_PROFILE_ARBVP1;
@@ -120,6 +126,9 @@ bool GfxProg::LoadProgram(const char *fname, int ptype) {
 		}
 
 		cgGLLoadProgram(cg_prog);
+#else
+		EngineLog("tried to load a Cg program, but this 3dengfx lib is not compiled with Cg support");
+#endif	// USING_CG_TOOLKIT
 	}
 
 	delete [] prog_buf;

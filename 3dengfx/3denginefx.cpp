@@ -425,12 +425,14 @@ void CreateGraphicsContext(const GraphicsInitParameters &gip) {
 		throw EngineException(__func__, "Your system does not meet the minimum requirements (at least 2 texture units)");
 	}
 
+#ifdef USING_CG_TOOLKIT
 	// create a Cg context
 	if(!(cgc = cgCreateContext())) {
 		throw EngineException(__func__, "Could not create Cg context");
 	}
 	cgGLSetOptimalOptions(CG_PROFILE_ARBFP1);
 	cgGLSetOptimalOptions(CG_PROFILE_ARBVP1);
+#endif	// USING_CG_TOOLKIT
 
 #ifndef OPENGL_1_3
 	glActiveTexture = (PFNGLACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glActiveTextureARB");
@@ -478,7 +480,10 @@ void CreateGraphicsContext(const GraphicsInitParameters &gip) {
 }
 
 void DestroyGraphicsContext() {
+#ifdef USING_CG_TOOLKIT
 	cgDestroyContext(cgc);
+#endif	// USING_CG_TOOLKIT
+	
 	if(gparams.fullscreen) SDL_ShowCursor(1);
 	SDL_Quit();
 }
@@ -898,6 +903,7 @@ void SetGfxProgram(GfxProg *prog, bool enable) {
 			glDisable(ptype);
 		}
 	} else {
+#ifdef USING_CG_TOOLKIT
 		CGprofile cg_prof = prog->prog_type == PROG_CGFP ? CG_PROFILE_ARBFP1 : CG_PROFILE_ARBVP1;
 
 		if(enable) {
@@ -906,6 +912,9 @@ void SetGfxProgram(GfxProg *prog, bool enable) {
 		} else {
 			cgGLDisableProfile(cg_prof);
 		}
+#else
+		EngineLog("tried to set a Cg GfxProg, but this 3dengfx lib is not compiled with Cg support");
+#endif	// USING_CG_TOOLKI
 	}
 }
 

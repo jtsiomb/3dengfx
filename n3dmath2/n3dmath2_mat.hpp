@@ -141,7 +141,7 @@ public:
 	Matrix4x4 Adjoint() const;
 	Matrix4x4 Inverse() const;
 	
-	inline const scalar_t *OpenGLMatrix() const;
+	const scalar_t *OpenGLMatrix() const;
 		
 	friend std::ostream &operator <<(std::ostream &out, const Matrix4x4 &mat);
 };

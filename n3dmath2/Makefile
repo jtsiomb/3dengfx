@@ -2,7 +2,7 @@ obj := n3dmath2.o n3dmath2_mat.o n3dmath2_vec.o n3dmath2_qua.o n3dmath2_ray.o n3
 
 opt := -O3 -mmmx -msse
 
-CXXFLAGS := -g $(opt) -ansi -pedantic -Wall -fPIC -DHAVE_CONFIG_H -I..
+CXXFLAGS := -g $(opt) -ansi -pedantic -Wall -fPIC -I..
 
 n3dmath2_pack.o: $(obj)
 	$(LD) -r -o $@ $(obj)

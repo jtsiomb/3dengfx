@@ -20,10 +20,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _GFXPROG_HPP_
 #define _GFXPROG_HPP_
 
+#ifdef USING_CG_TOOLKIT
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
+#else
+// to keep binary compatibility
+typedef void _CGcontext;
+typedef void _CGprogram;
+#endif	// USING_CG_TOOLKIT
 
-enum {PROG_VP, PROG_FP, PROG_CGVP, PROG_CGFP};
+enum {
+	PROG_CGVP,		// Cg vertex program
+	PROG_CGFP,		// Cg fragment program
+	PROG_VP,		// ARB_vertex_program
+	PROG_FP			// ARB_fragment_program
+};
 
 class GfxProg {
 protected:

@@ -23,8 +23,11 @@ For legalese details see the file COPYING included.
 Using 3dengfx with your program
 -------------------------------
 GNU/Linux:
-	link with the output of `3dengfx-config --libs` and add the
-	output of `3dengfx-config --cflags` to your compiler flags
+	There is a script installed at /usr/local/bin that will give you
+	automatically the compiler and linker options that are needed to
+	compile and link with the library.
+	Compiler flags: 3dengfx-config --cflags
+	Linker options: 3dengfx-config --libs
 
 MS Windows:
 	- Make sure you have MS Visual Studio .NET 2003 or newer, the old

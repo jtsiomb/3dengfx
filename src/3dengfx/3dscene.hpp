@@ -37,7 +37,7 @@ class Scene {
 private:
 	Light *lights[8];
 	std::list<Camera *> cameras;
-	Camera *cubic_cam[6];
+	TargetCamera *cubic_cam[6];
 	std::list<Object *> objects;
 	//std::list<ShadowVolume> static_shadow_volumes;
 	std::list<Curve *> curves;
@@ -54,8 +54,12 @@ private:
 	bool use_fog;
 	Color fog_color;
 	float near_fog_range, far_fog_range;
+
+	bool auto_clear;
+	Color bg_color;
 	
-	void RenderAllCubeMaps(unsigned long msec = XFORM_LOCAL_PRS) const;
+	void PlaceCubeCamera(const Vector3 &pos);
+	bool RenderAllCubeMaps(unsigned long msec = XFORM_LOCAL_PRS) const;
 		
 public:
 
@@ -89,6 +93,8 @@ public:
 	void SetAmbientLight(Color ambient);
 	Color GetAmbientLight() const;
 	void SetFog(bool enable, Color fog_color = Color(0l), float near_fog = 0.0f, float far_fog = 1000.0f);
+	void SetAutoClear(bool enable);
+	void SetBackground(const Color &bg);
 
 	// render states
 	void SetupLights(unsigned long msec = XFORM_LOCAL_PRS) const;

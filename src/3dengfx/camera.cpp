@@ -34,6 +34,12 @@ void Camera::Activate(unsigned long msec) const {
 	view_matrix = prs.rotation.Inverse().GetRotationMatrix();
 	view_matrix.Translate(-prs.position);
 
+	Matrix4x4 flip_matrix;
+	if(flip.x) flip_matrix[0][0] = -1;
+	if(flip.y) flip_matrix[1][1] = -1;
+	if(flip.z) flip_matrix[2][2] = -1;
+	view_matrix = flip_matrix * view_matrix;
+
 	SetMatrix(XFORM_PROJECTION, CreateProjectionMatrix(fov, aspect, near_clip, far_clip));
 }
 
@@ -69,17 +75,26 @@ void TargetCamera::Activate(unsigned long msec) const {
 
 	Vector3 n = (targ - pos).Normalized();
 	Vector3 u = CrossProduct(up, n).Normalized();
-	Vector3 v = CrossProduct(n, u);
+	Vector3 v;
+	
+	if(flip.y) {
+		v = CrossProduct(u, n);
+		SetFrontFace(ORDER_CCW);
+	} else {
+		v = CrossProduct(n, u);
+		SetFrontFace(ORDER_CW);
+	}
 
 	scalar_t tx = -DotProduct(u, pos);
 	scalar_t ty = -DotProduct(v, pos);
 	scalar_t tz = -DotProduct(n, pos);
+	
+	Matrix4x4 cam_matrix = Matrix4x4(u.x, u.y, u.z, tx,
+									v.x, v.y, v.z, ty,
+									n.x, n.y, n.z, tz,
+									0.0, 0.0, 0.0, 1.0);
 
-	view_matrix = Matrix4x4(u.x, u.y, u.z, tx,
-							v.x, v.y, v.z, ty,
-							n.x, n.y, n.z, tz,
-							0.0, 0.0, 0.0, 1.0);
-
+	view_matrix = cam_matrix;
 	
 	SetMatrix(XFORM_PROJECTION, CreateProjectionMatrix(fov, aspect, near_clip, far_clip));
 }

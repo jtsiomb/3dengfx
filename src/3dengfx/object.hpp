@@ -27,6 +27,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "material.hpp"
 #include "3denginefx.hpp"
 
+struct RenderParams {
+	bool billboarded;
+	bool zwrite;
+	bool blending;
+	BlendingFactor src_blend, dest_blend;
+	bool handle_blending;
+	GfxProg *vprog, *pprog;
+	bool auto_cube_maps;
+	bool hidden;
+	bool show_normals;
+	scalar_t show_normals_scale;
+	bool auto_global;
+
+	RenderParams();
+};
+
 class Object : public XFormNode {
 private:
 	TriMesh mesh;
@@ -67,6 +83,7 @@ public:
 	void SetZWrite(bool enable);
 	void SetBlending(bool enable);
 	void SetBlendingMode(BlendingFactor sblend, BlendingFactor dblend);
+	void SetHandleBlending(bool enable);
 	void SetWireframe(bool enable);
 	void SetVertexProgram(GfxProg *prog);
 	void SetPixelProgram(GfxProg *prog);
@@ -74,6 +91,7 @@ public:
 	void SetHidden(bool enable);
 	void SetShowNormals(bool enable);
 	void SetShowNormalsScale(scalar_t scale);
+	void SetAutoGlobal(bool enable);
 
 	void ApplyXForm(bool recalc_normals = false, unsigned long time = XFORM_LOCAL_PRS);
 	

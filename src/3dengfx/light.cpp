@@ -117,15 +117,19 @@ void PointLight::SetGLLight(int n, unsigned long time) const {
 	test.Translate(pos);
 	LoadMatrixGL(test);
 
+	Color amb = ambient_color * intensity;
+	Color dif = diffuse_color * intensity;
+	Color spec = specular_color * intensity;
+
 	float position[] = {0.0f, 0.0f, 0.0f, 1.0f};
-	float amb[] = {ambient_color.r, ambient_color.g, ambient_color.b, ambient_color.a};
-	float diff[] = {diffuse_color.r, diffuse_color.g, diffuse_color.b, diffuse_color.a};
-	float spec[] = {specular_color.r, specular_color.g, specular_color.b, specular_color.a};
+	float gl_amb[] = {amb.r, amb.g, amb.b, ambient_color.a};
+	float gl_dif[] = {dif.r, dif.g, dif.b, diffuse_color.a};
+	float gl_spec[] = {spec.r, spec.g, spec.b, specular_color.a};
 	
 	glLightfv(light_num, GL_POSITION, position);
-	glLightfv(light_num, GL_AMBIENT, amb);
-	glLightfv(light_num, GL_DIFFUSE, diff);
-	glLightfv(light_num, GL_SPECULAR, spec);
+	glLightfv(light_num, GL_AMBIENT, gl_amb);
+	glLightfv(light_num, GL_DIFFUSE, gl_dif);
+	glLightfv(light_num, GL_SPECULAR, gl_spec);
 	glLightf(light_num, GL_CONSTANT_ATTENUATION, (float)attenuation[0]);
 	glLightf(light_num, GL_LINEAR_ATTENUATION, (float)attenuation[1]);
 	glLightf(light_num, GL_QUADRATIC_ATTENUATION, (float)attenuation[2]);

@@ -132,18 +132,6 @@ enum CubeMapFace {
 
 class GfxProg;
 
-struct RenderParams {
-	bool billboarded;
-	bool zwrite;
-	bool blending;
-	BlendingFactor src_blend, dest_blend;
-	GfxProg *vprog, *pprog;
-	bool auto_cube_maps;
-	bool hidden;
-	bool show_normals;
-	scalar_t show_normals_scale;
-};
-
 #define DONT_CARE_BPP		1	// 0001
 #define DONT_CARE_DEPTH		2	// 0010
 #define DONT_CARE_STENCIL	4	// 0100

@@ -39,19 +39,18 @@ Scene::Scene() {
 	ambient_light = Color(0.0f, 0.0f, 0.0f);
 	manage_data = true;
 
+	auto_clear = true;
+	bg_color = 0;
+
 	// setup the cube-map cameras
 	for(int i=0; i<6; i++) {
-		cubic_cam[i] = new Camera;
+		cubic_cam[i] = new TargetCamera;
 		cubic_cam[i]->SetFOV(half_pi);
 		cubic_cam[i]->SetAspect(1.0);
+		cubic_cam[i]->Flip(false, true, false);
 	}
-
-	cubic_cam[CUBE_MAP_INDEX_NX]->Rotate(Vector3(0, half_pi, 0));
-	cubic_cam[CUBE_MAP_INDEX_NZ]->Rotate(Vector3(0, pi, 0));
-	cubic_cam[CUBE_MAP_INDEX_PX]->Rotate(Vector3(0, -half_pi, 0));
-
-	cubic_cam[CUBE_MAP_INDEX_NY]->Rotate(Vector3(half_pi, 0, 0));
-	cubic_cam[CUBE_MAP_INDEX_PY]->Rotate(Vector3(-half_pi, 0, 0));
+	cubic_cam[CUBE_MAP_INDEX_PY]->SetUpVector(Vector3(0, 0, -1));
+	cubic_cam[CUBE_MAP_INDEX_NY]->SetUpVector(Vector3(0, 0, 1));
 }
 
 Scene::~Scene() {
@@ -99,7 +98,7 @@ void Scene::AddLight(Light *light) {
 }
 
 void Scene::AddObject(Object *obj) {
-	if(obj->GetMaterialPtr()->alpha < 1.0f) {
+	if(obj->GetMaterialPtr()->alpha < 1.0f - small_number) {
         objects.push_back(obj);
 	} else {
 		objects.push_front(obj);
@@ -214,6 +213,13 @@ void Scene::SetFog(bool enable, Color fog_color, float near_fog, float far_fog) 
 	}
 }
 
+void Scene::SetAutoClear(bool enable) {
+	auto_clear = enable;
+}
+
+void Scene::SetBackground(const Color &bg) {
+	bg_color = bg;
+}
 
 void Scene::SetupLights(unsigned long msec) const {
 	int light_index = 0;
@@ -226,10 +232,24 @@ void Scene::SetupLights(unsigned long msec) const {
 }
 
 void Scene::Render(unsigned long msec) const {
+	static int level = -1;
+	level++;
+	
 	::SetAmbientLight(ambient_light);
 
+	bool rendered_cubemaps = false;
+	if(!level) rendered_cubemaps = RenderAllCubeMaps();
+
+	if(auto_clear || rendered_cubemaps) {
+		Clear(bg_color);
+		ClearZBufferStencil(1.0, 0);
+	}
+	
 	// set camera
-	if(!active_camera) return;
+	if(!active_camera) {
+		level--;
+		return;
+	}
 	active_camera->Activate(msec);
 	
 	SetupLights(msec);
@@ -246,14 +266,20 @@ void Scene::Render(unsigned long msec) const {
 	while(iter != objects.end()) {
 		Object *obj = *iter++;
 
-		if(!obj->GetRenderParams().hidden) {
+		RenderParams rp = obj->GetRenderParams();
+
+		if(!rp.hidden) {
 			obj->Render(msec);
 		}
 	}
+
+	level--;
 }
 
 
 void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
+	Scene *non_const_this = const_cast<Scene*>(this);
+
 	Texture *tex = obj->GetMaterialPtr()->GetTexture(TEXTYPE_ENVMAP);
 
 	if(!tex || (tex && tex->GetType() != TEX_CUBE)) {
@@ -265,63 +291,94 @@ void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
 	if(render_params.hidden) return;
 
 	Vector3 obj_pos = obj->GetPRS(msec).position;
-	for(int i=0; i<6; i++) {
-		cubic_cam[i]->SetPosition(obj_pos);
-	}
+
+	non_const_this->PlaceCubeCamera(obj_pos + obj->GetPivot());
 
 	const Camera *active_cam = GetActiveCamera();
 
 	obj->SetHidden(true);
 
-	Scene *non_const_this = const_cast<Scene*>(this);
-
 	SetRenderTarget(tex, CUBE_MAP_PX);
 	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PX]);
-	Clear(0);
+	Clear(bg_color);
 	ClearZBufferStencil(1.0, 0);
 	Render(msec);
 	SetRenderTarget(0);
 
 	SetRenderTarget(tex, CUBE_MAP_NX);
 	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NX]);
-	Clear(0);
+	Clear(bg_color);
 	ClearZBufferStencil(1.0, 0);
 	Render(msec);
 	SetRenderTarget(0);
 	
 	SetRenderTarget(tex, CUBE_MAP_PY);
 	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PY]);
-	Clear(0);
+	Clear(bg_color);
 	ClearZBufferStencil(1.0, 0);
 	Render(msec);
 	SetRenderTarget(0);
 	
 	SetRenderTarget(tex, CUBE_MAP_NY);
 	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NY]);
-	Clear(0);
+	Clear(bg_color);
 	ClearZBufferStencil(1.0, 0);
 	Render(msec);
 	SetRenderTarget(0);
 	
 	SetRenderTarget(tex, CUBE_MAP_PZ);
 	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PZ]);
-	Clear(0);
+	Clear(bg_color);
 	ClearZBufferStencil(1.0, 0);
 	Render(msec);
 	SetRenderTarget(0);
 	
 	SetRenderTarget(tex, CUBE_MAP_NZ);
 	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NZ]);
-	Clear(0);
+	Clear(bg_color);
 	ClearZBufferStencil(1.0, 0);
 	Render(msec);
 	SetRenderTarget(0);
 
 
 	non_const_this->SetActiveCamera(active_cam);
+	SetupLights(msec);
 
 	obj->SetHidden(false);
 }
 
-// TODO: implement
-void Scene::RenderAllCubeMaps(unsigned long msec) const {}
+void Scene::PlaceCubeCamera(const Vector3 &pos) {
+	static const Vector3 targets[] = {
+		Vector3(1, 0, 0), Vector3(-1, 0, 0),	// +/- X
+		Vector3(0, 1, 0), Vector3(0, -1, 0),	// +/- Y
+		Vector3(0, 0, 1), Vector3(0, 0, -1)		// +/- Z
+	};
+
+	for(int i=0; i<6; i++) {
+		cubic_cam[i]->SetPosition(pos);
+		cubic_cam[i]->SetTarget(targets[i] + pos);
+	}
+}
+
+
+bool Scene::RenderAllCubeMaps(unsigned long msec) const {
+	bool did_some = false;
+	
+	std::list<Object *>::const_iterator iter = objects.begin();
+	while(iter != objects.end()) {
+		Object *obj = *iter++;
+
+		Texture *env;
+		RenderParams rp = obj->GetRenderParams();
+		if(rp.hidden || !rp.auto_global) continue;
+		
+		if((env = obj->GetMaterialPtr()->GetTexture(TEXTYPE_ENVMAP))) {
+			if(env->GetType() == TEX_CUBE) {
+				did_some = true;
+				RenderCubeMap(obj, msec);
+			}
+		}
+	}
+
+	return did_some;
+}

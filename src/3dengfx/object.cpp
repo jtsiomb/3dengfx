@@ -31,27 +31,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfxprog.hpp"
 #include "texman.hpp"
 
-static void InitRenderParams(RenderParams *rp) {
-	rp->billboarded = false;
-	rp->zwrite = true;
-	rp->blending = false;
-	rp->src_blend = BLEND_SRC_ALPHA;
-	rp->dest_blend = BLEND_ONE_MINUS_SRC_ALPHA;
-	rp->vprog = rp->pprog = 0;
-	rp->auto_cube_maps = false;
-	rp->hidden = false;
-	rp->show_normals = false;
-	rp->show_normals_scale = 0.5;
+RenderParams::RenderParams() {
+	billboarded = false;
+	zwrite = true;
+	blending = false;
+	src_blend = BLEND_SRC_ALPHA;
+	dest_blend = BLEND_ONE_MINUS_SRC_ALPHA;
+	handle_blending = true;
+	vprog = pprog = 0;
+	auto_cube_maps = false;
+	hidden = false;
+	show_normals = false;
+	show_normals_scale = 0.5;
+	auto_global = true;
 }
 	
 
-Object::Object() {
-	InitRenderParams(&render_params);
-}
+Object::Object() {}
 
 Object::Object(const TriMesh &mesh) {
-	InitRenderParams(&render_params);
-	
 	this->mesh = mesh;
 }
 
@@ -118,6 +116,10 @@ void Object::SetBlendingMode(BlendingFactor sblend, BlendingFactor dblend) {
 	render_params.dest_blend = dblend;
 }
 
+void Object::SetHandleBlending(bool enable) {
+	render_params.handle_blending = enable;
+}
+
 void Object::SetWireframe(bool enable) {
 	mat.wireframe = enable;
 }
@@ -156,6 +158,10 @@ void Object::SetShowNormals(bool enable) {
 
 void Object::SetShowNormalsScale(scalar_t scale) {
 	render_params.show_normals_scale = scale;
+}
+
+void Object::SetAutoGlobal(bool enable) {
+	render_params.auto_global = enable;
 }
 
 void Object::ApplyXForm(bool recalc_normals, unsigned long time) {
@@ -250,9 +256,16 @@ void Object::RenderHack(unsigned long time) {
 
 	::SetZWrite(render_params.zwrite);
 	SetShadingMode(mat.shading);
-	SetAlphaBlending(render_params.blending);
-	//SetAlphaBlending(true);
-	SetBlendFunc(render_params.src_blend, render_params.dest_blend);
+
+	if(render_params.handle_blending) {
+		if(mat.alpha < 1.0 - small_number) {
+			SetAlphaBlending(true);
+			SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+		}
+	} else {
+		SetAlphaBlending(render_params.blending);
+		SetBlendFunc(render_params.src_blend, render_params.dest_blend);
+	}
 
 	if(mat.wireframe) ::SetWireframe(true);
 
@@ -264,8 +277,10 @@ void Object::RenderHack(unsigned long time) {
 	if(render_params.pprog) SetPixelProgramming(false);
 	
 	if(mat.wireframe) ::SetWireframe(false);
-	//SetAlphaBlending(false);
-	if(render_params.blending) SetAlphaBlending(false);
+	if((render_params.handle_blending && mat.alpha < 1.0 - small_number) || 
+			(!render_params.handle_blending && render_params.blending)) {
+		SetAlphaBlending(false);
+	}
 	if(render_params.zwrite) ::SetZWrite(true);
 	if(mat.shading == SHADING_FLAT) SetShadingMode(SHADING_GOURAUD);
 

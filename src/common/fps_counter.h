@@ -1,22 +1,22 @@
 #ifndef _FPS_COUNTER_H_
 #define _FPS_COUNTER_H_
 
-typedef struct FPSCounter {
+typedef struct fps_counter {
 	unsigned long sample_interval;
 	unsigned long sample_start_time;
 	unsigned long frame_count;
 	float fps;
-} FPSCounter;
+} fps_counter;
 
 #ifdef __cplusplus
 extern "C" {
 #endif	/* __cplusplus */
 
-void FPS_Start(FPSCounter *fpsc, unsigned long time, unsigned long sample_interval);
-int FPS_FrameProc(FPSCounter *fpsc, unsigned long time);
-const char *FPS_GetFrameRateStr(FPSCounter *fpsc);
+void fps_start(fps_counter *fpsc, unsigned long time, unsigned long sample_interval);
+int fps_frame_proc(fps_counter *fpsc, unsigned long time);
+const char *fps_get_frame_rate_str(fps_counter *fpsc);
 
-#define FPS_GetFrameRate(fpsc) (fpsc)->fps
+#define fps_get_frame_rate(fpsc) (fpsc)->fps
 
 #ifdef __cplusplus
 }

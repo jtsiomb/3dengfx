@@ -33,6 +33,8 @@ protected:
 	Vector3 up;
 	scalar_t aspect;
 	
+	struct {bool x, y, z;} flip;
+	
 public:
 	BaseCamera(const Vector3 &trans = Vector3(0,0,0), const Quaternion &rot = Quaternion());
 	virtual ~BaseCamera();
@@ -52,6 +54,8 @@ public:
 	virtual void Zoom(scalar_t zoom_factor, unsigned long msec = XFORM_LOCAL_PRS);
 	virtual void Pan(const Vector2 &dir, unsigned long msec = XFORM_LOCAL_PRS);
 	virtual void Roll(scalar_t angle, unsigned long msec = XFORM_LOCAL_PRS);
+
+	virtual void Flip(bool x, bool y, bool z);
 };
 
 #endif	// _BASE_CAM_HPP_

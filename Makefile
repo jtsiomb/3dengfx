@@ -37,6 +37,7 @@ include $(obj:.o=.d)
 	@set -e; rm -f $@; $(CC) -MM $(CFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
 
+
 .PHONY: clean
 clean:
 	$(RM) $(obj)

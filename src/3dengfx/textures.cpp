@@ -189,6 +189,7 @@ void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
 		break;
 
 	case TEX_CUBE:
+		InvertImage(buffer, width, height);
 		glTexImage2D(cube_map_face, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 		break;
 

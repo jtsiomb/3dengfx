@@ -220,10 +220,15 @@ static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 	mat->ambient_color = CONV_RGBA(m->ambient);
 	mat->diffuse_color = CONV_RGBA(m->diffuse);
 	mat->specular_color = CONV_RGBA(m->specular) * m->shin_strength;
-	if(m->self_illum) mat->emissive_color = 1.0;
+	if(m->self_illum) {
+		std::cerr << "self illuminating material: " << name << std::endl;
+		mat->emissive_color = 1.0;
+	}
 	
 	scalar_t s = pow(2, 10.0 * m->shininess);
 	mat->specular_power = s > 128.0 ? 128.0 : s;
+
+	mat->alpha = 1.0 - m->transparency;
 
 	if(m->shading == LIB3DS_WIRE_FRAME || m->use_wire) {
 		mat->wireframe = true;
@@ -327,8 +332,9 @@ bool LoadCameras(Lib3dsFile *file, Scene *scene) {
 		cam->SetTarget(CONV_VEC3(c->target));
 		cam->SetClippingPlanes(c->near_range, c->far_range);
 		
-		scalar_t angle = atan(1.0 / cam->GetAspect());
-		cam->SetFOV(sin(angle) * DEG_TO_RAD(c->fov));
+		//scalar_t angle = atan(1.0 / cam->GetAspect());
+		//cam->SetFOV(sin(angle) * DEG_TO_RAD(c->fov));
+		cam->SetFOV(DEG_TO_RAD(c->fov) / cam->GetAspect());
 
 		if(LoadKeyframes(file, c->name, LIB3DS_CAMERA_NODE, cam)) {
 			cam->SetPosition(Vector3());

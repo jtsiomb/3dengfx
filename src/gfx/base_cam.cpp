@@ -30,6 +30,7 @@ BaseCamera::BaseCamera(const Vector3 &trans, const Quaternion &rot) {
 	near_clip = 1.0;
 	far_clip = 1000.0;
 	aspect = 1.33333;
+	flip.x = flip.y = flip.z = false;
 }
 
 BaseCamera::~BaseCamera() {}
@@ -99,4 +100,10 @@ void BaseCamera::Roll(scalar_t angle, unsigned long msec) {
 	Quaternion q(dir, angle);
 	up = Vector3(0, 1, 0);
 	up.Transform(q);
+}
+
+void BaseCamera::Flip(bool x, bool y, bool z) {
+	flip.x = x;
+	flip.y = y;
+	flip.z = z;
 }

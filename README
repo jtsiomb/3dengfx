@@ -1,0 +1,54 @@
+3dengfx 0.1
+by John Tsiombikas (Nuclear / the Lab) <nuclear@siggraph.org>
+http://thelab.demoscene.gr/nuclear/
+----------------------------------------------------
+
+General Information
+-------------------
+3dengfx is a 3D visualization system (also commonly referred to as
+"3D engine") that provides a wide range of facilities, as high-level
+as loading and rendering complete 3D environments with 2 function calls
+and as low-level as letting you manipulate every detail, and circuimvent
+every automatic process calling equivalent to low-level API functions in
+a platform-independent way.
+
+Licensing
+---------
+3dengfx is licensed under the GNU General Public License version 2.
+That means that you can use (AND LINK WITH) this library ONLY for free
+software programs. no LGPL cheating here... be usefull to the society or
+get lost.
+For legalese details see the file COPYING included.
+
+Using 3dengfx with your program
+-------------------------------
+GNU/Linux:
+	link with the output of `3dengfx-config --libs` and add the
+	output of `3dengfx-config --cflags` to your compiler flags
+
+MS Windows:
+	- Make sure you have MS Visual Studio .NET 2003 or newer, the old
+	VS.NET compiler won't be able to compile the code, and don't even
+	think about VS6 no fucking chance the compiler just sucks too much.
+	- Use the included project to build the static library
+	- link with the static library 3dengfx.lib
+	- make sure you link with the Multithreaded DLL version of the C runtime
+	- at the predefined macros define HAVE_CONFIG_H
+	- add ALL the libraries subdirectories at the include search path
+	- kill a chicken with a sacrificial blade over the roaring flames
+	of an active volcano
+	- press build...
+
+Contact Information
+-------------------
+For any comments or suggestions, feel free to contact me at:
+	nuclear@siggraph.org
+	
+you may want to visit my web site for new and updated versions:
+	http://thelab.demoscene.gr/nuclear/
+	
+also you will always find the latest version of the code at my
+subversion repository (won't be up always but most of the time it should)
+	svn://nuclear.dnsalias.com/pub/graphics/
+
+John Tsiombikas - 24 July 2004

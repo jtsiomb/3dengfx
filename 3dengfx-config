@@ -1,0 +1,31 @@
+#!/bin/sh
+
+cflags="-I/usr/local/include/3dengfx \
+-I/usr/local/include/3dengfx/3dengfx \
+-I/usr/local/include/3dengfx/3dengfx/3dwt \
+-I/usr/local/include/3dengfx/gfx \
+-I/usr/local/include/3dengfx/common \
+-I/usr/local/include/3dengfx/dsys \
+-I/usr/local/include/3dengfx/nlibase \
+-I/usr/local/include/3dengfx/n3dmath2 \
+-DHAVE_CONFIG_H"
+
+libs="-l3dengfx -lGL -lGLU -lCg -lCgGL -lbz2"
+
+if test $# -eq 0; then
+      echo "oug" 1>&2
+      exit 1
+fi
+
+while test $# -gt 0; do
+	case $1 in
+	--cflags)
+		echo $cflags `sdl-config --cflags`
+		;;
+
+	--libs)
+		echo $libs `sdl-config --libs` `pkg-config libpng --libs`
+		;;
+	esac
+	shift
+done

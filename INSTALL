@@ -1,0 +1,23 @@
+3dengfx 0.1 - installation instructions
+---------------------------------------
+
+3 step installation....
+
+1) edit config.h (by hand :) and comment-out the line that says
+	#define SINGLE_PRECISION_MATH
+   if you wish to make the library use floats everywere instead of
+   doubles.
+   No other configuration options available yet
+
+2) make
+3) make install
+
+that's all, ready to use, se README for details
+
+Requirements
+------------
+OpenGL
+SDL
+libpng
+libbz2 (not needed yet under windows, not used)
+Cg toolkit (from nvidia)

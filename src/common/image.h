@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef IMAGE_H_
 #define IMAGE_H_
 
+#include "3dengfx_config.h"
+
 /* always compile support for image formats that
  * don't create any library dependencies.
  */

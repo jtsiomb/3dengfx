@@ -36,6 +36,8 @@ MotionController::MotionController(ControllerClass ctype, TimelineMode mode) {
 	freq = ampl = 1.0f;
 	freq_func = ampl_func = 0;
 
+	slope = Vector3(1, 1, 1);
+
 	axis_flags = CTRL_XYZ;
 }
 
@@ -48,6 +50,8 @@ MotionController::MotionController(Curve *curve, unsigned long start, unsigned l
 	ctrl_type = CTRL_CURVE;
 	freq = ampl = 1.0f;
 	freq_func = ampl_func = 0;
+
+	slope = Vector3(1, 1, 1);
 
 	axis_flags = CTRL_XYZ;
 }
@@ -65,6 +69,22 @@ void MotionController::SetSinFunc(scalar_t freq, scalar_t ampl, scalar_t phase) 
 void MotionController::SetSinFunc(scalar_t (*freq_func)(scalar_t), scalar_t (*ampl_func)(scalar_t)) {
 	this->freq_func = freq_func;
 	this->ampl_func = ampl_func;
+}
+
+void MotionController::SetOrigin(scalar_t orig) {
+	this->orig = Vector3(orig, orig, orig);
+}
+
+void MotionController::SetOrigin(const Vector3 &orig_vec) {
+	orig = orig_vec;
+}
+
+void MotionController::SetSlope(scalar_t slope) {
+	this->slope = Vector3(slope, slope, slope);
+}
+
+void MotionController::SetSlope(const Vector3 &slope_vec) {
+	slope = slope_vec;
 }
 
 void MotionController::SetTiming(unsigned long start, unsigned long end) {
@@ -135,6 +155,18 @@ Vector3 MotionController::operator ()(unsigned long time) const {
 			if(axis_flags & CTRL_X) vec.x = result;
 			if(axis_flags & CTRL_Y) vec.y = result;
 			if(axis_flags & CTRL_Z) vec.z = result;
+			return vec;
+		}
+
+	case CTRL_LIN:
+		{
+			scalar_t t = (scalar_t)time / 1000.0f;
+			Vector3 result = orig + slope * t;
+			
+			Vector3 vec(0, 0, 0);
+			if(axis_flags & CTRL_X) vec.x = result.x;
+			if(axis_flags & CTRL_Y) vec.y = result.y;
+			if(axis_flags & CTRL_Z) vec.z = result.z;
 			return vec;
 		}
 	}

@@ -20,11 +20,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _3DSCENE_HPP_
 #define _3DSCENE_HPP_
 
-/* This file is a last minute port from my previous engine
- * so there might be glaring differences in coding style.
- * TODO: fix those...
- */
-
 #include <list>
 #include "camera.hpp"
 #include "light.hpp"
@@ -44,21 +39,21 @@ private:
 	std::list<Camera *> cameras;
 	Camera *cubic_cam[6];
 	std::list<Object *> objects;
-	//std::list<ShadowVolume> StaticShadowVolumes;
+	//std::list<ShadowVolume> static_shadow_volumes;
 	std::list<Curve *> curves;
-	bool ManageData;
+	bool manage_data;
 
-	const Camera *ActiveCamera;
+	const Camera *active_camera;
 
-	bool Shadows;
-	bool LightHalos;
-	float HaloSize;
+	bool shadows;
+	bool light_halos;
+	float halo_size;
 
-	Color AmbientLight;
+	Color ambient_light;
 	
-	bool UseFog;
-	Color FogColor;
-	float NearFogRange, FarFogRange;
+	bool use_fog;
+	Color fog_color;
+	float near_fog_range, far_fog_range;
 	
 	void RenderAllCubeMaps(unsigned long msec = XFORM_LOCAL_PRS) const;
 		
@@ -81,6 +76,8 @@ public:
 	Object *GetObject(const char *name);
 	Curve *GetCurve(const char *name);
 
+	XFormNode *GetNode(const char *name);
+
 	std::list<Object*> *GetObjectsList();
 
 	void SetActiveCamera(const Camera *cam);
@@ -91,7 +88,7 @@ public:
 	void SetHaloSize(float size);
 	void SetAmbientLight(Color ambient);
 	Color GetAmbientLight() const;
-	void SetFog(bool enable, Color FogColor = Color(0l), float Near = 0.0f, float Far = 1000.0f);
+	void SetFog(bool enable, Color fog_color = Color(0l), float near_fog = 0.0f, float far_fog = 1000.0f);
 
 	// render states
 	void SetupLights(unsigned long msec = XFORM_LOCAL_PRS) const;

@@ -40,8 +40,8 @@ void timer_reset(ntimer *timer);
 void timer_fwd(ntimer *timer, unsigned long msec);
 void timer_back(ntimer *timer, unsigned long msec);
 
-unsigned long timer_getmsec(const ntimer *timer);
-unsigned long timer_getsec(const ntimer *timer); 
+unsigned long timer_getmsec(ntimer *timer);
+unsigned long timer_getsec(ntimer *timer); 
 
 #ifdef __cplusplus
 }

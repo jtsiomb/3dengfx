@@ -32,13 +32,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texman.hpp"
 
 static void InitRenderParams(RenderParams *rp) {
-	rp->shading = SHADING_GOURAUD;
 	rp->billboarded = false;
 	rp->zwrite = true;
 	rp->blending = false;
 	rp->src_blend = BLEND_SRC_ALPHA;
 	rp->dest_blend = BLEND_ONE_MINUS_SRC_ALPHA;
-	rp->wire = false;
 	rp->vprog = rp->pprog = 0;
 	rp->auto_cube_maps = false;
 	rp->hidden = false;
@@ -100,7 +98,7 @@ RenderParams Object::GetRenderParams() const {
 }
 
 void Object::SetShading(ShadeMode shading_mode) {
-	render_params.shading = shading_mode;
+	mat.shading = shading_mode;
 }
 
 void Object::SetBillboarding(bool enable) {
@@ -121,7 +119,7 @@ void Object::SetBlendingMode(BlendingFactor sblend, BlendingFactor dblend) {
 }
 
 void Object::SetWireframe(bool enable) {
-	render_params.wire = enable;
+	mat.wireframe = enable;
 }
 
 void Object::SetVertexProgram(GfxProg *prog) {
@@ -167,87 +165,8 @@ void Object::ApplyXForm(bool recalc_normals, unsigned long time) {
 	if(recalc_normals) mesh.CalculateNormals();
 }
 
-void Object::Render8TexUnits() {
-	
-	int tex_unit = 0;
-	unsigned int tex_id = 0;
 
-	::SetMaterial(mat);
-	
-	if(mat.tex[TEXTYPE_ENVMAP]) {
-		EnableTextureUnit(tex_unit);
-		SetTextureCoordIndex(tex_unit, 0);
-		//SetTextureConstant(tex_unit, Color(mat.env_intensity));
-		//SetTextureUnitColor(tex_unit, TOP_MODULATE, TARG_TEXTURE, TARG_CONSTANT);
-		SetTextureUnitColor(tex_unit, TOP_REPLACE, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_TEXTURE);
-		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-		glEnable(GL_TEXTURE_GEN_S);
-		glEnable(GL_TEXTURE_GEN_T);
-		SetTexture(tex_unit, mat.tex[TEXTYPE_ENVMAP]);
-		tex_id = mat.tex[TEXTYPE_ENVMAP]->tex_id;
-		tex_unit++;
-	}
-	
-	if(mat.tex[TEXTYPE_DIFFUSE]) {
-		EnableTextureUnit(tex_unit);
-		SetTextureCoordIndex(tex_unit, 0);
-		SetTextureUnitColor(tex_unit, tex_unit ? TOP_ADD : TOP_REPLACE, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_TEXTURE, TARG_PREV);
-		SetTexture(tex_unit, mat.tex[TEXTYPE_DIFFUSE]);
-		tex_id = mat.tex[TEXTYPE_DIFFUSE]->tex_id;
-		tex_unit++;
-	}
-	
-	if(mat.tex[TEXTYPE_DETAIL]) {
-		EnableTextureUnit(tex_unit);
-		SetTextureCoordIndex(tex_unit, 1);
-		SetTextureUnitColor(tex_unit, tex_unit ? TOP_ADD : TOP_REPLACE, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_ADD, TARG_TEXTURE, TARG_PREV);
-		SetTexture(tex_unit, mat.tex[TEXTYPE_DETAIL]);
-		tex_id = mat.tex[TEXTYPE_DETAIL]->tex_id;
-		tex_unit++;
-	}
-	
-	if(mat.tex[TEXTYPE_LIGHTMAP]) {
-		EnableTextureUnit(tex_unit);
-		SetTextureCoordIndex(tex_unit, 0);
-		SetTextureUnitColor(tex_unit, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_TEXTURE);
-		SetTexture(tex_unit, mat.tex[TEXTYPE_LIGHTMAP]);
-		tex_id = mat.tex[TEXTYPE_LIGHTMAP]->tex_id;
-		tex_unit++;
-	}
-	
-	if(tex_unit) {
-		EnableTextureUnit(tex_unit);
-		SetTextureUnitColor(tex_unit, TOP_MODULATE, TARG_COLOR, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_MODULATE, TARG_COLOR, TARG_PREV);
-		glBindTexture(GL_TEXTURE_2D, tex_id);
-		tex_unit++;
-	}
-
-	::SetZWrite(render_params.zwrite);
-	SetShadingMode(render_params.shading);
-	SetAlphaBlending(render_params.blending);
-	SetBlendFunc(render_params.src_blend, render_params.dest_blend);
-	::SetWireframe(render_params.wire);
-	
-	Draw(*mesh.GetVertexArray(), *mesh.GetIndexArray());
-
-	if(render_params.wire) ::SetWireframe(false);
-	if(render_params.blending) SetAlphaBlending(false);
-	if(render_params.zwrite) ::SetZWrite(true);
-	if(render_params.shading == SHADING_FLAT) SetShadingMode(SHADING_GOURAUD);
-	
-	for(int i=0; i<tex_unit; i++) {
-		DisableTextureUnit(i);
-		glDisable(GL_TEXTURE_GEN_S);
-		glDisable(GL_TEXTURE_GEN_T);
-	}
-}
-
+void Object::Render8TexUnits() {}
 
 void Object::Render(unsigned long time) {
 	world_mat = GetPRS(time).GetXFormMatrix();
@@ -330,12 +249,12 @@ void Object::RenderHack(unsigned long time) {
 	}
 
 	::SetZWrite(render_params.zwrite);
-	SetShadingMode(render_params.shading);
+	SetShadingMode(mat.shading);
 	SetAlphaBlending(render_params.blending);
 	//SetAlphaBlending(true);
 	SetBlendFunc(render_params.src_blend, render_params.dest_blend);
 
-	if(render_params.wire) ::SetWireframe(true);
+	if(mat.wireframe) ::SetWireframe(true);
 
 	if(render_params.pprog) ::SetGfxProgram(render_params.pprog);
 	if(render_params.vprog) ::SetGfxProgram(render_params.vprog);
@@ -344,11 +263,11 @@ void Object::RenderHack(unsigned long time) {
 
 	if(render_params.pprog) SetPixelProgramming(false);
 	
-	if(render_params.wire) ::SetWireframe(false);
+	if(mat.wireframe) ::SetWireframe(false);
 	//SetAlphaBlending(false);
 	if(render_params.blending) SetAlphaBlending(false);
 	if(render_params.zwrite) ::SetZWrite(true);
-	if(render_params.shading == SHADING_FLAT) SetShadingMode(SHADING_GOURAUD);
+	if(mat.shading == SHADING_FLAT) SetShadingMode(SHADING_GOURAUD);
 
 
 	for(int i=0; i<tex_unit; i++) {

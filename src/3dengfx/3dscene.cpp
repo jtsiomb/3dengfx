@@ -28,16 +28,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using std::string;
 
 Scene::Scene() {
-	ActiveCamera = 0;
-	Shadows = false;
-	LightHalos = false;
-	HaloSize = 10.0f;
-	UseFog = false;
+	active_camera = 0;
+	shadows = false;
+	light_halos = false;
+	halo_size = 10.0f;
+	use_fog = false;
 
 	memset(lights, 0, 8 * sizeof(Light*));
 
-	AmbientLight = Color(0.0f, 0.0f, 0.0f);
-	ManageData = true;
+	ambient_light = Color(0.0f, 0.0f, 0.0f);
+	manage_data = true;
 
 	// setup the cube-map cameras
 	for(int i=0; i<6; i++) {
@@ -60,7 +60,7 @@ Scene::~Scene() {
 		delete cubic_cam[i];
 	}
 
-	if(ManageData) {
+	if(manage_data) {
 		std::list<Object*>::iterator obj = objects.begin();
 		while(obj != objects.end()) {
 			delete *obj++;
@@ -86,7 +86,7 @@ Scene::~Scene() {
 
 void Scene::AddCamera(Camera *cam) {
 	cameras.push_back(cam);
-	if(!ActiveCamera) ActiveCamera = cam;
+	if(!active_camera) active_camera = cam;
 }
 
 void Scene::AddLight(Light *light) {
@@ -166,6 +166,15 @@ Curve *Scene::GetCurve(const char *name) {
 	return 0;
 }
 
+XFormNode *Scene::GetNode(const char *name) {
+	XFormNode *node;
+
+	if((node = GetObject(name))) return node;
+	if((node = GetLight(name))) return node;
+	if((node = GetCamera(name))) return node;
+	
+	return 0;
+}
 
 std::list<Object*> *Scene::GetObjectsList() {
 	return &objects;
@@ -173,64 +182,63 @@ std::list<Object*> *Scene::GetObjectsList() {
 
 
 void Scene::SetActiveCamera(const Camera *cam) {
-	ActiveCamera = cam;
+	active_camera = cam;
 }
 
 Camera *Scene::GetActiveCamera() const {
-	return const_cast<Camera*>(ActiveCamera);
+	return const_cast<Camera*>(active_camera);
 }
 
 void Scene::SetHaloDrawing(bool enable) {
-	LightHalos = enable;
+	light_halos = enable;
 }
 
 void Scene::SetHaloSize(float size) {
-	HaloSize = size;
+	halo_size = size;
 }
 
 void Scene::SetAmbientLight(Color ambient) {
-	AmbientLight = ambient;
+	ambient_light = ambient;
 }
 
 Color Scene::GetAmbientLight() const {
-	return AmbientLight;
+	return ambient_light;
 }
 
-void Scene::SetFog(bool enable, Color FogColor, float Near, float Far) {
-	UseFog = enable;
+void Scene::SetFog(bool enable, Color fog_color, float near_fog, float far_fog) {
+	use_fog = enable;
 	if(enable) {
-		this->FogColor = FogColor;
-		NearFogRange = Near;
-		FarFogRange = Far;
+		this->fog_color = fog_color;
+		near_fog_range = near_fog;
+		far_fog_range = far_fog;
 	}
 }
 
 
 void Scene::SetupLights(unsigned long msec) const {
-	int LightIndex = 0;
+	int light_index = 0;
 	for(int i=0; i<8; i++) {
 		if(lights[i]) {
-			lights[i]->SetGLLight(LightIndex++, msec);
+			lights[i]->SetGLLight(light_index++, msec);
 		}
 	}
-	glDisable(GL_LIGHT0 + LightIndex);
-	//gc->D3DDevice->LightEnable(LightIndex, false);
+	glDisable(GL_LIGHT0 + light_index);
 }
 
 void Scene::Render(unsigned long msec) const {
-	::SetAmbientLight(AmbientLight);
+	::SetAmbientLight(ambient_light);
 
 	// set camera
-	if(!ActiveCamera) return;
-	ActiveCamera->Activate(msec);
+	if(!active_camera) return;
+	active_camera->Activate(msec);
 	
 	SetupLights(msec);
 
 	// set projection matrix
 	float near_clip, far_clip;
-	near_clip = ActiveCamera->GetClippingPlane(CLIP_NEAR);
-	far_clip = ActiveCamera->GetClippingPlane(CLIP_FAR);
-	//Matrix4x4 proj = CreateProjectionMatrix(ActiveCamera->GetFOV(), ActiveCamera->GetAspect(), near_clip, far_clip);
+	near_clip = active_camera->GetClippingPlane(CLIP_NEAR);
+	far_clip = active_camera->GetClippingPlane(CLIP_FAR);
+	//Matrix4x4 proj = CreateProjectionMatrix(active_camera->GetFOV(), active_camera->GetAspect(), near_clip, far_clip);
 	//SetMatrix(XFORM_PROJECTION, proj);
 
 	// render objects
@@ -242,21 +250,6 @@ void Scene::Render(unsigned long msec) const {
 			obj->Render(msec);
 		}
 	}
-	/*
-	for(int i=0; i<8; i++) {
-		if(lights[i]) glDisable(GL_LIGHT0 + i);
-	}
-	*/
-
-	//::SetAmbientLight(0.0f);
-
-	/*
-	if(LightHalos) {
-		for(int i=0; i<8; i++) {
-			if(lights[i]) lights[i]->Draw(gc, HaloSize);
-		}
-	}
-	*/
 }
 
 
@@ -330,4 +323,5 @@ void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
 	obj->SetHidden(false);
 }
 
+// TODO: implement
 void Scene::RenderAllCubeMaps(unsigned long msec) const {}

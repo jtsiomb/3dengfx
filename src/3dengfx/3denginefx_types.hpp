@@ -133,12 +133,10 @@ enum CubeMapFace {
 class GfxProg;
 
 struct RenderParams {
-	ShadeMode shading;
 	bool billboarded;
 	bool zwrite;
 	bool blending;
 	BlendingFactor src_blend, dest_blend;
-	bool wire;
 	GfxProg *vprog, *pprog;
 	bool auto_cube_maps;
 	bool hidden;

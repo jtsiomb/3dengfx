@@ -57,6 +57,8 @@ static bool LoadLights(Lib3dsFile *file, Scene *scene);
 static bool LoadCameras(Lib3dsFile *file, Scene *scene);
 static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat);
 static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes type, XFormNode *node);
+static void ConstructHierarchy(Lib3dsFile *file, Scene *scene);
+//static void FixHierarchy(XFormNode *node);
 
 static const char *TexPath(const char *path);
 static std::vector<int> *GetFrames(Lib3dsObjectData *o);
@@ -103,7 +105,16 @@ Scene *LoadScene(const char *fname) {
 	LoadObjects(file, scene);
 	LoadLights(file, scene);
 	LoadCameras(file, scene);
-	//LoadCurves(file, scene);
+
+	ConstructHierarchy(file, scene);
+
+	/*
+	std::list<Object*> *obj_list = scene->GetObjectsList();
+	std::list<Object*>::iterator iter = obj_list->begin();
+	while(iter != obj_list->end()) {
+		FixHierarchy(*iter++);
+	}
+	*/
 	
 	lib3ds_file_free(file);
 
@@ -138,11 +149,13 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 		if(m->faces) {
 			// -------- object ---------
 			Object *obj = new Object;
-			obj->name = std::string(m->name);
+			obj->name = m->name;
 
 			obj->SetPosition(node_pos - pivot);
 			obj->SetRotation(node_rot);
 			obj->SetScaling(node_scl);
+
+			obj->SetPivot(pivot);
 		
 			// load the polygons
 			Triangle *tarray = new Triangle[m->faces];
@@ -212,9 +225,11 @@ static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 	scalar_t s = pow(2, 10.0 * m->shininess);
 	mat->specular_power = s > 128.0 ? 128.0 : s;
 
-	if(m->shading == LIB3DS_WIRE_FRAME) {
+	if(m->shading == LIB3DS_WIRE_FRAME || m->use_wire) {
 		mat->wireframe = true;
-	} else if(m->shading == LIB3DS_FLAT) {
+	}
+	
+	if(m->shading == LIB3DS_FLAT) {
 		mat->shading = SHADING_FLAT;
 	}
 
@@ -417,6 +432,55 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 	return true;
 }
 
+static void ConstructHierarchy(Lib3dsFile *file, Scene *scene) {
+	std::list<Object*> *list = scene->GetObjectsList();
+	std::list<Object*>::iterator iter = list->begin();
+	while(iter != list->end()) {
+		Object *obj = *iter;
+		Lib3dsNode *n = lib3ds_file_node_by_name(file, obj->name.c_str(), LIB3DS_OBJECT_NODE);
+
+		// get parent
+		if(n->parent) {
+			obj->parent = scene->GetNode(n->parent->name);
+		}
+		
+		// get children
+		Lib3dsNode *child = n->childs;
+		while(child) {
+			XFormNode *child_node = scene->GetNode(child->name);
+			if(child_node) {
+				(*iter)->children.push_back(child_node);
+			}
+			child = child->next;
+		}
+
+		iter++;
+	}
+}
+
+
+/*
+static void FixHierarchy(XFormNode *node) {
+	if(!node) return;
+
+	if(node->parent) {
+		XFormNode *parent = node->parent;
+		node->parent = 0;
+		PRS prs = node->GetPRS(XFORM_LOCAL_PRS);
+		node->parent = parent;
+		
+		PRS pprs = node->parent->GetPRS(XFORM_LOCAL_PRS);
+
+		Vector3 pos = prs.position.Transformed(pprs.rotation.Conjugate());
+		
+		node->SetPosition(pos);
+	}
+
+	for(int i=0; i<(int)node->children.size(); i++) {
+		FixHierarchy(node->children[i]);
+	}
+}
+*/			
 
 static std::vector<int> *GetFrames(Lib3dsObjectData *o) {
 	static std::vector<int> frames;

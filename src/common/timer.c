@@ -84,7 +84,7 @@ void timer_back(ntimer *timer, unsigned long msec) {
 
 #define MAX(a, b)	((a) > (b) ? (a) : (b))
 
-unsigned long timer_getmsec(const ntimer *timer) {
+unsigned long timer_getmsec(ntimer *timer) {
 	if(timer->state == TSTATE_RUNNING) {
 		long time = (long)sys_get_msec() - timer->start - timer->stopped_interval + timer->offset;
 		if(time < 0) {
@@ -99,6 +99,6 @@ unsigned long timer_getmsec(const ntimer *timer) {
 	return 0;	/* can't happen */
 }
 
-unsigned long timer_getsec(const ntimer *timer) {
+unsigned long timer_getsec(ntimer *timer) {
 	return timer_getmsec(timer) / 1000;
 }

@@ -39,22 +39,68 @@ PRS::PRS() {
 	scale = Vector3(1, 1, 1);
 }
 
-PRS::PRS(const Vector3 &pos, const Quaternion &rot, const Vector3 &scale) {
+PRS::PRS(const Vector3 &pos, const Quaternion &rot, const Vector3 &scale, const Vector3 &pivot) {
 	position = pos;
 	rotation = rot;
 	this->scale = scale;
+	this->pivot = pivot;
 }
 
 Matrix4x4 PRS::GetXFormMatrix() const {
-	Matrix4x4 trans_mat, rot_mat, scale_mat;
+	Matrix4x4 trans_mat, rot_mat, scale_mat, pivot_mat, neg_pivot_mat;
+
+	pivot_mat.SetTranslation(pivot);
+	neg_pivot_mat.SetTranslation(-pivot);
 	
 	trans_mat.SetTranslation(position);
-	rot_mat = rotation.GetRotationMatrix();
+	rot_mat = (Matrix4x4)rotation.GetRotationMatrix();
 	scale_mat.SetScaling(scale);
 	
-	return trans_mat * rot_mat * scale_mat;
+	return pivot_mat * trans_mat * rot_mat * scale_mat * neg_pivot_mat;
 }
+
+PRS CombinePRS(const PRS &prs1, const PRS &prs2) {
+	PRS prs;
+
+	prs.position = prs1.position + prs2.position;
+	prs.rotation = prs2.rotation * prs1.rotation;
+	prs.scale.x = prs1.scale.x * prs2.scale.x;
+	prs.scale.y = prs1.scale.y * prs2.scale.y;
+	prs.scale.z = prs1.scale.z * prs2.scale.z;
+	prs.pivot = prs1.pivot;
+
+	return prs;
+}
+
+PRS InheritPRS(const PRS &child, const PRS &parent) {
+	PRS prs;
+	prs.pivot = child.pivot;
 	
+	prs.rotation = parent.rotation * child.rotation;
+
+	prs.position += child.position;
+	prs.position -= parent.position;
+	prs.position.Transform(parent.rotation.Conjugate());
+	prs.position += parent.position;
+
+	Vector3 ppos_trans = parent.position.Transformed(parent.rotation.Conjugate());
+	prs.position += ppos_trans;
+	
+	prs.position.x *= parent.scale.x;
+	prs.position.y *= parent.scale.y;
+	prs.position.z *= parent.scale.z;
+
+	prs.scale.x = child.scale.x * parent.scale.x;
+	prs.scale.y = child.scale.y * parent.scale.y;
+	prs.scale.z = child.scale.z * parent.scale.z;
+
+	return prs;
+}
+
+std::ostream &operator <<(std::ostream &out, const PRS &prs) {
+	out << "p: " << prs.position << " r: " << prs.rotation << " s: " << prs.scale;
+	return out;
+}
 
 //////////////// Keyframe /////////////////
 
@@ -69,6 +115,8 @@ XFormNode::XFormNode() {
 	key_count = 0;
 	use_ctrl = 0;
 	key_time_mode = TIME_CLAMP;
+	parent = 0;
+	cache.valid = false;
 }
 
 XFormNode::~XFormNode() {
@@ -101,7 +149,6 @@ void XFormNode::GetKeyInterval(unsigned long time, const Keyframe **start, const
 	}
 }
 
-
 void XFormNode::AddController(MotionController ctrl, ControllerType ctrl_type) {
 	switch(ctrl_type) {
 	case CTRL_TRANSLATION:
@@ -117,6 +164,7 @@ void XFormNode::AddController(MotionController ctrl, ControllerType ctrl_type) {
 		break;
 	}
 	use_ctrl = true;
+	cache.valid = false;
 }
 
 vector<MotionController> *XFormNode::GetControllers(ControllerType ctrl_type) {
@@ -134,6 +182,7 @@ vector<MotionController> *XFormNode::GetControllers(ControllerType ctrl_type) {
 		return &scale_ctrl;
 		break;
 	}
+	cache.valid = false;
 }
 
 void XFormNode::AddKeyframe(const Keyframe &key) {
@@ -151,9 +200,11 @@ void XFormNode::AddKeyframe(const Keyframe &key) {
 		keys.push_back(key);
 		key_count++;
 	}
+	cache.valid = false;
 }
 
 Keyframe *XFormNode::GetKeyframe(unsigned long time) {
+	cache.valid = false;
 	Keyframe *keyframe = GetNearestKey(time);
 	return (keyframe->time == time) ? keyframe : 0;
 }
@@ -163,10 +214,17 @@ void XFormNode::DeleteKeyframe(unsigned long time) {
 	if(iter != keys.end()) {
 		keys.erase(iter);
 	}
+	cache.valid = false;
+}
+
+std::vector<Keyframe> *XFormNode::GetKeyframes() {
+	cache.valid = false;
+	return &keys;
 }
 
 void XFormNode::SetTimelineMode(TimelineMode time_mode) {
 	key_time_mode = time_mode;
+	cache.valid = false;
 }
 
 void XFormNode::SetPosition(const Vector3 &pos, unsigned long time) {
@@ -178,6 +236,7 @@ void XFormNode::SetPosition(const Vector3 &pos, unsigned long time) {
 			keyframe->prs.position = pos;
 		}
 	}
+	cache.valid = false;
 }
 
 void XFormNode::SetRotation(const Quaternion &rot, unsigned long time) {
@@ -189,6 +248,7 @@ void XFormNode::SetRotation(const Quaternion &rot, unsigned long time) {
 			keyframe->prs.rotation = rot;
 		}
 	}
+	cache.valid = false;
 }
 
 void XFormNode::SetRotation(const Vector3 &euler, unsigned long time) {
@@ -206,6 +266,7 @@ void XFormNode::SetRotation(const Vector3 &euler, unsigned long time) {
 			keyframe->prs.rotation = xrot * yrot * zrot;
 		}
 	}
+	cache.valid = false;
 }
 
 void XFormNode::SetScaling(const Vector3 &scale, unsigned long time) {
@@ -217,7 +278,14 @@ void XFormNode::SetScaling(const Vector3 &scale, unsigned long time) {
 			keyframe->prs.scale = scale;
 		}
 	}
+	cache.valid = false;
 }
+
+void XFormNode::SetPivot(const Vector3 &pivot) {
+	local_prs.pivot = pivot;
+	cache.valid = false;
+}
+
 
 Vector3 XFormNode::GetPosition(unsigned long time) const {
 	return GetPRS(time).position;
@@ -231,6 +299,11 @@ Vector3 XFormNode::GetScaling(unsigned long time) const {
 	return GetPRS(time).scale;
 }
 
+Vector3 XFormNode::GetPivot() const {
+	return local_prs.pivot;
+}
+
+
 void XFormNode::Translate(const Vector3 &trans, unsigned long time) {
 	if(time == XFORM_LOCAL_PRS) {
 		local_prs.position += trans;
@@ -240,6 +313,7 @@ void XFormNode::Translate(const Vector3 &trans, unsigned long time) {
 			keyframe->prs.position += trans;
 		}
 	}
+	cache.valid = false;
 }
 
 void XFormNode::Rotate(const Quaternion &rot, unsigned long time) {
@@ -251,6 +325,7 @@ void XFormNode::Rotate(const Quaternion &rot, unsigned long time) {
 			keyframe->prs.rotation = rot * keyframe->prs.rotation;
 		}
 	}
+	cache.valid = false;
 }
 
 void XFormNode::Rotate(const Vector3 &euler, unsigned long time) {
@@ -268,6 +343,7 @@ void XFormNode::Rotate(const Vector3 &euler, unsigned long time) {
 			keyframe->prs.rotation = xrot * yrot * zrot * keyframe->prs.rotation;
 		}
 	}
+	cache.valid = false;
 }
 
 void XFormNode::Rotate(const Matrix3x3 &rmat, unsigned long time) {
@@ -280,6 +356,7 @@ void XFormNode::Rotate(const Matrix3x3 &rmat, unsigned long time) {
 	q.v.z = sqrt((rmat[2][2] + 1.0 - 2.0 * ssq) / 2.0);
 
 	Rotate(q, time);
+	cache.valid = false;
 }
 
 void XFormNode::Scale(const Vector3 &scale, unsigned long time) {
@@ -295,19 +372,23 @@ void XFormNode::Scale(const Vector3 &scale, unsigned long time) {
 			keyframe->prs.scale.z *= scale.z;
 		}
 	}
+	cache.valid = false;
 }
 
 
 void XFormNode::ResetPosition(unsigned long time) {
 	SetPosition(Vector3(0, 0, 0), time);
+	cache.valid = false;
 }
 
 void XFormNode::ResetRotation(unsigned long time) {
 	SetRotation(Quaternion(), time);
+	cache.valid = false;
 }
 
 void XFormNode::ResetScaling(unsigned long time) {
 	SetScaling(Vector3(1, 1, 1), time);
+	cache.valid = false;
 }
 
 void XFormNode::ResetXForm(unsigned long time) {
@@ -320,7 +401,21 @@ void XFormNode::ResetXForm(unsigned long time) {
 #define MAX(a, b)	((a) > (b) ? (a) : (b))
 
 PRS XFormNode::GetPRS(unsigned long time) const {
-	if(time == XFORM_LOCAL_PRS) return local_prs;
+	if(time == cache.time && cache.valid) {
+		return cache.prs;
+	}
+	cache.valid = true;
+	cache.time = time;
+
+	PRS parent_prs;
+	if(parent) {
+		parent_prs = parent->GetPRS(time);
+	}
+	
+	if(time == XFORM_LOCAL_PRS) {
+		cache.prs = CombinePRS(local_prs, parent_prs);
+		return cache.prs;
+	}
 	
 	PRS prs = local_prs;
 
@@ -344,18 +439,16 @@ PRS XFormNode::GetPRS(unsigned long time) const {
 			key_prs = start->prs;
 		}
 
-		prs.position += key_prs.position;
-		prs.scale.x *= key_prs.scale.x;
-		prs.scale.y *= key_prs.scale.y;
-		prs.scale.z *= key_prs.scale.z;
-		prs.rotation = key_prs.rotation * prs.rotation;
+		prs = CombinePRS(prs, key_prs);
 	}
 	
 	// now let's also apply the controllers, if any
 	if(use_ctrl) {
+		PRS ctrl_prs;
+		
 		int count = trans_ctrl.size();
 		for(int i=0; i<count; i++) {
-			prs.position += trans_ctrl[i](time);
+			ctrl_prs.position += trans_ctrl[i](time);
 		}
 		
 		count = rot_ctrl.size();
@@ -367,17 +460,20 @@ PRS XFormNode::GetPRS(unsigned long time) const {
 			yrot.SetRotation(Vector3(0, 1, 0), euler.y);
 			zrot.SetRotation(Vector3(0, 0, 1), euler.z);
 			
-			prs.rotation = xrot * yrot * zrot * prs.rotation;
+			ctrl_prs.rotation = xrot * yrot * zrot * ctrl_prs.rotation;
 		}
 		
 		count = scale_ctrl.size();
 		for(int i=0; i<count; i++) {
 			Vector3 scale = scale_ctrl[i](time);
-			prs.scale.x *= scale.x;
-			prs.scale.y *= scale.y;
-			prs.scale.z *= scale.z;
+			ctrl_prs.scale.x *= scale.x;
+			ctrl_prs.scale.y *= scale.y;
+			ctrl_prs.scale.z *= scale.z;
 		}
+
+		prs = CombinePRS(prs, ctrl_prs);
 	}
 	
-	return prs;
+	cache.prs = InheritPRS(prs, parent_prs);
+	return cache.prs;
 }

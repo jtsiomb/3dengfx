@@ -45,8 +45,6 @@ private:
 	void SetupBumpLight(unsigned long time);
 	
 public:
-	std::string name;
-	
 	Object();
 	Object(const TriMesh &mesh);
 	

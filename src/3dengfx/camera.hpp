@@ -25,8 +25,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class Camera : public BaseCamera {
 public:
-	std::string name;
-
 	Camera(const Vector3 &trans = Vector3(0,0,0), const Quaternion &rot = Quaternion());
 	
 	virtual void Activate(unsigned long msec = XFORM_LOCAL_PRS) const;

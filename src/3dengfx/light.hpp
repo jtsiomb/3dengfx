@@ -37,8 +37,6 @@ protected:
 	scalar_t attenuation[3];
 
 public:
-	std::string name;
-	
 	Light();
 	virtual ~Light();
 	

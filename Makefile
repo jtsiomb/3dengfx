@@ -15,6 +15,12 @@ include src/nlibase/Makefile-part
 include src/fxwt/Makefile-part
 include src/sim/Makefile-part
 
+.PHONY: shared
+shared: lib3dengfx.so.0.1.0
+
+.PHONY: static
+static: lib3dengfx.a
+
 lib3dengfx.so.0.1.0: 3dengfx-config $(obj)
 	$(CXX) -shared -Wl,-soname,lib3dengfx.so.0 -o $@ $(obj)
 

@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "curves.hpp"
 #include "timeline.hpp"
 
-enum ControllerClass {CTRL_CURVE, CTRL_SIN, CTRL_COS};
+enum ControllerClass {CTRL_CURVE, CTRL_SIN, CTRL_COS, CTRL_LIN};
 
 enum {
 	CTRL_X		= 1,	// 0001
@@ -45,9 +45,15 @@ enum {
 class MotionController {
 private:
 	Curve *curve;
+
+	// parameters for the sinusoidal controller
 	scalar_t freq, ampl, phase;
 	scalar_t (*freq_func)(scalar_t);
 	scalar_t (*ampl_func)(scalar_t);
+
+	// parameters for the linear controller
+	Vector3 orig, slope;
+	
 	unsigned long start_time, end_time;
 	
 	TimelineMode time_mode;
@@ -61,6 +67,11 @@ public:
 	void SetCurve(Curve *curve);
 	void SetSinFunc(scalar_t freq, scalar_t ampl, scalar_t phase = 0.0f);
 	void SetSinFunc(scalar_t (*freq_func)(scalar_t), scalar_t(*ampl_func)(scalar_t));
+	
+	void SetOrigin(scalar_t orig);
+	void SetOrigin(const Vector3 &orig_vec);
+	void SetSlope(scalar_t slope);
+	void SetSlope(const Vector3 &slope_vec);
 	
 	void SetTiming(unsigned long start, unsigned long end);
 	void SetTimelineMode(TimelineMode tmode);

@@ -1,43 +1,46 @@
 <html>
-
 	<head>
 		<title>3dengfx documentation - Compiling</title>
 	</head>
 
 	<body>
 		<h1>Compiling</h1><hr>
-		under construction
-		<br>
-	<ul>
-		<li>		
-		<b>GNU/Linux:</b>
-	There is a script installed at /usr/local/bin that will give you
-	automatically the compiler and linker options that are needed to
-	compile and link with the library.
-	Compiler flags: 3dengfx-config --cflags
-	Linker options: 3dengfx-config --libs
-		</li>
-	
-		<li>
-		<b>MS Windows:</b>
-			<ol>
-			<li> Make sure you have MS Visual Studio .NET 2003 or newer, the old
-	VS.NET compiler won't be able to compile the code, and don't even
-	think about VS6 no fucking chance, the compiler just sucks too much.</li>
-	<li> Use the included project to build the static library</li>
-	<li> link with the static library 3dengfx.lib</li>
-	<li> make sure you link with the Multithreaded DLL version of the C runtime</li>
-	<li> at the predefined macros define HAVE_CONFIG_H</li>
-	<li> add the main directory of this library at the include search path</li>
-	<li> kill a chicken with a sacrificial blade over the roaring flames
-	of an active volcano</li>
-	<li> press build...</li>
-			</ol>
-		</li>
-	</ul>
-<!-- Footer -->
+		
+		<a name="linux"><h3>GNU/Linux</h3></a>
+		<p>
+			There is a script installed at /usr/local/bin that will give you automatically
+			the compiler and linker options that are needed to compile and link with the
+			library.<br>
+			Compiler flags: 3dengfx-config --cflags<br>
+			Linker options: 3dengfx-config --libs
+		</p>
+		
+		<a name="win32"><h3>MS Windows</h3></a>
+		<p>
+			<ul>
+			
+				<li>Make sure you have MS Visual Studio .NET 2003 or newer, the old VS.NET
+				compiler won't be able to compile the code, and it goes without saying
+				that Visual C++ 6.0 won't cut it as well.</li>
+				
+				<li>Use the included project to build the static library</li>
+				
+				<li>Link with the static library 3dengfx.lib</li>
+				
+				<li>Make sure you link with the Multithreaded DLL version of the C runtime</li>
+				
+				<li>Add the src directory of this library at the include search path</li>
+				
+				<li>Kill a chicken with a sacrificial blade over the roaring flames of an
+				active volcano</li>
+				
+				<li>Press build...</li>
+			</ul>
+		</p>
+		
+		<!-- Footer -->
 		<hr>
-		<i>3dengfx Documentation</i><br>
+		<em>3dengfx Documentation</em><br>
 		<a href="../index.html">Table of Contents</a>
 	</body>
 

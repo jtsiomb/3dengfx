@@ -37,5 +37,6 @@ int* LoadKernel(const char* filename, int *dim);
 
 // filters
 bool SobelEdge(PixelBuffer *pb, ImgSamplingMode sampling = SAMPLE_CLAMP);
+bool Blur(PixelBuffer *pb, ImgSamplingMode sampling = SAMPLE_CLAMP);
 
 #endif	// _IMG_MANIP_HPP_

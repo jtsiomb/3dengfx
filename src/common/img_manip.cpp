@@ -488,7 +488,6 @@ int* LoadKernel(const char* filename, int *dim)
 	}
 
 	//cleanup
-	//free(s);
 	fclose(input);
 
 	*dim = num;
@@ -520,6 +519,72 @@ bool SobelEdge(PixelBuffer *pb, ImgSamplingMode sampling) {
 
 		*dest++ = PackColor32(Color(r, g, b));
 	}
+
+	return true;
+}
+
+// static temp colors
+static unsigned long tempc1,tempc2,tempc3,tempc4;
+
+static inline unsigned long BlurPixels(unsigned long p1 , unsigned long p2)
+{
+	// blur all channels in a SIMD-like manner
+	tempc1 = tempc2 = p1;
+	tempc3 = tempc4 = p2;
+
+	// divide by 2
+	// dividing 2 channels with a single operation
+	tempc1 &= 0xff00ff00; tempc1 >>= 1;
+	tempc2 &= 0x00ff00ff; tempc2 >>= 1;
+	tempc3 &= 0xff00ff00; tempc3 >>= 1;
+	tempc4 &= 0x00ff00ff; tempc4 >>= 1;
+
+	tempc1 = (tempc1 + tempc3) & 0xff00ff00;
+	tempc2 = (tempc2 + tempc4) & 0x00ff00ff;
+
+	return (tempc1 | tempc2);
+}
+
+bool Blur(PixelBuffer *pb,ImgSamplingMode sampling)
+{
+	if (!pb) return false;
+	if (pb->width <=0 || pb->height <=0) return false;
+
+	samp_mode = sampling;
+
+	unsigned long *temp = (unsigned long*) malloc(pb->width*pb->height*sizeof(unsigned long));
+
+	unsigned long* scanline 	= pb->buffer;
+	unsigned long* dst_scanline 	= temp;
+
+	// blur horizontally
+	for (int j=0;j<pb->height;j++)
+	{
+		for (int i=0;i<pb->width;i++)
+		{
+			dst_scanline[i] = BlurPixels(
+					scanline[TransformIndex(i-1 , pb->width)],
+					scanline[TransformIndex(i+1 , pb->width)]
+						    );
+		}	
+		scanline 	+= pb->width;
+		dst_scanline	+= pb->width;
+	}
+
+	// blur vertically
+	for (int i=0;i<pb->width;i++)
+	{
+		for (int j=0;j<pb->height;j++)
+		{
+			pb->buffer[i+j*pb->width] = BlurPixels(
+						temp[i+TransformIndex(j-1,pb->height)*pb->width],
+						temp[i+TransformIndex(j+1,pb->height)*pb->width]
+							      );
+		}
+	}
+
+	// cleanup
+	free(temp);	
 
 	return true;
 }

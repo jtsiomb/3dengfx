@@ -34,6 +34,9 @@ Material::Material() {
 
 	wireframe = false;
 	shading = SHADING_GOURAUD;
+
+	auto_refl = true;
+	auto_refl_upd = 1;
 	
 	memset(tex, 0, MAX_TEXTURES * sizeof(Texture*));
 }
@@ -46,6 +49,9 @@ Material::Material(const Color &col) {
 	env_intensity = 1.0f;
 	bump_intensity = 1.0f;
 	alpha = 1.0f;
+	
+	auto_refl = true;
+	auto_refl_upd = 1;
 	
 	memset(tex, 0, MAX_TEXTURES * sizeof(Texture*));
 }

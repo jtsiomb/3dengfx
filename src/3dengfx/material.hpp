@@ -57,6 +57,9 @@ public:
 
 	bool wireframe;
 	ShadeMode shading;
+
+	bool auto_refl;
+	int auto_refl_upd;
 	
 	Material();
 	Material(const Color &col);

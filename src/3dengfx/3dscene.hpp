@@ -42,21 +42,17 @@ private:
 	//std::list<ShadowVolume> static_shadow_volumes;
 	std::list<Curve *> curves;
 	bool manage_data;
-
 	const Camera *active_camera;
-
 	bool shadows;
 	bool light_halos;
 	float halo_size;
-
 	Color ambient_light;
-	
 	bool use_fog;
 	Color fog_color;
 	float near_fog_range, far_fog_range;
-
 	bool auto_clear;
 	Color bg_color;
+	mutable bool first_render;
 	
 	void PlaceCubeCamera(const Vector3 &pos);
 	bool RenderAllCubeMaps(unsigned long msec = XFORM_LOCAL_PRS) const;

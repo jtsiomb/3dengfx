@@ -43,7 +43,6 @@ RenderParams::RenderParams() {
 	hidden = false;
 	show_normals = false;
 	show_normals_scale = 0.5;
-	auto_global = true;
 }
 	
 
@@ -161,7 +160,7 @@ void Object::SetShowNormalsScale(scalar_t scale) {
 }
 
 void Object::SetAutoGlobal(bool enable) {
-	render_params.auto_global = enable;
+	mat.auto_refl = enable;
 }
 
 void Object::ApplyXForm(bool recalc_normals, unsigned long time) {

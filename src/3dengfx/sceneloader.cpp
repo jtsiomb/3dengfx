@@ -209,6 +209,14 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 	return true;
 }
 
+static bool IsPowTwo(unsigned long val) {
+	int count_ones = 0;
+	while(val && count_ones <= 1) {
+		if(val & 1) count_ones++;
+		val >>= 1;
+	}
+	return (count_ones == 1 && !(val & 1)) ? true : false;
+}
 
 static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 	Lib3dsMaterial *m;
@@ -269,9 +277,32 @@ static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 
 	if(tex) mat->SetTexture(tex, TEXTYPE_DIFFUSE);
 	if(detail) mat->SetTexture(detail, TEXTYPE_DETAIL);
-	if(env) mat->SetTexture(env, TEXTYPE_ENVMAP);
+	if(env) {
+		mat->SetTexture(env, TEXTYPE_ENVMAP);
+		mat->env_intensity = m->reflection_map.percent;
+	}
 	if(bump) mat->SetTexture(bump, TEXTYPE_BUMPMAP);
 	if(light) mat->SetTexture(light, TEXTYPE_LIGHTMAP);
+
+	if(m->autorefl_map.flags & LIB3DS_USE_REFL_MAP) {
+		mat->env_intensity = m->reflection_map.percent;
+		
+		int cube_sz = m->autorefl_map.size;
+		if(!IsPowTwo(cube_sz)) {
+			warning("Material \"%s\" specifies a non power of 2 cube map and won't render correctly!", m->name);
+		}
+		
+		Texture *cube_tex = new Texture(cube_sz, cube_sz, TEX_CUBE);
+		AddTexture(cube_tex);
+
+		mat->SetTexture(cube_tex, TEXTYPE_ENVMAP);
+		if(m->autorefl_map.flags & LIB3DS_READ_FIRST_FRAME_ONLY ||
+			m->autorefl_map.flags & 0x8 || m->autorefl_map.frame_step == 1000) {
+			mat->auto_refl = false;
+		}
+		mat->auto_refl_upd = m->autorefl_map.frame_step;
+	}
+		
 
 	return true;
 }

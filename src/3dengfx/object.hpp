@@ -38,7 +38,6 @@ struct RenderParams {
 	bool hidden;
 	bool show_normals;
 	scalar_t show_normals_scale;
-	bool auto_global;
 
 	RenderParams();
 };

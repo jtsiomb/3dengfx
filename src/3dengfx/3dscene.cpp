@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3dscene.hpp"
 #include "texman.hpp"
 #include "common/err_msg.h"
+#include "dsys/fx.hpp"
 
 using std::string;
 
@@ -51,6 +52,8 @@ Scene::Scene() {
 	}
 	cubic_cam[CUBE_MAP_INDEX_PY]->SetUpVector(Vector3(0, 0, -1));
 	cubic_cam[CUBE_MAP_INDEX_NY]->SetUpVector(Vector3(0, 0, 1));
+
+	first_render = true;
 }
 
 Scene::~Scene() {
@@ -78,7 +81,6 @@ Scene::~Scene() {
 		while(citer != curves.end()) {
 			delete *citer++;
 		}
-
 	}
 
 }
@@ -238,7 +240,10 @@ void Scene::Render(unsigned long msec) const {
 	::SetAmbientLight(ambient_light);
 
 	bool rendered_cubemaps = false;
-	if(!level) rendered_cubemaps = RenderAllCubeMaps();
+	if(!level) {
+		rendered_cubemaps = RenderAllCubeMaps();
+		first_render = false;
+	}
 
 	if(auto_clear || rendered_cubemaps) {
 		Clear(bg_color);
@@ -280,7 +285,8 @@ void Scene::Render(unsigned long msec) const {
 void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
 	Scene *non_const_this = const_cast<Scene*>(this);
 
-	Texture *tex = obj->GetMaterialPtr()->GetTexture(TEXTYPE_ENVMAP);
+	Material *mat = obj->GetMaterialPtr();
+	Texture *tex = mat->GetTexture(TEXTYPE_ENVMAP);
 
 	if(!tex || (tex && tex->GetType() != TEX_CUBE)) {
 		warning("tried to RenderCubeMap() on a non-cubemapped object");
@@ -298,48 +304,16 @@ void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
 
 	obj->SetHidden(true);
 
-	SetRenderTarget(tex, CUBE_MAP_PX);
-	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PX]);
-	Clear(bg_color);
-	ClearZBufferStencil(1.0, 0);
-	Render(msec);
-	SetRenderTarget(0);
-
-	SetRenderTarget(tex, CUBE_MAP_NX);
-	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NX]);
-	Clear(bg_color);
-	ClearZBufferStencil(1.0, 0);
-	Render(msec);
-	SetRenderTarget(0);
-	
-	SetRenderTarget(tex, CUBE_MAP_PY);
-	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PY]);
-	Clear(bg_color);
-	ClearZBufferStencil(1.0, 0);
-	Render(msec);
-	SetRenderTarget(0);
-	
-	SetRenderTarget(tex, CUBE_MAP_NY);
-	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NY]);
-	Clear(bg_color);
-	ClearZBufferStencil(1.0, 0);
-	Render(msec);
-	SetRenderTarget(0);
-	
-	SetRenderTarget(tex, CUBE_MAP_PZ);
-	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PZ]);
-	Clear(bg_color);
-	ClearZBufferStencil(1.0, 0);
-	Render(msec);
-	SetRenderTarget(0);
-	
-	SetRenderTarget(tex, CUBE_MAP_NZ);
-	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NZ]);
-	Clear(bg_color);
-	ClearZBufferStencil(1.0, 0);
-	Render(msec);
-	SetRenderTarget(0);
-
+	for(int i=0; i<6; i++) {
+		static CubeMapFace cube_face[] = {CUBE_MAP_PX, CUBE_MAP_NX, CUBE_MAP_PY, CUBE_MAP_NY, CUBE_MAP_PZ, CUBE_MAP_NZ};
+		SetRenderTarget(tex, cube_face[i]);
+		non_const_this->SetActiveCamera(cubic_cam[i]);
+		Clear(bg_color);
+		ClearZBufferStencil(1.0, 0);
+		Render(msec);
+		dsys::Overlay(0, Vector2(0,0), Vector2(1,1), Color(0, 0, 0, 1 - mat->env_intensity));
+		SetRenderTarget(0);
+	}
 
 	non_const_this->SetActiveCamera(active_cam);
 	SetupLights(msec);
@@ -369,10 +343,11 @@ bool Scene::RenderAllCubeMaps(unsigned long msec) const {
 		Object *obj = *iter++;
 
 		Texture *env;
+		Material *mat = obj->GetMaterialPtr();
 		RenderParams rp = obj->GetRenderParams();
-		if(rp.hidden || !rp.auto_global) continue;
+		if(rp.hidden || (!mat->auto_refl && !first_render)) continue;
 		
-		if((env = obj->GetMaterialPtr()->GetTexture(TEXTYPE_ENVMAP))) {
+		if((env = mat->GetTexture(TEXTYPE_ENVMAP))) {
 			if(env->GetType() == TEX_CUBE) {
 				did_some = true;
 				RenderCubeMap(obj, msec);

@@ -128,10 +128,13 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 	while(m) {
 
 		Lib3dsNode *node = lib3ds_file_node_by_name(file, m->name, LIB3DS_OBJECT_NODE);
-		Vector3 node_pos = CONV_VEC3(node->data.object.pos);
-		Quaternion node_rot = CONV_QUAT(node->data.object.rot);
-		Vector3 node_scl = CONV_VEC3(node->data.object.scl);
-		Vector3 pivot = CONV_VEC3(node->data.object.pivot);
+		if(!node) {
+			warning("object \"%s\" does not have a corresponding node!", m->name);
+		}
+		Vector3 node_pos = node ? CONV_VEC3(node->data.object.pos) : Vector3();
+		Quaternion node_rot = node ? CONV_QUAT(node->data.object.rot) : Quaternion();
+		Vector3 node_scl = node ? CONV_VEC3(node->data.object.scl) : Vector3(1,1,1);
+		Vector3 pivot = node ? CONV_VEC3(node->data.object.pivot) : Vector3();
 
 		// load the vertices
 		Vertex *varray = new Vertex[m->points];
@@ -472,6 +475,10 @@ static void ConstructHierarchy(Lib3dsFile *file, Scene *scene) {
 	while(iter != list->end()) {
 		Object *obj = *iter;
 		Lib3dsNode *n = lib3ds_file_node_by_name(file, obj->name.c_str(), LIB3DS_OBJECT_NODE);
+		if(!n) {
+			iter++;
+			continue;
+		}
 
 		// get parent
 		if(n->parent) {

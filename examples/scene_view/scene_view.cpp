@@ -19,6 +19,8 @@ Scene *scene;
 Camera *cam;
 std::list<Camera*> *cam_list;
 std::list<Camera*>::iterator cam_iter;
+PointLight *cam_light;
+bool cam_light_on;
 ntimer timer;
 fps_counter fps;
 
@@ -98,9 +100,15 @@ bool Init() {
 		return false;
 	}
 
-	cam = scene->GetActiveCamera();
+	if(!(cam = scene->GetActiveCamera())) {
+		cam = new TargetCamera(Vector3(0, 0, -100), Vector3(0, 0, 0));
+		scene->AddCamera(cam);
+	}
 	cam_list = scene->GetCameraList();
 	cam_iter = cam_list->begin();
+
+	cam_light = new PointLight;
+	cam_light->SetIntensity(0.85);
 
 	timer_reset(&timer);
 	timer_start(&timer);
@@ -125,5 +133,6 @@ void UpdateGfx() {
 
 void CleanUp() {
 	delete scene;
+	if(cam_light_on) delete cam_light;
 	DestroyGraphicsContext();
 }

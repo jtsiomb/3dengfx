@@ -114,7 +114,7 @@ int fxwt::MainLoop() {
 	*/
 	
 #if GFX_LIBRARY == SDL
-	SDL_EnableKeyRepeat(100, 20);
+	SDL_EnableKeyRepeat(300, 20);
 
 	while(1) {
 		SDL_Event event;

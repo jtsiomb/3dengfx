@@ -10,6 +10,8 @@ void KeyHandler(int key) {
 	static bool running = true;
 	extern ntimer timer;
 	extern Scene *scene;
+	extern PointLight *cam_light;
+	extern bool cam_light_on;
 	
 	switch(key) {
 	case 'a':
@@ -54,6 +56,16 @@ void KeyHandler(int key) {
 			cam_iter = cam_list->begin();
 		}
 		scene->SetActiveCamera(cam = *cam_iter);
+		break;
+
+	case 'l':
+		if(cam_light_on) {
+			scene->RemoveLight(cam_light);
+		} else {
+			cam_light->SetPosition(cam->GetPosition());
+			scene->AddLight(cam_light);
+		}
+		cam_light_on = !cam_light_on;
 		break;
 
 	case 27:

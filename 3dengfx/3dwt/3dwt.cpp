@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "config.h"
 
 #include "3dwt.hpp"
-#include "demosys.hpp"
+#include "dsys/demosys.hpp"
 
 using namespace wt3d;
 using std::priority_queue;

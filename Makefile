@@ -1,7 +1,7 @@
 obj :=
 
 opt := -g
-inc_flags := -I. -I3dengfx -Igfx -In3dmath2 -Idsys -Icommon -Inlibase
+inc_flags := -I.
 
 CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC $(inc_flags) `sdl-config --cflags`
 CFLAGS := $(opt) -std=c89 -pedantic -Wall -fPIC $(inc_flags) `sdl-config --cflags`
@@ -12,6 +12,7 @@ include n3dmath2/Makefile-part
 include dsys/Makefile-part
 include common/Makefile-part
 include nlibase/Makefile-part
+include fxwt/Makefile-part
 
 lib3dengfx.so.0.1.0: $(obj)
 	$(CXX) -shared -Wl,-soname,lib3dengfx.so.0 -o $@ $(obj)

@@ -23,10 +23,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include "dsys.hpp"
 #include "part.hpp"
-#include "3dengfx.hpp"
-#include "timer.h"
+#include "3dengfx/3dengfx.hpp"
+#include "common/timer.h"
 #include "script.h"
-#include "bstree.hpp"
+#include "common/bstree.hpp"
 
 using namespace dsys;
 using std::cerr;

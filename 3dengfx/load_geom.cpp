@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "config.h"
 
 #include "load_geom.hpp"
-#include "nlibase.h"
+#include "nlibase/nlibase.h"
 #include "texman.hpp"
 
 char *tex_path, *geom_path;

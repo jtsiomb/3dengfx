@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define _TEXTURES_HPP_
 
 #include <vector>
-#include "pbuffer.hpp"
+#include "gfx/pbuffer.hpp"
 #include "3denginefx_types.hpp"
 
 /* ---- Texture class ----

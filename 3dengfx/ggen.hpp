@@ -20,8 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _GGEN_HPP_
 #define _GGEN_HPP_
 
-#include <n3dmath2.hpp>
-#include "3dgeom.hpp"
+#include "n3dmath2/n3dmath2.hpp"
+#include "gfx/3dgeom.hpp"
 
 void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int subdiv);
 

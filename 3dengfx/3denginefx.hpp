@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3denginefx_types.hpp"
 #include "textures.hpp"
 #include "material.hpp"
-#include "3dgeom.hpp"
+#include "gfx/3dgeom.hpp"
 
 extern Matrix4x4 world_matrix, view_matrix;
 
@@ -91,7 +91,7 @@ void SetTextureUnitColor(int tex_unit, TextureBlendFunction op, TextureBlendArgu
 void SetTextureUnitAlpha(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3 = TARG_NONE);
 void SetTextureCoordIndex(int tex_unit, int index);
 void SetTextureConstant(int tex_unit, const Color &col);
-//void SetTextureTransformState(int sttex_unitage, TexTransformState TexXForm);
+//void SetTextureTransformState(int tex_unit, TexTransformState TexXForm);
 //void SetTextureCoordGenerator(int stage, TexGen tgen);
 
 // programmable interface

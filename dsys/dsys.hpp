@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _DSYS_HPP_
 #define _DSYS_HPP_
 
-#include "textures.hpp"
+#include "3dengfx/textures.hpp"
 
 namespace dsys {
 

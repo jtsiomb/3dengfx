@@ -23,8 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <cstring>
 #include "texman.hpp"
-#include "hashtable.hpp"
-#include "image.h"
+#include "common/hashtable.hpp"
+#include "common/image.h"
 
 using std::string;
 

@@ -25,11 +25,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "opengl.h"
 #include "SDL.h"
 #include "3denginefx.hpp"
-#include "3dgeom.hpp"
+#include "gfx/3dgeom.hpp"
 #include "except.hpp"
 #include "gfxprog.hpp"
-#include "logger.h"
-#include "config_parser.h"
+#include "common/logger.h"
+#include "common/config_parser.h"
 
 using std::cout;
 using std::cerr;

@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "config.h"
 
 #include "fx.hpp"
-#include "3dengfx.hpp"
+#include "3dengfx/3dengfx.hpp"
 
 void dsys::RadialBlur(Texture *tex, float ammount, const Vector2 &origin, bool additive) {
 	Vector2 c1(0.0f, 0.0f), c2(1.0f, 1.0f);

@@ -21,8 +21,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define _OBJECT_HPP_
 
 #include <string>
-#include "3dgeom.hpp"
-#include "n3dmath2.hpp"
+#include "gfx/3dgeom.hpp"
+#include "n3dmath2/n3dmath2.hpp"
 #include "material.hpp"
 #include "3denginefx.hpp"
 

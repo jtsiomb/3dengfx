@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define _CAMERA_HPP_
 
 #include <string>
-#include "base_cam.hpp"
+#include "gfx/base_cam.hpp"
 
 class Camera : public BaseCamera {
 public:

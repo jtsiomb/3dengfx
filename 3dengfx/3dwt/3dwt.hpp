@@ -22,9 +22,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <string>
 #include <queue>
-#include <n3dmath2.hpp>
-#include "3dengfx.hpp"
-#include "3dgeom.hpp"
+#include "n3dmath2/n3dmath2.hpp"
+#include "3dengfx/3dengfx.hpp"
+#include "gfx/3dgeom.hpp"
 
 namespace wt3d {
 

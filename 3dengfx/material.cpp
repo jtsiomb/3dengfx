@@ -27,7 +27,7 @@ Material::Material() {
 	ambient_color = diffuse_color = Color(1.0f, 1.0f, 1.0f);
 	specular_color = emissive_color = Color(0.0f, 0.0f, 0.0f);
 	
-	specular_power = 0.0f;
+	specular_power = 1.0f;
 	env_intensity = 1.0f;
 	bump_intensity = 1.0f;
 	alpha = 1.0f;
@@ -37,10 +37,9 @@ Material::Material() {
 
 Material::Material(const Color &col) {
 	ambient_color = diffuse_color = col;
-	specular_color = Color(1.0f, 1.0f, 1.0f);
-	emissive_color = Color(0.0f, 0.0f, 0.0f);
+	specular_color = emissive_color = Color(0.0f, 0.0f, 0.0f);
 	
-	specular_power = 0.0f;
+	specular_power = 1.0f;
 	env_intensity = 1.0f;
 	bump_intensity = 1.0f;
 	alpha = 1.0f;

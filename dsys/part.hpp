@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _PART_HPP_
 #define _PART_HPP_
 
-#include "timer.h"
+#include "common/timer.h"
 #include "dsys.hpp"
 
 namespace dsys {

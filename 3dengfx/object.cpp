@@ -266,7 +266,13 @@ void Object::RenderHack() {
 			Matrix4x4 inv_view = view_matrix;
 			inv_view[0][3] = inv_view[1][3] = inv_view[2][3] = 0.0;
 			inv_view.Transpose();
-			SetMatrix(XFORM_TEXTURE, inv_view, tex_unit);
+
+			Matrix4x4 invert_maps;
+			invert_maps.SetScaling(Vector3(-1.0, -1.0, 1.0));
+			
+			SetMatrix(XFORM_TEXTURE, inv_view * invert_maps, tex_unit);
+
+			SetTextureAddressing(tex_unit, TEXADDR_CLAMP, TEXADDR_CLAMP);
 		} else {
 			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -301,5 +307,6 @@ void Object::RenderHack() {
 		glDisable(GL_TEXTURE_GEN_T);
 		glDisable(GL_TEXTURE_GEN_R);
 		SetMatrix(XFORM_TEXTURE, Matrix4x4::identity_matrix, i);
+		SetTextureAddressing(tex_unit, TEXADDR_WRAP, TEXADDR_WRAP);
 	}
 }

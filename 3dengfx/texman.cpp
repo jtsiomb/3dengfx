@@ -108,3 +108,48 @@ Texture *GetTexture(const char *fname) {
 	tex->SetPixelData(pbuf);
 	return tex;
 }
+
+
+Texture *MakeCubeMap(Texture **tex_array) {
+	int size = tex_array[0]->width;
+
+	Texture *cube = new Texture(size, size, TEX_CUBE);
+
+	cube->Lock(CUBE_MAP_PX);
+	tex_array[CUBE_MAP_INDEX_PX]->Lock();
+	memcpy(cube->buffer, tex_array[CUBE_MAP_INDEX_PX]->buffer, size * size * sizeof(Pixel));
+	tex_array[CUBE_MAP_INDEX_PX]->Unlock();
+	cube->Unlock(CUBE_MAP_PX);
+
+	cube->Lock(CUBE_MAP_NX);
+	tex_array[CUBE_MAP_INDEX_NX]->Lock();
+	memcpy(cube->buffer, tex_array[CUBE_MAP_INDEX_NX]->buffer, size * size * sizeof(Pixel));
+	tex_array[CUBE_MAP_INDEX_NX]->Unlock();
+	cube->Unlock(CUBE_MAP_NX);
+	
+	cube->Lock(CUBE_MAP_PY);
+	tex_array[CUBE_MAP_INDEX_PY]->Lock();
+	memcpy(cube->buffer, tex_array[CUBE_MAP_INDEX_PY]->buffer, size * size * sizeof(Pixel));
+	tex_array[CUBE_MAP_INDEX_PY]->Unlock();
+	cube->Unlock(CUBE_MAP_PY);
+	
+	cube->Lock(CUBE_MAP_NY);
+	tex_array[CUBE_MAP_INDEX_NY]->Lock();
+	memcpy(cube->buffer, tex_array[CUBE_MAP_INDEX_NY]->buffer, size * size * sizeof(Pixel));
+	tex_array[CUBE_MAP_INDEX_NY]->Unlock();
+	cube->Unlock(CUBE_MAP_NY);
+
+	cube->Lock(CUBE_MAP_PZ);
+	tex_array[CUBE_MAP_INDEX_PZ]->Lock();
+	memcpy(cube->buffer, tex_array[CUBE_MAP_INDEX_PZ]->buffer, size * size * sizeof(Pixel));
+	tex_array[CUBE_MAP_INDEX_PZ]->Unlock();
+	cube->Unlock(CUBE_MAP_PZ);
+
+	cube->Lock(CUBE_MAP_NZ);
+	tex_array[CUBE_MAP_INDEX_NZ]->Lock();
+	memcpy(cube->buffer, tex_array[CUBE_MAP_INDEX_NZ]->buffer, size * size * sizeof(Pixel));
+	tex_array[CUBE_MAP_INDEX_NZ]->Unlock();
+	cube->Unlock(CUBE_MAP_NZ);
+
+	return cube;
+}

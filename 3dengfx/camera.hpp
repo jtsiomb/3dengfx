@@ -45,6 +45,7 @@ public:
 	
 	virtual void Activate(unsigned long msec = XFORM_LOCAL_PRS) const;
 
+	virtual void Zoom(scalar_t factor, unsigned long msec = XFORM_LOCAL_PRS);
 	virtual void Roll(scalar_t angle, unsigned long msec = XFORM_LOCAL_PRS);
 };
 

@@ -28,4 +28,16 @@ Texture *FindTexture(const char *fname);
 
 Texture *GetTexture(const char *fname);
 
+
+enum CubeMapIndex {
+	CUBE_MAP_INDEX_PX,
+	CUBE_MAP_INDEX_NX,
+	CUBE_MAP_INDEX_PY,
+	CUBE_MAP_INDEX_NY,
+	CUBE_MAP_INDEX_PZ,
+	CUBE_MAP_INDEX_NZ
+};
+
+Texture *MakeCubeMap(Texture **tex_array);
+
 #endif	// _TEXMAN_HPP_

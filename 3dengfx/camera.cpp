@@ -79,6 +79,16 @@ void TargetCamera::Activate(unsigned long msec) const {
 	SetMatrix(XFORM_PROJECTION, CreateProjectionMatrix(fov, aspect, near_clip, far_clip));
 }
 
+
+void TargetCamera::Zoom(scalar_t factor, unsigned long msec) {
+	Vector3 pos = GetPRS(msec).position;
+	Vector3 targ = GetTarget(msec);
+
+	Vector3 dist_vec = (pos - targ) * factor;
+
+	SetPosition(targ + dist_vec, msec);
+}
+
 void TargetCamera::Roll(scalar_t angle, unsigned long msec) {
 	Vector3 axis = target.GetPRS(msec).position - GetPRS(msec).position;
 	Quaternion q(axis.Normalized(), fmod(angle, two_pi));

@@ -346,7 +346,9 @@ void FxOverlay::SetShader(GfxProg *sdr) {
 void FxOverlay::Apply(unsigned long time) {
 	if(time >= this->time && time < this->time + duration) {
 		if(shader) {
-			shader->SetParameter("t", (float)(time - this->time) / 1000.0);
+			float time = (float)(time - this->time) / 1000.0;
+			shader->SetParameter("time", time);
+			shader->SetParameter("t", time / ((float)duration / 1000.0f));
 		}
 		Overlay(tex, Vector2(0, 0), Vector2(1, 1), Color(1, 1, 1), shader);
 	}

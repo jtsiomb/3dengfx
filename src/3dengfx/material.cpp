@@ -38,6 +38,8 @@ Material::Material() {
 	auto_refl = true;
 	auto_refl_upd = 1;
 
+	two_sided = false;
+
 	tex_count = 0;
 	
 	memset(tex, 0, MAX_TEXTURES * sizeof(Texture*));

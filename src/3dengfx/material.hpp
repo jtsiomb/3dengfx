@@ -60,6 +60,8 @@ public:
 
 	bool auto_refl;
 	int auto_refl_upd;
+
+	bool two_sided;
 	
 	Material();
 	Material(const Color &col);

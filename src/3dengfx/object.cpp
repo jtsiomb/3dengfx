@@ -335,8 +335,12 @@ void Object::RenderHack(unsigned long time) {
 
 	if(render_params.pprog) ::SetGfxProgram(render_params.pprog);
 	if(render_params.vprog) ::SetGfxProgram(render_params.vprog);
+
+	if(mat.two_sided) SetBackfaceCulling(false);
 	
 	Draw(*mesh.GetVertexArray(), *mesh.GetIndexArray());
+
+	if(mat.two_sided) SetBackfaceCulling(true);
 
 	if(render_params.pprog) SetPixelProgramming(false);
 	

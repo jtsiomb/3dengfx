@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "textures.hpp"
 
 static void InvertImage(unsigned long *img, int x, int y) {
-	unsigned long *s2 = img + y * x;
+	unsigned long *s2 = img + (y - 1) * x;
 	unsigned long *tmp = new unsigned long[x];
 	
 	int swaps = y / 2;

@@ -74,5 +74,8 @@ extern PFNGLGENPROGRAMSARBPROC glGenProgramsARB;
 extern PFNGLDELETEPROGRAMSARBPROC glDeleteProgramsARB;
 extern PFNGLPROGRAMSTRINGARBPROC glProgramStringARB;
 
+// point parameters
+extern PFNGLPOINTPARAMETERFARBPROC glPointParameterfARB;
+extern PFNGLPOINTPARAMETERFVARBPROC glPointParameterfvARB;
 
 #endif	/* _OPENGL_H_ */

@@ -35,7 +35,7 @@ const scalar_t error_margin = 1.e-6;
 
 
 scalar_t frand(scalar_t range) {
-	return (float)rand() / (float)RAND_MAX;
+	return range * (float)rand() / (float)RAND_MAX;
 }
 
 scalar_t Integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samples)  {

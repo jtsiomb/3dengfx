@@ -29,13 +29,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * with equiprobable distrubution function
  */
 class Fuzzy {
-private:
+public:
 	scalar_t num, range;
 
-public:
 	Fuzzy(scalar_t num = 0.0, scalar_t range = 0.0);
 	scalar_t operator()() const;
 };
+
+/* TODO: make a fuzzy direction with polar coordinates, so the random 
+ * values lie on the surface of a sphere.
+ */
 
 /* vector of the above */
 class FuzzyVec3 {
@@ -55,6 +58,7 @@ class Particle : public XFormNode {
 public:
 	Vector3 velocity;
 	scalar_t friction;
+	scalar_t size;
 	scalar_t birth_time, lifespan;
 
 	
@@ -71,6 +75,8 @@ public:
 /* draws the particle as a textured quad */
 class BillboardParticle : public Particle {
 public:
+	Texture *texture;
+	
 	virtual void Draw() const;
 };
 
@@ -83,11 +89,14 @@ class MeshParticle : public Particle {
 
 
 struct ParticleSysParams {
+	Fuzzy psize;			// particle size
 	Fuzzy lifespan;			// lifespan in seconds
 	Fuzzy birth_rate;		// birth rate in particles per second
 	Vector3 gravity;		// gravitual force to be applied to all particles
 	FuzzyVec3 shoot_dir;	// shoot direction (initial particle velocity)
 	scalar_t friction;		// friction of the environment
+	FuzzyVec3 spawn_offset;	// where to spawn in relation to position
+	Texture *billboard_tex;	// texture used for billboards
 };
 
 enum ParticleType {PTYPE_PSYS, PTYPE_BILLBOARD, PTYPE_MESH};
@@ -105,8 +114,11 @@ protected:
 	ParticleSysParams psys_params;
 	ParticleType ptype;
 
+	scalar_t fraction;
+	scalar_t prev_update;
+
 public:
-	ParticleSystem();
+	ParticleSystem(const char *fname = 0);
 	virtual ~ParticleSystem();
 
 	virtual void SetParams(const ParticleSysParams &psys_params);
@@ -118,6 +130,8 @@ public:
 
 namespace psys {
 	void SetGlobalTime(unsigned long msec);
+
+	bool LoadParticleSysParams(const char *fname, ParticleSysParams *psp);
 }
 
 

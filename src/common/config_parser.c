@@ -126,6 +126,7 @@ const struct ConfigOption *GetNextOption() {
 	if(isdigit(cfg_opt.str_value[0])) {
 		cfg_opt.flags |= CFGOPT_INT;
 		cfg_opt.int_value = atoi(cfg_opt.str_value);
+		cfg_opt.flt_value = atof(cfg_opt.str_value);
 	}
 
 	free(tmpbuf);	

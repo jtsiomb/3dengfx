@@ -74,6 +74,7 @@ void SetStencilFunc(CmpFunc func);
 void SetStencilReference(unsigned int ref);
 
 // texture & material states
+void SetPointSprites(bool enable);
 void SetTextureFiltering(int tex_unit, TextureFilteringType tex_filter);
 void SetTextureAddressing(int tex_unit, TextureAddressing uaddr, TextureAddressing vaddr);
 void SetTextureBorderColor(int tex_unit, const Color &color);
@@ -93,6 +94,7 @@ void SetTextureCoordIndex(int tex_unit, int index);
 void SetTextureConstant(int tex_unit, const Color &col);
 //void SetTextureTransformState(int tex_unit, TexTransformState TexXForm);
 //void SetTextureCoordGenerator(int stage, TexGen tgen);
+void SetPointSpriteCoords(int tex_unit, bool enable);
 
 // programmable interface
 void SetGfxProgram(GfxProg *prog, bool enable = true);

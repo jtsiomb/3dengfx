@@ -163,6 +163,7 @@ struct SysCaps {
 	bool pixel_program;
 	bool glslang;
 	bool point_sprites;
+	bool point_params;
 	int max_texture_units;
 };
 

@@ -76,6 +76,10 @@ PFNGLGENPROGRAMSARBPROC glGenProgramsARB;
 PFNGLDELETEPROGRAMSARBPROC glDeleteProgramsARB;
 PFNGLPROGRAMSTRINGARBPROC glProgramStringARB;
 
+// point parameters
+PFNGLPOINTPARAMETERFARBPROC glPointParameterfARB;
+PFNGLPOINTPARAMETERFVARBPROC glPointParameterfvARB;
+
 
 static const char *gl_error_string[] = {
 	"GL_INVALID_ENUM",		// 0x500
@@ -249,6 +253,7 @@ SysCaps GetSystemCapabilities() {
 	sys_caps.pixel_program = (bool)strstr(ext_str, "GL_ARB_fragment_program");
 	sys_caps.glslang = (bool)strstr(ext_str, "GL_ARB_shading_language_100");
 	sys_caps.point_sprites = (bool)strstr(ext_str, "GL_ARB_point_sprites");
+	sys_caps.point_params = (bool)strstr(ext_str, "GL_ARB_point_parameters");
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &sys_caps.max_texture_units);
 
 	delete [] ext_str;
@@ -281,6 +286,8 @@ SysCaps GetSystemCapabilities() {
 	sprintf(log_str, "OpenGL 2.0 shading language: %s", sys_caps.glslang ? "yes" : "no");
 	EngineLog(log_str);
 	sprintf(log_str, "Point sprites: %s", sys_caps.point_sprites ? "yes" : "no");
+	EngineLog(log_str);
+	sprintf(log_str, "Point parameters: %s", sys_caps.point_params ? "yes" : "no");
 	EngineLog(log_str);
 	sprintf(log_str, "Texture units: %d", sys_caps.max_texture_units);
 	EngineLog(log_str);
@@ -475,6 +482,10 @@ void CreateGraphicsContext(const GraphicsInitParameters &gip) {
 		glProgramStringARB = (PFNGLPROGRAMSTRINGARBPROC)SDL_GL_GetProcAddress("glProgramStringARB");
 	}
 	
+	if(sys_caps.point_params) {
+		glPointParameterfARB = (PFNGLPOINTPARAMETERFARBPROC)SDL_GL_GetProcAddress("glPointParameterfARB");
+		glPointParameterfvARB = (PFNGLPOINTPARAMETERFVARBPROC)SDL_GL_GetProcAddress("glPointParameterfvARB");
+	}
 	
 	SetDefaultStates();	
 }
@@ -507,6 +518,14 @@ void SetDefaultStates() {
 
 	for(int i=0; i<8; i++) {
 		ttype[i] = TEX_2D;
+	}
+
+	if(sys_caps.point_params) {
+		glPointParameterfARB(GL_POINT_SIZE_MIN_ARB, 1.0);
+		glPointParameterfARB(GL_POINT_SIZE_MAX_ARB, 256.0);
+
+		float quadratic[] = {0.0f, 0.0f, 0.5f};
+		glPointParameterfvARB(GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic);
 	}
 }
 
@@ -770,6 +789,15 @@ void SetStencilReference(unsigned int ref) {
 }
 
 ///////////// texture & material states //////////////
+
+void SetPointSprites(bool enable) {
+	if(enable) {
+		glEnable(GL_POINT_SPRITE_ARB);
+	} else {
+		glDisable(GL_POINT_SPRITE_ARB);
+	}
+}
+
 void SetTextureFiltering(int tex_unit, TextureFilteringType tex_filter) {
 	
 	int min_filter;
@@ -890,6 +918,10 @@ void SetTextureConstant(int tex_unit, const Color &col) {
 //void SetTextureTransformState(int sttex_unitage, TexTransformState TexXForm);
 //void SetTextureCoordGenerator(int stage, TexGen tgen);
 
+void SetPointSpriteCoords(int tex_unit, bool enable) {
+	glActiveTextureARB(GL_TEXTURE0 + tex_unit);
+	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, enable ? GL_TRUE : GL_FALSE);
+}
 
 // programmable interface
 void SetGfxProgram(GfxProg *prog, bool enable) {

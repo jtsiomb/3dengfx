@@ -142,4 +142,85 @@ void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv) {
 	delete [] tarray;
 }
 
+void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv) {
 
+	unsigned long edges_2pi  = 4 * subdiv;
+	unsigned long vcount_2pi = edges_2pi + 1;
+
+	unsigned long vcount = vcount_2pi * vcount_2pi;
+	unsigned long qcount = edges_2pi * edges_2pi;
+	unsigned long tcount = qcount * 2;
+
+	// alloc mamory
+	Vertex   *varray = new Vertex[vcount];
+	Quad     *qarray = new Quad[qcount];
+	Triangle *tarray = new Triangle[tcount];
+	Vertex   *circle = new Vertex[vcount_2pi];
+	
+	// first create a circle
+	// rotation of this circle will produce the torus
+	for (unsigned long i = 0; i < vcount_2pi; i++)
+	{
+		scalar_t t = (scalar_t)i / (scalar_t)(vcount_2pi - 1);
+		
+		Vector3 up_vec = Vector3(0, 1, 0);
+		Matrix4x4 rot_mat;
+		rot_mat.SetRotation(Vector3(0, 0, two_pi * t));
+		up_vec.Transform(rot_mat);
+
+		Vector3 pos_vec = up_vec * circle_rad;
+		pos_vec += Vector3(revolv_rad, 0, 0);
+
+		circle[i] = Vertex(pos_vec, 0, t, Color(1.0f));
+		circle[i].normal = up_vec;
+	}
+
+	// vertex loop
+	for (unsigned long j = 0; j < vcount_2pi; j++)
+	{
+		for (unsigned long i = 0; i < vcount_2pi; i++)
+		{
+			scalar_t t = (scalar_t)i / (scalar_t)(vcount_2pi - 1);
+			
+			Vector3 pos,nor;
+			pos = circle[j].pos;
+			nor = circle[j].normal;
+
+			Matrix4x4 rot_mat;
+			rot_mat.SetRotation(Vector3(0, two_pi * t, 0));
+			pos.Transform(rot_mat);
+			nor.Transform(rot_mat);
+
+			unsigned long index = i + vcount_2pi * j;
+
+			varray[index] = Vertex(pos, t, circle[j].tex[0].v, Color(1.0f));
+			varray[index].normal = nor;
+		}
+	} // End vertex loop
+
+	
+	for(unsigned long i=0; i<qcount; i++) {
+
+		unsigned long hor_edge,vert_edge;
+		hor_edge  = i % edges_2pi;
+		vert_edge = i / edges_2pi;
+		
+		qarray[i].vertices[0] = hor_edge + vert_edge * vcount_2pi;
+		qarray[i].vertices[1] = qarray[i].vertices[0] + 1;
+		qarray[i].vertices[2] = qarray[i].vertices[0] + vcount_2pi;
+		qarray[i].vertices[3] = qarray[i].vertices[1] + vcount_2pi;
+	}
+	
+	for(unsigned long i=0; i<qcount; i++) {
+		tarray[i * 2] = Triangle(qarray[i].vertices[0], qarray[i].vertices[1], qarray[i].vertices[3]);
+		tarray[i * 2 + 1] = Triangle(qarray[i].vertices[0], qarray[i].vertices[3], qarray[i].vertices[2]);
+	}
+
+	mesh->SetData(varray, vcount, tarray, tcount);
+	
+	// cleanup
+	delete [] varray;
+	delete [] qarray;
+	delete [] tarray;
+	delete [] circle;
+}

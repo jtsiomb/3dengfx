@@ -23,17 +23,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * modified: John Tsiombikas 2004
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
+#include <cctype>
 #include "img_manip.hpp"
+#include "gfx/color.hpp"
 
 // Macros
-#define PACK_ARGB32(a,r,g,b)   	((a<<24) | (r<<16) | (g<<8) | b)
-#define GETA(c) 		((c>>24) & 0xff)
-#define GETR(c) 		((c>>16) & 0xff)
-#define GETG(c) 		((c>> 8) & 0xff)
-#define GETB(c) 		((c    ) & 0xff)
+#define PACK_ARGB32(a,r,g,b) \
+	((((a) & ALPHA_MASK32) << ALPHA_SHIFT32) | \
+	(((r) & RED_MASK32) << RED_SHIFT32) | \
+	(((g) & GREEN_MASK32) << GREEN_SHIFT32) | \
+	(((b) & BLUE_MASK32) << BLUE_SHIFT32))
+
+#define GETA(c) 		(((c) >> ALPHA_SHIFT32) & ALPHA_MASK32)
+#define GETR(c) 		(((c) >> RED_SHIFT32) & RED_MASK32)
+#define GETG(c) 		(((c) >> GREEN_SHIFT32) & GREEN_MASK32)
+#define GETB(c) 		(((c) >> BLUE_SHIFT32) & BLUE_MASK32)
 
 static inline scalar_t Cerp(scalar_t x0, scalar_t x1, scalar_t x2, scalar_t x3, scalar_t t);
 static inline int ClampInteger(int i, int from, int to);
@@ -207,37 +215,25 @@ static inline scalar_t Cerp(scalar_t x0, scalar_t x1, scalar_t x2, scalar_t x3, 
 }
 
 
+#define MIN(a, b)	((a) < (b) ? (a) : (b))
+#define MAX(a, b)	((a) > (b) ? (a) : (b))
+#define CLAMP(n, l, h)	MIN(MAX((n), (l)), (h))
+
 static inline int ClampInteger(int i, int from, int to)
 {
-	int r=i;
-	if (r<from) r=from;
-	if (r>to) r =to;
-
-	return r;
+	return CLAMP(i, from, to);
 }
 
 // Kernels
 //----------------------------------------------------------------
 
-static int samp_mode=0;
-
-static void SamplingMode(int m)
-{
-	if (m<0||m>2) return;
-	samp_mode = m;
-}
+static ImgSamplingMode samp_mode = SAMPLE_CLAMP;
 
 static inline int TransformIndex(int c,int dim)
 {
 
 	switch (samp_mode)
 	{
-		case SAMPLE_CLAMP:
-		{
-			if (c<0) return 0;
-			if (c>=dim) return dim-1;
-			break;
-		}
 		case SAMPLE_WRAP:
 		{
 			if (c<0) 
@@ -254,6 +250,14 @@ static inline int TransformIndex(int c,int dim)
 			if (c>=dim) return dim-c-1;
 			break;
 		}
+
+		case SAMPLE_CLAMP:
+		default:
+		{
+			if (c<0) return 0;
+			if (c>=dim) return dim-1;
+			break;
+		}
 	}
 
 	return c;
@@ -264,17 +268,16 @@ static void SplitChannels(unsigned long *img,
 						  unsigned long *r,
 						  unsigned long *g,
 						  unsigned long *b,
-						  unsigned long l)
+						  unsigned long pixel_count)
 {
 
-	for (unsigned long i=0;i<l;i++)
+	for (unsigned long i=0; i<pixel_count; i++)
 	{
-		*a = GETA(*img);
-		*r = GETR(*img);
-		*g = GETG(*img);
-		*b = GETB(*img);
-
-		a++; r++; g++; b++; img++;
+		*a++ = GETA(*img);
+		*r++ = GETR(*img);
+		*g++ = GETG(*img);
+		*b++ = GETB(*img);
+		img++;
 	}
 }
 
@@ -283,16 +286,15 @@ static void JoinChannels(unsigned long *img,
 						  unsigned long *r,
 						  unsigned long *g,
 						  unsigned long *b,
-						  unsigned long l)
+						  unsigned long pixel_count)
 {
-	for (unsigned long i=0;i<l;i++)
+	for (unsigned long i=0; i<pixel_count; i++)
 	{
-		*img = PACK_ARGB32(*a,*r,*g,*b);
-		a++; r++; g++; b++; img++;
+		*img++ = PACK_ARGB32(*a++, *r++, *g++, *b++);
 	}
 }
 
-static inline unsigned long FetchPixel(int x,int y,unsigned long *img,int w,int h)
+static inline unsigned long FetchPixel(int x, int y, unsigned long *img, int w, int h)
 {
 	x = TransformIndex(x,w);
 	y = TransformIndex(y,h);
@@ -300,8 +302,8 @@ static inline unsigned long FetchPixel(int x,int y,unsigned long *img,int w,int 
 	return img[x+w*y];
 }
 
-static unsigned long* ApplyKernelToChannel(int *kernel,int kernel_dim,
-								 unsigned long *img,int w,int h)
+static unsigned long* ApplyKernelToChannel(int *kernel, int kernel_dim,
+								 unsigned long *img, int w, int h)
 {
 
 	// only odd kernels
@@ -326,30 +328,29 @@ static unsigned long* ApplyKernelToChannel(int *kernel,int kernel_dim,
 		for (int i=0;i<w;i++)
 		{
 
-			unsigned long sum=0;
+			int sum=0;
 
 			// kernel loop
 			for (int kj=0;kj<kernel_dim;kj++)
 			{
 				for (int ki=0;ki<kernel_dim;ki++)
 				{
-					sum += FetchPixel(i+ki-kernel_center,
-									  j+kj-kernel_center,
-									  img , w,h)
-						* kernel[ki+kernel_dim*kj];
+					int pixel = (int)FetchPixel(i+ki-kernel_center, j+kj-kernel_center, img, w,h);
+					sum += pixel * kernel[ki+kernel_dim*kj];
 				}
 			}// end kernel loop
 
-			if (kernel_sum)
+			if (kernel_sum) {
 				sum /= kernel_sum;
-			temp[i+j*w] = sum;
+			}
+			temp[i+j*w] = CLAMP(sum, 0, 255);
 		}
 	} // end pain loop
 
 	return temp;
 }
 
-bool ApplyKernel(PixelBuffer *pb,int *kernel,int kernel_dim , int samp_mode)
+bool ApplyKernel(PixelBuffer *pb, int *kernel, int kernel_dim, ImgSamplingMode sampling)
 {
 	if (!pb)			return false;
 	if (!pb->buffer)	return false;
@@ -360,7 +361,7 @@ bool ApplyKernel(PixelBuffer *pb,int *kernel,int kernel_dim , int samp_mode)
 	unsigned long l=pb->width * pb->height;
 
 	// set sampling mode
-	SamplingMode(samp_mode);
+	samp_mode = sampling;
 
 	// allocate memory
 	unsigned long *tempa = (unsigned long*) malloc(l*sizeof(unsigned long));
@@ -372,20 +373,16 @@ bool ApplyKernel(PixelBuffer *pb,int *kernel,int kernel_dim , int samp_mode)
 	SplitChannels(pb->buffer,tempa,tempr,tempg,tempb,l);
 
 	// apply kernel
-	unsigned long *a = 
-		ApplyKernelToChannel(kernel,kernel_dim,tempa,pb->width,pb->height);
+	unsigned long *a = ApplyKernelToChannel(kernel,kernel_dim,tempa,pb->width,pb->height);
 	free(tempa);
 
-	unsigned long *r = 
-		ApplyKernelToChannel(kernel,kernel_dim,tempr,pb->width,pb->height);
+	unsigned long *r = ApplyKernelToChannel(kernel,kernel_dim,tempr,pb->width,pb->height);
 	free(tempr);
 
-	unsigned long *g = 
-		ApplyKernelToChannel(kernel,kernel_dim,tempg,pb->width,pb->height);
+	unsigned long *g = ApplyKernelToChannel(kernel,kernel_dim,tempg,pb->width,pb->height);
 	free(tempg);
 
-	unsigned long *b = 
-		ApplyKernelToChannel(kernel,kernel_dim,tempb,pb->width,pb->height);
+	unsigned long *b = ApplyKernelToChannel(kernel,kernel_dim,tempb,pb->width,pb->height);
 	free(tempb);
 
 	// join channels
@@ -399,10 +396,10 @@ bool ApplyKernel(PixelBuffer *pb,int *kernel,int kernel_dim , int samp_mode)
 	return true;
 }
 
-int* LoadKernel(const char* filename , int *dim)
+int* LoadKernel(const char* filename, int *dim)
 {
 	// try to open the file
-	FILE *input = fopen(filename, "rb");
+	FILE *input = fopen(filename, "r");
 
 	if (!input) return 0;
 
@@ -428,7 +425,7 @@ int* LoadKernel(const char* filename , int *dim)
 	{
 		if (s[j] == '/')
 		{
-			while (s[j] != 0x0A && s[j]!=0)
+			while(s[j] != '\n' && s[j] != 0)
 			{
 				s[j] = ' ';
 				j++;
@@ -442,11 +439,8 @@ int* LoadKernel(const char* filename , int *dim)
 	}
 
 	// remove everything indeed
-	j=0;
-	while (j<size)
-	{
-		if (s[j]==0x0A || s[j]==0x0D || s[j]==0x09) s[j] = ' ';
-		j++;
+	for(j=0; j<size; j++) {
+		if (s[j] == '\n' || s[j] == '\t') s[j] = ' ';
 	}
 
 	int num;
@@ -463,7 +457,12 @@ int* LoadKernel(const char* filename , int *dim)
 	}
 	temp[i2] = 0;
 
-	sscanf(temp ,"%d" , &num);
+	if(!isdigit(temp[0])) {
+		fclose(input);
+		fprintf(stderr, "LoadKernel() failed, invalid kernel file format: %s\n", filename);
+		return 0;
+	}
+	num = atoi(temp);
 
 	int *kernel = (int*) malloc(num*num*sizeof(int));
 
@@ -479,7 +478,13 @@ int* LoadKernel(const char* filename , int *dim)
 		}
 		temp[i2] = 0;
 
-		sscanf(temp ,"%d" , kernel+n);
+		if(!isdigit(temp[0]) && temp[0] != '-' && temp[0] != '+') {
+			fclose(input);
+			free(kernel);
+			fprintf(stderr, "LoadKernel() failed, invalid kernel file format: %s\n", filename);
+			return 0;
+		}
+		kernel[n] = atoi(temp);
 	}
 
 	//cleanup
@@ -488,4 +493,33 @@ int* LoadKernel(const char* filename , int *dim)
 
 	*dim = num;
 	return kernel;
+}
+
+bool SobelEdge(PixelBuffer *pb, ImgSamplingMode sampling) {
+	int sobel_horiz[] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+	int sobel_vert[] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+
+	PixelBuffer horiz = *pb;
+	PixelBuffer vert = *pb;
+
+	if(!ApplyKernel(&horiz, sobel_horiz, 3, sampling)) return false;
+	if(!ApplyKernel(&vert, sobel_vert, 3, sampling)) return false;
+
+	unsigned long *vptr = vert.buffer;
+	unsigned long *hptr = horiz.buffer;
+	unsigned long *dest = pb->buffer;
+	int sz = pb->width * pb->height;
+
+	for(int i=0; i<sz; i++) {
+		Color vcol = UnpackColor32(*vptr++);
+		Color hcol = UnpackColor32(*hptr++);
+
+		scalar_t r = sqrt(hcol.r * hcol.r + vcol.r * vcol.r);
+		scalar_t g = sqrt(hcol.g * hcol.g + vcol.g * vcol.g);
+		scalar_t b = sqrt(hcol.b * hcol.b + vcol.b * vcol.b);
+
+		*dest++ = PackColor32(Color(r, g, b));
+	}
+
+	return true;
 }

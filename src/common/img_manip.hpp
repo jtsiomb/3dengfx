@@ -29,12 +29,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3dengfx/3denginefx_types.hpp"
 #include "n3dmath2/n3dmath2_types.hpp"
 
-#define SAMPLE_CLAMP		0
-#define SAMPLE_WRAP			1
-#define SAMPLE_MIRROR		2
+enum ImgSamplingMode {SAMPLE_CLAMP, SAMPLE_WRAP, SAMPLE_MIRROR};
 
-bool ResamplePixelBuffer(PixelBuffer *pb , int w,int h);
-bool ApplyKernel(PixelBuffer *pb,int *kernel,int kernel_dim , int samp_mode);
-int* LoadKernel(const char* filename , int *dim);
+bool ResamplePixelBuffer(PixelBuffer *pb, int w, int h);
+bool ApplyKernel(PixelBuffer *pb, int *kernel, int kernel_dim, ImgSamplingMode sampling = SAMPLE_CLAMP);
+int* LoadKernel(const char* filename, int *dim);
+
+// filters
+bool SobelEdge(PixelBuffer *pb, ImgSamplingMode sampling = SAMPLE_CLAMP);
 
 #endif	// _IMG_MANIP_HPP_

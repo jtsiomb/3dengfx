@@ -18,6 +18,10 @@ along with the graphics core library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* colors
+ * author: John Tsiombikas 2004
+ */
+
 #include "3dengfx_config.h"
 
 #include <cmath>
@@ -42,47 +46,20 @@ Color::Color(scalar_t r, scalar_t g, scalar_t b, scalar_t a) {
 	this->a = clamp<scalar_t>(a, 0.0f, 1.0f);
 }
 
-Color::Color(int r, int g, int b, int a) {
-	this->r = (scalar_t)clamp<int>(r, 0, 255) / 255.0f;
-	this->g = (scalar_t)clamp<int>(g, 0, 255) / 255.0f;
-	this->b = (scalar_t)clamp<int>(b, 0, 255) / 255.0f;
-	this->a = (scalar_t)clamp<int>(a, 0, 255) / 255.0f;
-}
-
-
 unsigned long Color::GetPacked32() const {
-	return	(((unsigned long)(a * 255.0f) << 24) & 0xff000000) | 
-			(((unsigned long)(r * 255.0f) << 16) & 0x00ff0000) | 
-			(((unsigned long)(g * 255.0f) << 8) & 0x0000ff00) | 
-			((unsigned long)(b * 255.0f) & 0x000000ff);
+	return PackColor32(*this);
 }
 
 unsigned short Color::GetPacked16() const {
-	return (unsigned short)(r * 32.0f) << 11 | (unsigned short)(g * 64.0f) << 5 | (unsigned short)(b * 32.0f);
+	return PackColor16(*this);
 }
 
 unsigned short Color::GetPacked15() const {
-	return (unsigned short)a << 15 | (unsigned short)(r * 32.0f) << 10 | (unsigned short)(g * 32.0f) << 5 | (unsigned short)(b * 32.0f);
+	return PackColor15(*this);
 }
 
 unsigned char Color::GetNearest8(const unsigned char **pal) const {
-	
-	static const scalar_t HalfPi = 1.5707963268f;
-
-	scalar_t Score[256];
-	for(int i=0; i<256; i++) {
-		Color palcol = Color(pal[i][0], pal[i][1], pal[i][2]);
-		scalar_t NearR = (scalar_t)cos(fabs(r - palcol.r) * HalfPi);
-		scalar_t NearG = (scalar_t)cos(fabs(g - palcol.g) * HalfPi);
-		scalar_t NearB = (scalar_t)cos(fabs(b - palcol.b) * HalfPi);
-		Score[i] = NearR + NearG + NearB;
-	}
-
-	int nearest = 0;
-	for(int i=0; i<256; i++) {
-		if(Score[i] > Score[nearest]) nearest = i;
-	}
-	return nearest;
+	return MatchNearest8(*this, pal);
 }
 
 Color Color::operator +(const Color &col) const {
@@ -118,10 +95,21 @@ void Color::operator *=(scalar_t scalar) {
 	*this = Color(r * scalar, g * scalar, b * scalar, a);
 }
 
-Color BlendColors(const Color &c1, const Color &c2, scalar_t t) {
-	scalar_t r = c1.r + (c2.r - c1.r) * t;
-	scalar_t g = c1.g + (c2.g - c1.g) * t;
-	scalar_t b = c1.b + (c2.b - c1.b) * t;
-	scalar_t a = c1.a + (c2.a - c1.a) * t;
-	return Color(r, g, b, a);
+unsigned char MatchNearest8(const Color &col, const unsigned char **pal) {
+	static const scalar_t half_pi = 1.5707963268;
+
+	scalar_t score[256];
+	for(int i=0; i<256; i++) {
+		Color palcol = LookupColor8(i, pal);
+		scalar_t near_r = (scalar_t)cos(fabs(col.r - palcol.r) * half_pi);
+		scalar_t near_g = (scalar_t)cos(fabs(col.g - palcol.g) * half_pi);
+		scalar_t near_b = (scalar_t)cos(fabs(col.b - palcol.b) * half_pi);
+		score[i] = near_r + near_g + near_b;
+	}
+
+	int nearest = 0;
+	for(int i=0; i<256; i++) {
+		if(score[i] > score[nearest]) nearest = i;
+	}
+	return nearest;
 }

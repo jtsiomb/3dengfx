@@ -29,15 +29,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "timer.h"
 
+/* BEWARE: this function will not work correctly if we go back in time
+ * and try to use it during the first second of 1-1-1970
+ */
 static unsigned long sys_get_msec(void) {
 #ifdef __unix__
-	struct timeval tv;
+	static struct timeval timeval, first_timeval;
 	
-	gettimeofday(&tv, 0);
-	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+	gettimeofday(&timeval, 0);
+
+	if(first_timeval.tv_sec == 0) {
+		first_timeval = timeval;
+		return 0;
+	}
+	return (timeval.tv_sec - first_timeval.tv_sec) * 1000 + (timeval.tv_usec - first_timeval.tv_usec) / 1000;
 #else
 	return GetTickCount();
-#endif
+#endif	/* __unix__ */
 }
 
 

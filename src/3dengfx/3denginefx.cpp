@@ -112,6 +112,8 @@ static TextureDim ttype[8];
 
 _CGcontext *cgc;
 
+Light *bump_light;
+
 
 GraphicsInitParameters LoadGraphicsContextConfig(const char *fname) {
 	GraphicsInitParameters gip;	
@@ -923,6 +925,7 @@ void SetPointSpriteCoords(int tex_unit, bool enable) {
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, enable ? GL_TRUE : GL_FALSE);
 }
 
+
 // programmable interface
 void SetGfxProgram(GfxProg *prog, bool enable) {
 	if(prog->prog_type == PROG_FP || prog->prog_type == PROG_VP) {
@@ -983,6 +986,10 @@ void SetAmbientLight(const Color &ambient_color) {
 
 void SetShadingMode(ShadeMode mode) {
 	glShadeModel(mode);
+}
+
+void SetBumpLight(Light *light) {
+	bump_light = light;
 }
 
 // transformation matrices

@@ -18,6 +18,11 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* texture manager
+ *
+ * Author: John Tsiombikas 2004
+ */
+
 #include "3dengfx_config.h"
 
 #include <string>
@@ -25,11 +30,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "texman.hpp"
 #include "common/hashtable.hpp"
 #include "gfx/image.h"
+#include "gfx/color.hpp"
+#include "n3dmath2/n3dmath2.hpp"
 
 using std::string;
 
+static void CreateNormalCubeMap();
+
 static HashTable<string, Texture*> textures;
 static bool texman_initialized = false;
+static Texture *normal_cubemap;
 
 /*
  * Hashing algorithm for strings from:
@@ -152,4 +162,90 @@ Texture *MakeCubeMap(Texture **tex_array) {
 	cube->Unlock(CUBE_MAP_NZ);
 
 	return cube;
+}
+
+
+Texture *GetNormalCube() {
+	if(!normal_cubemap) CreateNormalCubeMap();
+	return normal_cubemap;
+}
+
+static Color VecToColor(const Vector3 &v) {
+	return Color(v.x * 0.5 + 0.5, v.y * 0.5 + 0.5, v.z * 0.5 + 0.5);
+}
+
+static void CreateNormalCubeMap() {
+	static const int size = 32;
+	static const scalar_t fsize = (scalar_t)size;
+	static const scalar_t half_size = fsize / 2.0;
+	unsigned long *ptr;
+	
+	delete normal_cubemap;
+	normal_cubemap = new Texture(size, size, TEX_CUBE);
+
+	// +X
+	normal_cubemap->Lock(CUBE_MAP_PX);
+	ptr = normal_cubemap->buffer;
+	for(int j=0; j<size; j++) {
+		for(int i=0; i<size; i++) {
+			Vector3 normal(half_size, -((scalar_t)j + 0.5 - half_size), -((scalar_t)i + 0.5 - half_size));
+			*ptr++ = PackColor32(VecToColor(normal.Normalized()));
+		}
+	}
+	normal_cubemap->Unlock(CUBE_MAP_PX);
+	
+	// -X
+	normal_cubemap->Lock(CUBE_MAP_NX);
+	ptr = normal_cubemap->buffer;
+	for(int j=0; j<size; j++) {
+		for(int i=0; i<size; i++) {
+			Vector3 normal(-half_size, -((scalar_t)j + 0.5 - half_size), (scalar_t)i + 0.5 - half_size);
+			*ptr++ = PackColor32(VecToColor(normal.Normalized()));
+		}
+	}
+	normal_cubemap->Unlock(CUBE_MAP_NX);
+	
+	// +Y
+	normal_cubemap->Lock(CUBE_MAP_PY);
+	ptr = normal_cubemap->buffer;
+	for(int j=0; j<size; j++) {
+		for(int i=0; i<size; i++) {
+			Vector3 normal((scalar_t)i + 0.5 - half_size, half_size, (scalar_t)j + 0.5 - half_size); 
+			*ptr++ = PackColor32(VecToColor(normal.Normalized()));
+		}
+	}
+	normal_cubemap->Unlock(CUBE_MAP_PY);
+	
+	// -Y
+	normal_cubemap->Lock(CUBE_MAP_NY);
+	ptr = normal_cubemap->buffer;
+	for(int j=0; j<size; j++) {
+		for(int i=0; i<size; i++) {
+			Vector3 normal((scalar_t)i + 0.5 - half_size, -half_size, -((scalar_t)j + 0.5 - half_size)); 
+			*ptr++ = PackColor32(VecToColor(normal.Normalized()));
+		}
+	}
+	normal_cubemap->Unlock(CUBE_MAP_NY);
+
+	// +Z
+	normal_cubemap->Lock(CUBE_MAP_PZ);
+	ptr = normal_cubemap->buffer;
+	for(int j=0; j<size; j++) {
+		for(int i=0; i<size; i++) {
+			Vector3 normal((scalar_t)i + 0.5 - half_size, -((scalar_t)j + 0.5 - half_size), half_size);
+			*ptr++ = PackColor32(VecToColor(normal.Normalized()));
+		}
+	}
+	normal_cubemap->Unlock(CUBE_MAP_PZ);
+
+	// -Z
+	normal_cubemap->Lock(CUBE_MAP_NZ);
+	ptr = normal_cubemap->buffer;
+	for(int j=0; j<size; j++) {
+		for(int i=0; i<size; i++) {
+			Vector3 normal(-((scalar_t)i + 0.5 - half_size), -((scalar_t)j + 0.5 - half_size), -half_size);
+			*ptr++ = PackColor32(VecToColor(normal.Normalized()));
+		}
+	}
+	normal_cubemap->Unlock(CUBE_MAP_NZ);
 }

@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "material.hpp"
 #include "gfx/3dgeom.hpp"
 #include "gfx/image.h"
+#include "light.hpp"
 
 extern Matrix4x4 world_matrix, view_matrix;
 
@@ -110,6 +111,8 @@ void SetAmbientLight(const Color &ambient_color);
 void SetShadingMode(ShadeMode mode);
 void SetSpecular(bool enable);
 
+void SetBumpLight(Light *light);
+
 // Transformation Matrices
 void SetMatrix(TransformType xform_type, const Matrix4x4 &mat, int num = 0);
 Matrix4x4 GetMatrix(TransformType xform_type, int num = 0);
@@ -121,7 +124,6 @@ Matrix4x4 CreateProjectionMatrix(scalar_t vfov, scalar_t aspect, scalar_t near, 
 bool ScreenCapture(char *fname = 0, enum image_file_format fmt = IMG_FMT_TGA);
 
 
-////////////// function prototypes ///////////////
 GraphicsInitParameters LoadGraphicsContextConfig(const char *fname);
 void EngineLog(const char *log_data, const char *subsys = 0);
 SysCaps GetSystemCapabilities();

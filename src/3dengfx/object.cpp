@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "object.hpp"
 #include "3denginefx.hpp"
 #include "gfxprog.hpp"
+#include "texman.hpp"
 
 static void InitRenderParams(RenderParams *rp) {
 	rp->shading = SHADING_GOURAUD;
@@ -231,7 +232,7 @@ void Object::Render8TexUnits() {
 		glDisable(GL_TEXTURE_GEN_T);
 	}
 }
-	
+
 
 void Object::Render(unsigned long time) {
 	world_mat = GetPRS(time).GetXFormMatrix();
@@ -247,6 +248,28 @@ void Object::RenderHack() {
 	::SetMaterial(mat);
 	int tex_unit = 0;
 
+	if(mat.tex[TEXTYPE_BUMPMAP]) {
+		/* TODO: setup a texture coordinate triplet array with the light vector in
+		 * tangent space for each vertex.
+		 */
+
+		/*	
+		SetTexture(tex_unit, mat.tex[TEXTYPE_BUMPMAP]);
+		EnableTextureUnit(tex_unit);
+		SetTextureCoordIndex(tex_unit, 0);
+		SetTextureUnitColor(tex_unit, TOP_REPLACE, TARG_TEXTURE, TARG_TEXTURE);
+		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV);
+		tex_unit++;
+
+		SetTexture(tex_unit, GetNormalCube());
+		EnableTextureUnit(tex_unit);
+		SetTextureCoordIndex(tex_unit, 2);	// tex coord with the light vector (UVW)
+		SetTextureUnitColor(tex_unit, TOP_DOT3, TARG_PREV, TARG_TEXTURE); // light dot normal(prev)
+		SetTextureUnitColor(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV); // keep the alpha
+		tex_unit++;
+		*/
+	}
+	
 	if(mat.tex[TEXTYPE_DIFFUSE]) {
 		SetTexture(tex_unit, mat.tex[TEXTYPE_DIFFUSE]);
 		EnableTextureUnit(tex_unit);
@@ -287,7 +310,7 @@ void Object::RenderHack() {
 		//tex_id = mat.tex[TEXTYPE_ENVMAP]->tex_id;
 		tex_unit++;
 	}
-	
+
 	::SetZWrite(render_params.zwrite);
 	SetShadingMode(render_params.shading);
 	SetAlphaBlending(render_params.blending);
@@ -305,7 +328,7 @@ void Object::RenderHack() {
 	if(render_params.blending) SetAlphaBlending(false);
 	if(render_params.zwrite) ::SetZWrite(true);
 	if(render_params.shading == SHADING_FLAT) SetShadingMode(SHADING_GOURAUD);
-	
+
 	for(int i=0; i<tex_unit; i++) {
 		DisableTextureUnit(i);
 		glDisable(GL_TEXTURE_GEN_S);

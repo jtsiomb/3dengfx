@@ -40,4 +40,6 @@ enum CubeMapIndex {
 
 Texture *MakeCubeMap(Texture **tex_array);
 
+Texture *GetNormalCube();
+
 #endif	// _TEXMAN_HPP_

@@ -35,6 +35,7 @@ private:
 	
 	//void Render2TexUnits();
 	//void Render4TexUnits();
+	
 	void Render8TexUnits();
 	void RenderHack();
 	

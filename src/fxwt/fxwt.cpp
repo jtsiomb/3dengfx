@@ -75,7 +75,7 @@ int fxwt::MainLoop() {
 
 			list<void (*)()>::iterator iter = idle_handlers.begin();
 			while(iter != idle_handlers.end()) {
-				(*iter)();
+				(*iter++)();
 			}
 		} else {
 			SDL_WaitEvent(&event);
@@ -92,7 +92,7 @@ static void HandleEvent(const SDL_Event &event) {
 		{
 			list<void (*)(int)>::iterator iter = keyb_handlers.begin();
 			while(iter != keyb_handlers.end()) {
-				(*iter)(event.key.keysym.sym);
+				(*iter++)(event.key.keysym.sym);
 			}
 		}
 		break;
@@ -101,7 +101,7 @@ static void HandleEvent(const SDL_Event &event) {
 		{
 			list<void (*)()>::iterator iter = disp_handlers.begin();
 			while(iter != disp_handlers.end()) {
-				(*iter)();
+				(*iter++)();
 			}
 		}
 		break;
@@ -110,7 +110,7 @@ static void HandleEvent(const SDL_Event &event) {
 		{
 			list<void (*)(int, int)>::iterator iter = motion_handlers.begin();
 			while(iter != motion_handlers.end()) {
-				(*iter)(event.motion.x, event.motion.y);
+				(*iter++)(event.motion.x, event.motion.y);
 			}
 		}
 		break;
@@ -120,7 +120,7 @@ static void HandleEvent(const SDL_Event &event) {
 		{
 			list<void (*)(int, int, int, int)>::iterator iter = button_handlers.begin();
 			while(iter != button_handlers.end()) {
-				(*iter)(event.button.button, event.button.state == SDL_PRESSED, event.button.x, event.button.y);
+				(*iter++)(event.button.button, event.button.state == SDL_PRESSED, event.button.x, event.button.y);
 			}
 		}
 		break;

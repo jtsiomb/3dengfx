@@ -42,7 +42,7 @@ void fxwt::WidgetInit() {
 }
 
 void fxwt::WidgetDisplayHandler() {
-	root->Draw();
+	if(root) root->Draw();
 }
 
 void fxwt::WidgetKeyboardHandler(int key) {

@@ -667,7 +667,7 @@ static Keyframe *FindNearestKeyframe(Keyframe *start, Keyframe *end, unsigned lo
  * Gets 2 trimeshes and returns a new one
  * that contains both meshes
  */
-void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2)
+void JoinTriMesh(TriMesh *ret, TriMesh *m1, TriMesh *m2)
 {
 	const Vertex *varr1 = m1->GetVertexArray()->GetData();
 	const Vertex *varr2 = m2->GetVertexArray()->GetData();

@@ -113,7 +113,7 @@ Vector3 Bezier(const Vector3 &p0, const Vector3 &p1,
 	omt3 = omt * omt * omt;
 	f = 3 * t * omt;
 
-	return (p0 * omt3) + (p1 * f * omt) + (p2 * f * t) + (t3 * t3);
+	return (p0 * omt3) + (p1 * f * omt) + (p2 * f * t) + (p3 * t3);
 }
 
 /* BezierTangent

@@ -72,6 +72,7 @@ public:
 	virtual int GetSegmentCount() const;
 	virtual Vector3 Interpolate(scalar_t t) const;
 
+	Vector3 GetControlPoint(int i) const;
 	Vector3 GetTangent(scalar_t t);
 };
 

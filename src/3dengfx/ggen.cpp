@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #include "3dengfx_config.h"
-
+#include "gfx/curves.hpp"
 #include "ggen.hpp"
  
 /* CreatePlane - (JT)
@@ -237,3 +237,179 @@ void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int su
 	delete [] tarray;
 	delete [] circle;
 }
+
+/* CreateBezierPatch - (MG)
+ * overloaded function that gets a vector3 array
+ * and makes a single Bezier patch
+ */
+
+static void CreateBezierPatch(TriMesh *mesh, Vector3 *cp, int subdiv)
+{
+
+	// make 8 BezierSpline's
+	BezierSpline u[4], v[4];
+
+	u[0].AddControlPoint(cp[0]);
+	u[0].AddControlPoint(cp[1]);
+	u[0].AddControlPoint(cp[2]);	
+	u[0].AddControlPoint(cp[3]);
+	
+	u[1].AddControlPoint(cp[4]);
+	u[1].AddControlPoint(cp[5]);
+	u[1].AddControlPoint(cp[6]);	
+	u[1].AddControlPoint(cp[7]);
+	
+	u[2].AddControlPoint(cp[8]);
+	u[2].AddControlPoint(cp[9]);
+	u[2].AddControlPoint(cp[10]);	
+	u[2].AddControlPoint(cp[11]);
+	
+	u[3].AddControlPoint(cp[12]);
+	u[3].AddControlPoint(cp[13]);
+	u[3].AddControlPoint(cp[14]);	
+	u[3].AddControlPoint(cp[15]);
+
+	v[0].AddControlPoint(cp[0]);
+	v[0].AddControlPoint(cp[4]);
+	v[0].AddControlPoint(cp[8]);	
+	v[0].AddControlPoint(cp[12]);
+	
+	v[1].AddControlPoint(cp[1]);
+	v[1].AddControlPoint(cp[5]);
+	v[1].AddControlPoint(cp[9]);	
+	v[1].AddControlPoint(cp[13]);
+	
+	v[2].AddControlPoint(cp[2]);
+	v[2].AddControlPoint(cp[6]);
+	v[2].AddControlPoint(cp[10]);	
+	v[2].AddControlPoint(cp[14]);
+
+	v[3].AddControlPoint(cp[3]);
+	v[3].AddControlPoint(cp[7]);
+	v[3].AddControlPoint(cp[11]);	
+	v[3].AddControlPoint(cp[15]);
+
+	unsigned long edges = subdiv * 2;
+	unsigned long vrow = edges + 1;
+	unsigned long qcount = edges * edges;
+	unsigned long vcount = vrow * vrow;
+	unsigned long tcount = qcount * 2;
+
+	// allocate memory
+	Vertex *varray = new Vertex[vcount];
+	Quad *qarray = new Quad[qcount];
+	Triangle *tarray = new Triangle[tcount];
+
+	// Vertex loop
+	for (unsigned long j=0; j<vrow; j++)
+	{
+		scalar_t tv = (scalar_t)j / (scalar_t)(vrow - 1);
+		BezierSpline uc;
+		uc.AddControlPoint(v[0].Interpolate(tv));
+		uc.AddControlPoint(v[1].Interpolate(tv));
+		uc.AddControlPoint(v[2].Interpolate(tv));
+		uc.AddControlPoint(v[3].Interpolate(tv));
+		
+		for (unsigned long i=0; i<vrow; i++)
+		{
+			scalar_t tu = (scalar_t)i / (scalar_t)(vrow - 1);
+			BezierSpline vc;
+			vc.AddControlPoint(u[0].Interpolate(tu));
+			vc.AddControlPoint(u[1].Interpolate(tu));
+			vc.AddControlPoint(u[2].Interpolate(tu));
+			vc.AddControlPoint(u[3].Interpolate(tu));
+
+			// get the position
+			Vector3 pos = uc.Interpolate(tu);
+
+			// get normal
+			Vector3 tan_u,tan_v;
+			tan_u = uc.GetTangent(tu);
+			tan_v = vc.GetTangent(tv);
+			Vector3 normal;
+			normal = CrossProduct(tan_u, tan_v);
+			normal.Normalize();
+
+			// store vertex
+			varray[i + j * vrow] = Vertex(pos, tu, tv, Color(1.0f));
+			varray[i + j * vrow].normal = normal;
+		}
+	} // end vertex loop
+
+	
+	// first seperate the quads and then triangulate
+	for(unsigned long i=0; i<qcount; i++) {
+		qarray[i].vertices[0] = i + i / edges;
+		qarray[i].vertices[1] = qarray[i].vertices[0] + 1;
+		qarray[i].vertices[2] = qarray[i].vertices[0] + vrow;
+		qarray[i].vertices[3] = qarray[i].vertices[1] + vrow;
+	}
+
+	for(unsigned long i=0; i<qcount; i++) {
+		tarray[i * 2] = Triangle(qarray[i].vertices[0], qarray[i].vertices[1], qarray[i].vertices[3]);
+		tarray[i * 2 + 1] = Triangle(qarray[i].vertices[0], qarray[i].vertices[3], qarray[i].vertices[2]);
+	}
+
+	mesh->SetData(varray, vcount, tarray, tcount);
+	
+	// cleanup
+	delete [] varray;
+	delete [] qarray;
+	delete [] tarray;
+}
+
+/* CreateBezierPatch - (MG)
+ * creates a bezier patch (!)
+ * if the control curves contain more than one 
+ * segments, multiple patches will be included
+ * in the output TriMesh
+ */
+void CreateBezierPatch(TriMesh *mesh, 
+		const BezierSpline &u0,
+		const BezierSpline &u1,
+		const BezierSpline &u2,
+		const BezierSpline &u3,
+		int subdiv)
+{
+	// get minimum number of segments
+	unsigned long min_seg , tmp;
+	min_seg = u0.GetSegmentCount();
+	tmp = u1.GetSegmentCount(); if (min_seg > tmp) min_seg = tmp;
+	tmp = u2.GetSegmentCount(); if (min_seg > tmp) min_seg = tmp;
+	tmp = u3.GetSegmentCount(); if (min_seg > tmp) min_seg = tmp;
+
+	TriMesh tmp_mesh;
+	Vector3 *cp = new Vector3[16];
+	for (unsigned long i=0; i<min_seg; i++)
+	{
+		// fill control point array
+		cp[0] = u0.GetControlPoint(4 * i + 0);
+		cp[1] = u0.GetControlPoint(4 * i + 1);
+		cp[2] = u0.GetControlPoint(4 * i + 2);
+		cp[3] = u0.GetControlPoint(4 * i + 3);
+
+		cp[4] = u1.GetControlPoint(4 * i + 0);
+		cp[5] = u1.GetControlPoint(4 * i + 1);
+		cp[6] = u1.GetControlPoint(4 * i + 2);
+		cp[7] = u1.GetControlPoint(4 * i + 3);
+		
+		cp[8] = u2.GetControlPoint(4 * i + 0);
+		cp[9] = u2.GetControlPoint(4 * i + 1);
+		cp[10] = u2.GetControlPoint(4 * i + 2);
+		cp[11] = u2.GetControlPoint(4 * i + 3);
+			
+		cp[12] = u3.GetControlPoint(4 * i + 0);
+		cp[13] = u3.GetControlPoint(4 * i + 1);
+		cp[14] = u3.GetControlPoint(4 * i + 2);
+		cp[15] = u3.GetControlPoint(4 * i + 3);
+
+		// Make a single patch and put all patches together	
+		CreateBezierPatch(&tmp_mesh, cp, subdiv);
+
+		JoinTriMesh(mesh, mesh, &tmp_mesh);
+	}
+
+	// cleanup
+	delete [] cp;
+}
+

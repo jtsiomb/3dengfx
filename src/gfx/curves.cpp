@@ -349,7 +349,21 @@ Vector3 BezierSpline::GetTangent(scalar_t t)
 	}
 	
 	// interpolate
-	return BezierTangent(Cp[seg], Cp[seg + 1], Cp[seg + 2], Cp[seg + 3], t);
+	return BezierTangent(Cp[0], Cp[1], Cp[2], Cp[3], t);
 }
 
-
+Vector3 BezierSpline::GetControlPoint(int i) const
+{	
+	
+	ListNode<Vector3> *iter = const_cast<BezierSpline*>(this)->ControlPoints.Begin();
+	for (int j = 0; j < i; j++) 
+	{
+		if (!iter->next)
+		{
+			return Vector3(0, 0, 0);
+		}
+		iter = iter->next;
+	}
+	
+	return iter->data;
+}

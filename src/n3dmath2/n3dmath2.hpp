@@ -66,6 +66,14 @@ inline scalar_t BSpline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t
 scalar_t CatmullRomSpline(const Vector4 &cpvec, scalar_t t);
 inline scalar_t CatmullRomSpline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);
 
+scalar_t Bezier(const Vector4 &cp, scalar_t t);
+Voector3  Bezier(const Vector3 &p0, const Vector3 &p1,
+		const Vector3 &p2, const Vector3 &p3,
+		scalar_t t);
+Voector3  BezierTangent(const Vector3 &p0, const Vector3 &p1,
+		const Vector3 &p2, const Vector3 &p3,
+		scalar_t t);
+
 // -- actual class definitions --
 #include "n3dmath2_vec.hpp"
 #include "n3dmath2_mat.hpp"

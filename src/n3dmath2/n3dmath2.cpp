@@ -84,6 +84,59 @@ scalar_t CatmullRomSpline(const Vector4 &cpvec, scalar_t t) {
 	return DotProduct(params, cpvec.Transformed(crspline_mat) / 2.0);
 }
 
+/* Bezier - (MG)
+ * returns a interpolated scalar value
+ * given 4 control values 
+ */
+scalar_t Bezier(const Vector4 &cp, scalar_t t)
+{
+	static scalar_t omt, omt3, t3, f;
+	t3 = t * t * t;
+	omt = 1.0f - t;
+	omt3 = omt * omt * omt;
+	f = 3 * t * omt;
+
+	return (cp.x * omt3) + (cp.y * f * omt) + (cp.z * f * t) + (cp.w * t3);
+}
+
+/* Bezier - (MG)
+ * Vector3 overloaded bezier function
+ */
+Vector3 Bezier(const Vector3 &p0, const Vector3 &p1,
+	       const Vector3 &p2, const Vector3 &p3,
+	       scalar_t t)
+{
+
+	static scalar_t omt, omt3, t3, f;
+	t3 = t * t * t;
+	omt = 1.0f - t;
+	omt3 = omt * omt * omt;
+	f = 3 * t * omt;
+
+	return (p0 * omt3) + (p1 * f * omt) + (p2 * f * t) + (t3 * t3);
+}
+
+/* BezierTangent
+ * returns a vector tangent to the 
+ * Bezier curve at the specified point
+ */
+Vector3 BezierTangent(const Vector3 &p0, const Vector3 &p1,
+		      const Vector3 &p2, const Vector3 &p3,
+		      scalar_t t)
+{
+	static scalar_t omt;
+	omt = 1.0f - t;
+	static Vector3 p4, p5, p6, p7, p8;
+	p4 = p0 * omt + p1 * t;
+	p5 = p1 * omt + p2 * t;
+	p6 = p2 * omt + p3 * t;
+
+	p7 = p4 * omt + p5 * t;
+	p8 = p5 * omt + p6 * t;
+
+	return p8 - p7;
+}
+
 Base::Base() {
 	i = Vector3(1, 0, 0);
 	j = Vector3(0, 1, 0);

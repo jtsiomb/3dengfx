@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define _3DENGINEFX_TYPES_HPP_
 
 #include "opengl.h"
+#include "n3dmath2/n3dmath2_types.hpp"
 
 enum ShadeMode {
 	SHADING_FLAT = GL_FLAT,
@@ -141,6 +142,8 @@ struct RenderParams {
 	GfxProg *vprog, *pprog;
 	bool auto_cube_maps;
 	bool hidden;
+	bool show_normals;
+	scalar_t show_normals_scale;
 };
 
 #define DONT_CARE_BPP		1	// 0001

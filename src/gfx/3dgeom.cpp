@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include <algorithm>
 #include <cstdlib>
+#include <cfloat>
 #include "3dgeom.hpp"
 
 #ifdef USING_3DENGFX
@@ -230,10 +231,12 @@ void GeometryArray<Index>::SetData(const Index *data, unsigned long count) {
 ///////////// Triangle Mesh Implementation /////////////
 TriMesh::TriMesh() {
 	indices_valid = false;
+	vertex_stats_valid = false;
 }
 
 TriMesh::TriMesh(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount) {
 	indices_valid = false;
+	vertex_stats_valid = false;
 	SetData(vdata, vcount, tdata, tcount);
 }
 
@@ -267,9 +270,9 @@ void TriMesh::CalculateNormals() {
 	for(unsigned int i=0; i<tarray.GetCount(); i++) {
 		tarray.GetModData()[i].CalculateNormal(varray.GetData(), false);
 	}
-	if(prev_ivalid_state) {
-		indices_valid = true;	// we only changed the normal above, so the indices are really still valid
-	}
+	
+	// we only changed the normal above, so the indices are really still valid
+	indices_valid = prev_ivalid_state;
 	
 	// now calculate the vertex normals
 	for(unsigned int i=0; i<varray.GetCount(); i++) {
@@ -295,6 +298,29 @@ void TriMesh::ApplyXForm(const Matrix4x4 &xform) {
 
 void TriMesh::operator +=(const TriMesh *m2) {
 	JoinTriMesh(this, this, m2);
+}
+
+VertexStatistics TriMesh::GetVertexStats() const {
+	if(!vertex_stats_valid) {
+		const Vertex *vptr = GetVertexArray()->GetData();
+		int count = GetVertexArray()->GetCount();
+
+		scalar_t min_len_sq = FLT_MAX;
+		scalar_t max_len_sq = 0.0;
+		scalar_t avg_len_sq = 0.0;
+		
+		for(int i=0; i<count; i++) {
+			scalar_t len_sq = (vptr++)->pos.LengthSq();
+			if(len_sq < min_len_sq) min_len_sq = len_sq;
+			if(len_sq > max_len_sq) max_len_sq = len_sq;
+			avg_len_sq += len_sq;
+		}
+
+		vstats.min_dist = sqrt(min_len_sq);
+		vstats.max_dist = sqrt(max_len_sq);
+		vstats.avg_dist = sqrt(avg_len_sq / (scalar_t)count);
+	}
+	return vstats;
 }
 
 ///////////////// PRS /////////////////////

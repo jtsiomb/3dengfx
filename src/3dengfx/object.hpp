@@ -38,6 +38,8 @@ private:
 	
 	void Render8TexUnits();
 	void RenderHack(unsigned long time);
+
+	void DrawNormals();
 	
 	void SetupBumpLight(unsigned long time);
 	
@@ -71,6 +73,8 @@ public:
 	void SetPixelProgram(GfxProg *prog);
 	void SetAutoCubeMaps(bool enable);
 	void SetHidden(bool enable);
+	void SetShowNormals(bool enable);
+	void SetShowNormalsScale(scalar_t scale);
 
 	void ApplyXForm(unsigned long time = XFORM_LOCAL_PRS);
 	

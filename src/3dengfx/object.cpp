@@ -42,6 +42,8 @@ static void InitRenderParams(RenderParams *rp) {
 	rp->vprog = rp->pprog = 0;
 	rp->auto_cube_maps = false;
 	rp->hidden = false;
+	rp->show_normals = false;
+	rp->show_normals_scale = 0.5;
 }
 	
 
@@ -150,6 +152,14 @@ void Object::SetHidden(bool enable) {
 	render_params.hidden = enable;
 }
 
+void Object::SetShowNormals(bool enable) {
+	render_params.show_normals = enable;
+}
+
+void Object::SetShowNormalsScale(scalar_t scale) {
+	render_params.show_normals_scale = scale;
+}
+
 void Object::ApplyXForm(unsigned long time) {
 	world_mat = GetPRS(time).GetXFormMatrix();
 	mesh.ApplyXForm(world_mat);
@@ -247,6 +257,10 @@ void Object::Render(unsigned long time) {
 	
 	//Render8TexUnits();
 	RenderHack(time);
+
+	if(render_params.show_normals) {
+		DrawNormals();
+	}
 }
 
 void Object::RenderHack(unsigned long time) {
@@ -345,6 +359,27 @@ void Object::RenderHack(unsigned long time) {
 	}
 }
 
+void Object::DrawNormals() {
+	scalar_t normal_scale = mesh.GetVertexStats().avg_dist * render_params.show_normals_scale;
+	int vcount = mesh.GetVertexArray()->GetCount();
+	const Vertex *vptr = mesh.GetVertexArray()->GetData();
+
+	SetLighting(false);
+	
+	glBegin(GL_LINES);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	for(int i=0; i<vcount; i++) {
+		Vector3 pos = vptr->pos;
+		Vector3 normal = vptr->normal * normal_scale;
+		
+		glVertex3f(pos.x, pos.y, pos.z);
+		glVertex3f(pos.x + normal.x, pos.y + normal.y, pos.z + normal.z);
+		vptr++;
+	}
+	glEnd();
+
+	SetLighting(true);
+}
 
 void Object::SetupBumpLight(unsigned long time) {
 	extern Light *bump_light;

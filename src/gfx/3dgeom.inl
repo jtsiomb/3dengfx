@@ -217,6 +217,7 @@ inline const VertexArray *TriMesh::GetVertexArray() const {
 }
 
 inline VertexArray *TriMesh::GetModVertexArray() {
+	vertex_stats_valid = false;
 	return &varray;
 }
 

@@ -166,12 +166,21 @@ typedef GeometryArray<Triangle> TriangleArray;
 typedef GeometryArray<Index> IndexArray;
 
 ////////////// triangle mesh class ////////////
+struct VertexStatistics {
+	scalar_t min_dist;
+	scalar_t max_dist;
+	scalar_t avg_dist;
+};
+
 class TriMesh {
 private:
 	VertexArray varray;
 	TriangleArray tarray;
 	IndexArray iarray;
+
+	mutable VertexStatistics vstats;
 	
+	bool vertex_stats_valid;
 	bool indices_valid;
 	
 public:
@@ -193,6 +202,8 @@ public:
 	void ApplyXForm(const Matrix4x4 &xform);
 
 	void operator +=(const TriMesh *m2);
+
+	VertexStatistics GetVertexStats() const;
 };
 
 

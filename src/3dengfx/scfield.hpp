@@ -28,6 +28,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "n3dmath2/n3dmath2.hpp"
 #include "gfx/3dgeom.hpp"
 
+#ifndef _SCALAR_FIELD_HEADER_
+#define _SCALAR_FIELD_HEADER_
+
 class ScalarField
 {
 protected:
@@ -64,7 +67,10 @@ public:
 	~ScalarField();
 
 	void SetDimensions(unsigned long dimensions);
-
+	
+	// draw the 3d grid.
+	// if full, draws everything. If not, draws the bounding volume
+	void DrawField(bool full);
 
 	// Get / Set
 	void SetValue(int x, int y, int z, scalar_t value);
@@ -92,3 +98,5 @@ public:
 	// last but not least 
 	void Triangulate(TriMesh *mesh, scalar_t isolevel, scalar_t t, bool calc_normals);
 };
+
+#endif // ndef _SCALAR_FIELD_HEADER_

@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define SCFIELD_SOURCE
 #include "mcube_tables.h"
 #include "scfield.hpp"
+#include "3dengfx/3denginefx.hpp"
 
 // don't change this
 #define EDGE_NOT_ASSOCIATED		0xFFFFFFFF
@@ -492,6 +493,67 @@ void ScalarField::SetFromTo(const Vector3 &from, const Vector3 &to)
 	this->from = from;
 	this->to = to;
 	this->cell_size = (to - from) / (dimensions - 1);
+}
+
+void ScalarField::DrawField(bool full)
+{
+	SetLighting(false);
+		
+	if (full)
+	{
+		glBegin(GL_LINES);
+		{
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+			for (unsigned int j=0; j<dimensions; j++)
+			{
+				for (unsigned int i=0; i<dimensions; i++)
+				{
+					// x lines
+					glVertex3f(from.x, from.y + i * cell_size.y, from.z + j * cell_size.z); 
+					glVertex3f(  to.x, from.y + i * cell_size.y, from.z + j * cell_size.z);
+
+					// y lines
+					glVertex3f(from.x + i * cell_size.x, from.y, from.z + j * cell_size.z); 
+					glVertex3f(from.x + i * cell_size.x,   to.y, from.z + j * cell_size.z);
+
+					// z lines
+					glVertex3f(from.x + i * cell_size.x, from.y + j * cell_size.y, from.z); 
+					glVertex3f(from.x + i * cell_size.x, from.y + j * cell_size.y,   to.z);
+
+				}
+			}
+		}
+		glEnd();
+	}
+	else
+	{
+		glBegin(GL_LINES);
+		{
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+			// x lines
+			glVertex3f(from.x, from.y, from.z); glVertex3f(  to.x, from.y, from.z);
+			glVertex3f(from.x,   to.y, from.z); glVertex3f(  to.x,   to.y, from.z);
+			glVertex3f(from.x,   to.y,   to.z); glVertex3f(  to.x,   to.y,   to.z);
+			glVertex3f(from.x, from.y,   to.z); glVertex3f(  to.x, from.y,   to.z);
+
+			// y lines
+			glVertex3f(from.x, from.y, from.z); glVertex3f(from.x,   to.y, from.z);
+			glVertex3f(  to.x, from.y, from.z); glVertex3f(  to.x,   to.y, from.z);
+			glVertex3f(  to.x, from.y,   to.z); glVertex3f(  to.x,   to.y,   to.z);
+			glVertex3f(from.x, from.y,   to.z); glVertex3f(from.x,   to.y,   to.z);
+
+			// z lines
+			glVertex3f(from.x, from.y, from.z); glVertex3f(from.x, from.y,   to.z);
+			glVertex3f(  to.x, from.y, from.z); glVertex3f(  to.x, from.y,   to.z);
+			glVertex3f(  to.x,   to.y, from.z); glVertex3f(  to.x,   to.y,   to.z);
+			glVertex3f(from.x,   to.y, from.z); glVertex3f(from.x,   to.y,   to.z);
+
+		}
+		glEnd();
+	}
+	SetLighting(true);
 }
 
 Vector3 ScalarField::GetFrom()

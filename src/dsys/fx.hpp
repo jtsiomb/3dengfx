@@ -36,7 +36,7 @@ namespace dsys {
 	//void Blur(Texture *tex, float ammount, bool additive = false);
 	void Overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2, const Color &color, GfxProg *pprog=0, bool handle_blending = true);
 	void Negative(const Vector2 &corner1 = Vector2(0,0), const Vector2 &corner2 = Vector2(1,1));
-	void Flash(unsigned long time, unsigned long when, unsigned long dur);
+	void Flash(unsigned long time, unsigned long when, unsigned long dur, const Color &col = Color(1,1,1));
 	
 	// integration with the scripting system
 	
@@ -51,7 +51,8 @@ namespace dsys {
 		unsigned long time, duration;
 
 	public:
-		ImageFx(unsigned long time, unsigned long dur);
+		ImageFx();
+		virtual bool ParseScriptArgs(const char **args);
 
 		virtual void SetTime(unsigned long time);
 		virtual void SetDuration(unsigned long dur);
@@ -61,7 +62,33 @@ namespace dsys {
 
 	class FxNegative : public ImageFx {
 	public:
-		FxNegative(unsigned long time = 0, unsigned long dur = INT_MAX);
+		virtual void Apply(unsigned long time);
+	};
+
+	class FxFlash : public ImageFx {
+	protected:
+		Color color;
+
+	public:
+		FxFlash();
+		virtual bool ParseScriptArgs(const char **args);
+		
+		virtual void SetColor(const Color &col);
+		virtual void Apply(unsigned long time);
+	};
+
+	class FxOverlay : public ImageFx {
+	protected:
+		Texture *tex;
+		GfxProg *shader;
+
+	public:
+		FxOverlay();
+		virtual ~FxOverlay();
+		virtual bool ParseScriptArgs(const char **args);
+
+		virtual void SetTexture(Texture *tex);
+		virtual void SetShader(GfxProg *sdr);
 		virtual void Apply(unsigned long time);
 	};
 }

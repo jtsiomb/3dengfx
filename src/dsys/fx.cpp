@@ -22,7 +22,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <list>
 #include "fx.hpp"
+#include "dsys.hpp"
+#include "script.h"
 #include "3dengfx/3dengfx.hpp"
+#include "common/err_msg.h"
+
+
+static bool StrToColor(const char *str, Color *col);
+
 
 void dsys::RadialBlur(Texture *tex, float ammount, const Vector2 &origin, bool additive) {
 	Vector2 c1(0.0f, 0.0f), c2(1.0f, 1.0f);
@@ -179,15 +186,19 @@ void dsys::Negative(const Vector2 &corner1, const Vector2 &corner2) {
 	SetAlphaBlending(false);
 }
 
-void dsys::Flash(unsigned long time, unsigned long when, unsigned long dur) {
-	if(	time > when - dur / 2 &&  time < when + dur / 2) {
-		float dt = (float)dur / 1000.0f;
-		float offs = (float)(when - dur / 2) / 1000.0f;
-		float t = (float)time / 1000.0f;
-		float alpha = sin(pi * (t+offs) / dt) * 5.0f;
-		if(alpha > 1.0f) alpha = 1.0f;
+void dsys::Flash(unsigned long time, unsigned long when, unsigned long dur, const Color &col) {
+	long start = when - dur/2;
+	long end = when + dur/2;
+	
+	if((long)time >= start && (long)time < end) {
+		scalar_t t = (scalar_t)time / 1000.0;
+		scalar_t dt = (scalar_t)dur / 1000.0;
+		scalar_t wt = (scalar_t)when / 1000.0;
+		scalar_t half_dt = dt / 2.0;
 		
-		dsys::Overlay(0, Vector3(0,0), Vector3(1,1), Color(1.0f, 1.0f, 1.0f, alpha));
+		scalar_t alpha = cos(pi * (t - wt) / half_dt);
+
+		dsys::Overlay(0, Vector3(0,0), Vector3(1,1), Color(col.r, col.g, col.b, alpha));
 	}
 }
 
@@ -219,9 +230,25 @@ void dsys::ApplyImageFx(unsigned long time) {
 
 // -------------- Image Effect class --------------
 
-ImageFx::ImageFx(unsigned long time, unsigned long dur) {
-	this->time = time;
-	duration = dur;
+ImageFx::ImageFx() {
+	time = 0;
+	duration = 0;
+}
+
+bool ImageFx::ParseScriptArgs(const char **args) {
+	long t, d;
+
+	if(!args[0] || (t = str_to_time(args[0])) == -1) {
+		return false;
+	}
+
+	if(!args[1] || (d = str_to_time(args[1])) == -1) {
+		return false;
+	}
+
+	time = t;
+	duration = d;
+	return true;
 }
 
 void ImageFx::SetTime(unsigned long time) {
@@ -235,10 +262,130 @@ void ImageFx::SetDuration(unsigned long dur) {
 
 // ------------- Negative (inverse video) effect ---------------
 
-FxNegative::FxNegative(unsigned long time, unsigned long dur) : ImageFx(time, dur) {}
-
 void FxNegative::Apply(unsigned long time) {
 	if(time < this->time || time > this->time + duration) return;
 
 	Negative();
+}
+
+// ------------ Screen Flash -------------
+
+FxFlash::FxFlash() {
+	color = Color(1.0, 1.0, 1.0);
+}
+
+bool FxFlash::ParseScriptArgs(const char **args) {
+	if(!ImageFx::ParseScriptArgs(args)) {
+		return false;
+	}
+
+	if(args[2]) {
+		if(!StrToColor(args[2], &color)) return false;
+	}
+
+	return true;
+}
+
+void FxFlash::SetColor(const Color &col) {
+	color = col;
+}
+
+void FxFlash::Apply(unsigned long time) {
+	Flash(time, this->time, duration, color);
+}
+
+
+// ------------ Image Overlay ------------
+
+FxOverlay::FxOverlay() {
+	tex = 0;
+	shader = 0;
+}
+
+FxOverlay::~FxOverlay() {
+	delete shader;
+}
+
+bool FxOverlay::ParseScriptArgs(const char **args) {
+	if(!ImageFx::ParseScriptArgs(args)) {
+		return false;
+	}
+	if(!args[2]) return false;
+
+	// texture register? (t0, t1, t2, t3)
+	if(args[2][0] == 't' && isdigit(args[2][1]) && !args[2][2]) {
+		int reg = args[2][1] - '0';
+		if(reg > 3) return false;
+		tex = dsys::tex[reg];
+	} else {	// or a texture from file?
+		if(!(tex = GetTexture(args[2]))) {
+			return false;
+		}
+	}
+
+	// check if a shader is specified
+	if(args[3]) {
+		shader = new GfxProg(args[3], PROG_FP);
+		if(!shader->IsValid()) {
+			delete shader;
+			shader = new GfxProg(args[3], PROG_CGFP);
+			if(!shader->IsValid()) {
+				delete shader;
+				error("failed loading shader %s", args[3]);
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+void FxOverlay::SetTexture(Texture *tex) {
+	this->tex = tex;
+}
+
+void FxOverlay::SetShader(GfxProg *sdr) {
+	shader = sdr;
+}
+
+void FxOverlay::Apply(unsigned long time) {
+	if(time >= this->time && time < this->time + duration) {
+		Overlay(tex, Vector2(0, 0), Vector2(1, 1), Color(1, 1, 1), shader);
+	}
+}
+
+
+
+// just a little helper function to get a color out of an <r,g,b> string
+static bool StrToColor(const char *str, Color *col) {
+	// get red
+	if(*str++ != '<') return false;
+	if(!isdigit(*str) && *str != '.') return false;
+	col->r = atof(str);
+
+	while(isdigit(*str) || *str == '.') str++;
+	if(*str++ != ',') return false;
+
+	// get green
+	if(!isdigit(*str) && *str != '.') return false;
+	col->g = atof(str);
+
+	while(isdigit(*str) || *str == '.') str++;
+	if(*str++ != ',') return false;
+
+	// get blue
+	if(!isdigit(*str) && *str != '.') return false;
+	col->b = atof(str);
+	
+	while(isdigit(*str) || *str == '.') str++;
+	if(*str != ',') {
+		col->a = 1.0;
+		return *str == '>' ? true : false;
+	}
+
+	// get alpha
+	if(!isdigit(*++str) && *str != '.') return false;
+	col->a = atof(str);
+	
+	while(isdigit(*str) || *str == '.') str++;
+	return *str == '>' ? true : false;
 }

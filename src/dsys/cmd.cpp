@@ -143,19 +143,27 @@ static bool End(const char *unused, const char **args) {
 }
 
 static bool Effect(const char *fxname, const char **args) {
+	ImageFx *fx;
+	
 	if(!strcmp(fxname, "neg")) {
-		long time, dur;
-		if(!args[0] || (time = str_to_time(args[0])) == -1 ||
-			!args[1] || (dur = str_to_time(args[1])) == -1) {
-			error("fx neg: invalid syntax, should be: neg <start time> <duration>");
-			return false;
-		}
-		info("adding negative t: %ld d: %ld", time, dur);
-		AddImageFx(new FxNegative(time, dur));
+		fx = new FxNegative;
+	} else if(!strcmp(fxname, "flash")) {
+		fx = new FxFlash;
+	} else if(!strcmp(fxname, "overlay")) {
+		fx = new FxOverlay;
 	} else {
 		error("unknown effect: %s, ignoring", fxname);
 		return false;
 	}
+
+	if(!fx->ParseScriptArgs(args)) {
+		error("fx(%s): invalid syntax", fxname);
+		delete fx;
+		return false;
+	}
+
+	info("fx(%s)", fxname);
+	AddImageFx(fx);
 
 	return true;
 }

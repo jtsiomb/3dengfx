@@ -162,6 +162,8 @@ public:
 	inline bool GetDynamic() const;
 
 	inline unsigned int GetBufferObject() const;
+	
+	friend void TriToIndexArray(GeometryArray<Index> *ia, const GeometryArray<Triangle> &ta);
 };
 
 typedef GeometryArray<Vertex> VertexArray;

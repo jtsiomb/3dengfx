@@ -48,8 +48,10 @@ static void (*cg_set_param_mat4x4)(_CGparameter*, const scalar_t*) = cgGLSetMatr
 #endif	// USING_CG_TOOLKIT
 
 GfxProg::GfxProg(const char *fname, int ptype) {
+	name = fname;
 	cg_prog = 0;
 	asm_prog = 0;
+	update_handler = 0;
 
 	if(fname) {
 		LoadProgram(fname, ptype);
@@ -67,6 +69,14 @@ GfxProg::~GfxProg() {
 	if(asm_prog) {
 		glext::glDeletePrograms(1, &asm_prog);
 	}
+}
+
+void GfxProg::SetName(const char *name) {
+	this->name = name;
+}
+
+const char *GfxProg::GetName() const {
+	return name.c_str();
 }
 
 bool GfxProg::IsValid() const {
@@ -195,3 +205,6 @@ void GfxProg::SetParameter(const char *pname, const Matrix4x4 &val) {
 	}
 }
 
+void GfxProg::SetUpdateHandler(void (*func)(GfxProg*)) {
+	update_handler = func;
+}

@@ -125,24 +125,28 @@ GeometryArray<Index>::GeometryArray(const Index *data, unsigned long count, bool
 	SetData(data, count);
 }
 
-GeometryArray<Index>::GeometryArray(const GeometryArray<Triangle> &tarray) {
-	dynamic = tarray.GetDynamic();
-	data = 0;
-	count = 0;
-	buffer_object = INVALID_VBO;
+void TriToIndexArray(GeometryArray<Index> *ia, const GeometryArray<Triangle> &ta) {
+	ia->dynamic = ta.GetDynamic();
+	ia->data = 0;
+	ia->count = 0;
+	ia->buffer_object = INVALID_VBO;
 
-	unsigned long tcount = tarray.GetCount();
+	unsigned long tcount = ta.GetCount();
 	Index *tmp_data = new Index[tcount * 3];
 
 	Index *ptr = tmp_data;
 	for(unsigned long i=0; i<tcount; i++) {
 		for(int j=0; j<3; j++) {
-			*ptr++ = tarray.GetData()[i].vertices[j];
+			*ptr++ = ta.GetData()[i].vertices[j];
 		}
 	}
 
-	SetData(tmp_data, tcount * 3);
+	ia->SetData(tmp_data, tcount * 3);
 	delete [] tmp_data;
+}
+
+GeometryArray<Index>::GeometryArray(const GeometryArray<Triangle> &tarray) {
+	TriToIndexArray(this, tarray);
 }
 
 GeometryArray<Index>::GeometryArray(const GeometryArray<Index> &ga) {
@@ -239,15 +243,16 @@ TriMesh::TriMesh(const Vertex *vdata, unsigned long vcount, const Triangle *tdat
 
 const IndexArray *TriMesh::GetIndexArray() {
 	if(!indices_valid) {
-		iarray = IndexArray(tarray);
+		//iarray = IndexArray(tarray);
+		TriToIndexArray(&iarray, tarray);
 		indices_valid = true;
 	}
 	return &iarray;
 }
 
 void TriMesh::SetData(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount) {
-	GetModVertexArray()->SetData(vdata, vcount);
-	GetModTriangleArray()->SetData(tdata, tcount);
+	GetModVertexArray()->SetData(vdata, vcount);	// also invalidates vertex stats
+	GetModTriangleArray()->SetData(tdata, tcount);	// also invalidates indices
 }
 
 void TriMesh::CalculateNormals() {

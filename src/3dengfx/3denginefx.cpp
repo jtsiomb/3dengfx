@@ -970,7 +970,12 @@ void SetGfxProgram(GfxProg *prog, bool enable) {
 		}
 #else
 		error("tried to set a Cg GfxProg, but this 3dengfx lib is not compiled with Cg support");
-#endif	// USING_CG_TOOLKI
+#endif	// USING_CG_TOOLKIT
+	}
+
+	// calla any registered update handlers
+	if(prog->update_handler) {
+		prog->update_handler(prog);
 	}
 }
 

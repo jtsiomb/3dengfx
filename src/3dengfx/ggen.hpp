@@ -33,9 +33,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/3dgeom.hpp"
 
 // basic primitives
-void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int subdiv);
+void CreatePlane(TriMesh *mesh, const Vector3 &normal, const Vector2 &size, int subdiv);
 void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int udiv, int vdiv);
-void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv);
+void CreateSphere(TriMesh *mesh, scalar_t radius, int subdiv);
 void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv);
 
 // bezier surface construction

@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,10 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// scfield.hpp
+/* Scalar fields and polygonization
+ *
+ * Author: Mihalis Georgoulopoulos 2005
+ */
 
 #include <vector>
 #include "3dengfx/3denginefx_types.hpp"
@@ -30,7 +33,7 @@ class ScalarField
 protected:
 	scalar_t		*values;						// array that holds all values of the field
 	
-	unsigned long	*edges_x, *edges_y, *edges_z;	// x- y- and z-alogned edges.
+	unsigned long	*edges_x, *edges_y, *edges_z;	// x- y- and z-aligned edges.
 													// these arrays hold indices to the
 													// vertex list, associated with the specific edge
 
@@ -71,7 +74,7 @@ public:
 	void SetValue(int cx, int cy, int cz, int vert_index, scalar_t value);
 	scalar_t GetValue(int cx, int cy, int cz, int vert_index);
 	
-	// edges are only adressed relative to a cell
+	// edges are only addressed relative to a cell
 	void SetEdge(int cx, int cy, int cz, int edge, unsigned long index);
 	unsigned long GetEdge(int cx, int cy, int cz, int edge);
 
@@ -83,7 +86,7 @@ public:
 	Vector3 GetTo();
 
 	// Evaluators
-	void SetEvaluator(scalar_t (* Evaluate) (const Vector3 &vec, scalar_t t) );
+	void SetEvaluator(scalar_t (* Evaluate) (const Vector3 &vec, scalar_t t));
 	void SetNormalEvaluator(Vector3	(* GetNormal) (const Vector3 &vec, scalar_t t));
 	
 	// last but not least 

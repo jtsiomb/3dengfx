@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,10 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// scfield.cpp
+/* Scalar fields and polygonization
+ *
+ * Author: Mihalis Georgoulopoulos 2005
+ */
 
 #define SCFIELD_SOURCE
 #include "mcube_tables.h"
@@ -27,9 +30,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // don't change this
 #define EDGE_NOT_ASSOCIATED		0xFFFFFFFF
 
-/* ---------------
- * private methods
- * ---------------
+/* -----------------
+ * private functions
+ * -----------------
  */
 
 /*
@@ -75,7 +78,7 @@ void ScalarField::EvaluateAll(scalar_t t)
 		{
 			for (unsigned long x=0; x<dimensions; x++)
 			{
-				SetValue(x, y, z, Evaluate( GetPosition(x, y, z), t ));
+				SetValue(x, y, z, Evaluate(GetPosition(x, y, z), t));
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _GFXPROG_HPP_
 #define _GFXPROG_HPP_
 
+#include <string>
 #include "n3dmath2/n3dmath2.hpp"
 
 #ifdef USING_CG_TOOLKIT
@@ -40,14 +41,19 @@ enum {
 
 class GfxProg {
 protected:
+	std::string name;
 	_CGprogram *cg_prog;
 	unsigned int asm_prog;
 
+	void (*update_handler)(GfxProg*);
 	int prog_type;
 
 public:
 	GfxProg(const char *fname = 0, int ptype = -1);
 	virtual ~GfxProg();
+
+	void SetName(const char *name);
+	const char *GetName() const;
 
 	virtual bool IsValid() const;
 
@@ -58,6 +64,8 @@ public:
 	virtual void SetParameter(const char *pname, scalar_t val);
 	virtual void SetParameter(const char *pname, const Vector3 &val);
 	virtual void SetParameter(const char *pname, const Matrix4x4 &val);
+
+	virtual void SetUpdateHandler(void (*func)(GfxProg*));
 	
 	friend void SetGfxProgram(GfxProg *prog, bool enable);
 };

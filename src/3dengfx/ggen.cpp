@@ -36,7 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* CreatePlane - (JT)
  * creates a planar mesh of arbitrary subdivision
  */
-void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int subdiv) {
+void CreatePlane(TriMesh *mesh, const Vector3 &normal, const Vector2 &size, int subdiv) {
 	unsigned long vcount = (subdiv + 2) * (subdiv + 2);
 	unsigned long tcount = (subdiv + 1) * (subdiv + 1) * 2;
 	int quad_num = tcount / 2;
@@ -78,14 +78,14 @@ void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int sub
 	}
 
 	// reorient the plane to match the specification
-	Vector3 normal = plane.GetNormal();
 	Basis b;
-	b.k = normal;
+	Vector3 n = normal.Normalized();
+	b.k = -n;
 	
-	if(fabs(DotProduct(normal, Vector3(1, 0, 0))) > small_number) {
+	if(fabs(DotProduct(n, Vector3(1, 0, 0))) < 1.0 - small_number) {
 		b.i = Vector3(1, 0, 0);
-		b.j = CrossProduct(b.i, b.k);
-		b.i = CrossProduct(b.k, b.j);
+		b.j = CrossProduct(b.k, b.i);
+		b.i = CrossProduct(b.j, b.k);
 	} else {
 		b.j = Vector3(0, 1, 0);
 		b.i = CrossProduct(b.j, b.k);
@@ -96,6 +96,7 @@ void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int sub
 
 	for(unsigned long i=0; i<vcount; i++) {
 		varray[i].pos.Transform(rot);
+		varray[i].normal.Transform(rot);
 	}
 
 	mesh->SetData(varray, vcount, tarray, tcount);
@@ -206,14 +207,12 @@ void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int ud
 /* CreateSphere - (MG)
  * creates a sphere as a solid of revolution
  */
-void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv) {
+void CreateSphere(TriMesh *mesh, scalar_t radius, int subdiv) {
 	// Solid of revolution. A slice of pi rads is rotated
 	// for 2pi rads. Subdiv in this revolution should be
 	// double than subdiv of the slice, because the angle
 	// is double.
 
-	scalar_t radius = sphere.GetRadius();
-	
 	unsigned long edges_pi  = 2 * subdiv;
 	unsigned long edges_2pi = 4 * subdiv;
 	

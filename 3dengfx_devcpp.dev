@@ -1,7 +1,7 @@
 [Project]
-FileName=3dengfx_devcpp.dev
+FileName=3DENGF~1.DEV
 Name=3dengfx_devcpp
-UnitCount=82
+UnitCount=80
 Type=2
 Ver=1
 ObjFiles=
@@ -320,26 +320,6 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit31]
-FileName=src\3dengfx\3dwt\3dwt.hpp
-CompileCpp=1
-Folder=3dengfx
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit32]
-FileName=src\3dengfx\3dwt\3dwt.cpp
-CompileCpp=1
-Folder=3dengfx
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit33]
 FileName=src\common\timer.h
 CompileCpp=1
 Folder=common
@@ -349,7 +329,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit34]
+[Unit32]
 FileName=src\common\bstree.hpp
 CompileCpp=1
 Folder=common
@@ -359,7 +339,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit35]
+[Unit33]
 FileName=src\common\config_parser.c
 CompileCpp=0
 Folder=common
@@ -369,7 +349,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c config_parser.c -o ./mingw_bin/config_parser.o $(CFLAGS)
 
-[Unit36]
+[Unit34]
 FileName=src\common\config_parser.h
 CompileCpp=1
 Folder=common
@@ -379,7 +359,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit37]
+[Unit35]
 FileName=src\common\err_msg.c
 CompileCpp=0
 Folder=common
@@ -389,7 +369,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c err_msg.c -o ./mingw_bin/err_msg.o $(CFLAGS)
 
-[Unit38]
+[Unit36]
 FileName=src\common\err_msg.h
 CompileCpp=1
 Folder=common
@@ -399,7 +379,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit39]
+[Unit37]
 FileName=src\common\fps_counter.c
 CompileCpp=0
 Folder=common
@@ -409,7 +389,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c fps_counter.c -o ./mingw_bin/fps_counter.o $(CFLAGS)
 
-[Unit40]
+[Unit38]
 FileName=src\common\fps_counter.h
 CompileCpp=1
 Folder=common
@@ -419,7 +399,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit41]
+[Unit39]
 FileName=src\common\hashtable.hpp
 CompileCpp=1
 Folder=common
@@ -429,7 +409,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit42]
+[Unit40]
 FileName=src\common\image.c
 CompileCpp=0
 Folder=common
@@ -439,7 +419,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c image.c -o ./mingw_bin/image.o $(CFLAGS)
 
-[Unit43]
+[Unit41]
 FileName=src\common\image.h
 CompileCpp=1
 Folder=common
@@ -449,7 +429,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit44]
+[Unit42]
 FileName=src\common\linkedlist.hpp
 CompileCpp=1
 Folder=common
@@ -459,7 +439,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit45]
+[Unit43]
 FileName=src\common\logger.c
 CompileCpp=0
 Folder=common
@@ -469,7 +449,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c logger.c -o ./mingw_bin/logger.o $(CFLAGS)
 
-[Unit46]
+[Unit44]
 FileName=src\common\logger.h
 CompileCpp=1
 Folder=common
@@ -479,7 +459,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit47]
+[Unit45]
 FileName=src\common\timer.c
 CompileCpp=0
 Folder=common
@@ -489,7 +469,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c timer.c -o ./mingw_bin/timer.o $(CFLAGS)
 
-[Unit48]
+[Unit46]
 FileName=src\dsys\script.h
 CompileCpp=1
 Folder=dsys
@@ -499,7 +479,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit49]
+[Unit47]
 FileName=src\dsys\demosys.hpp
 CompileCpp=1
 Folder=dsys
@@ -509,7 +489,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit50]
+[Unit48]
 FileName=src\dsys\dsys.cpp
 CompileCpp=1
 Folder=dsys
@@ -519,7 +499,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit51]
+[Unit49]
 FileName=src\dsys\dsys.hpp
 CompileCpp=1
 Folder=dsys
@@ -529,7 +509,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit52]
+[Unit50]
 FileName=src\dsys\fx.cpp
 CompileCpp=1
 Folder=dsys
@@ -539,7 +519,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit53]
+[Unit51]
 FileName=src\dsys\fx.hpp
 CompileCpp=1
 Folder=dsys
@@ -549,7 +529,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit54]
+[Unit52]
 FileName=src\dsys\part.cpp
 CompileCpp=1
 Folder=dsys
@@ -559,7 +539,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit55]
+[Unit53]
 FileName=src\dsys\part.hpp
 CompileCpp=1
 Folder=dsys
@@ -569,7 +549,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit56]
+[Unit54]
 FileName=src\dsys\script.c
 CompileCpp=0
 Folder=dsys
@@ -580,46 +560,6 @@ OverrideBuildCmd=0
 BuildCmd=$(CC) -c script.c -o ./mingw_bin/script.o $(CFLAGS)
 
 [Unit57]
-FileName=src\fxwt\fxwt.hpp
-CompileCpp=1
-Folder=fxwt
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit58]
-FileName=src\fxwt\fxwt.cpp
-CompileCpp=1
-Folder=fxwt
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit59]
-FileName=src\gfx\pbuffer.hpp
-CompileCpp=1
-Folder=gfx
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit60]
-FileName=src\gfx\3dgeom.cpp
-CompileCpp=1
-Folder=gfx
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit61]
 FileName=src\gfx\3dgeom.hpp
 CompileCpp=1
 Folder=gfx
@@ -629,7 +569,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit62]
+[Unit58]
 FileName=src\gfx\base_cam.cpp
 CompileCpp=1
 Folder=gfx
@@ -639,7 +579,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit63]
+[Unit59]
 FileName=src\gfx\base_cam.hpp
 CompileCpp=1
 Folder=gfx
@@ -649,7 +589,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit64]
+[Unit60]
 FileName=src\gfx\color.cpp
 CompileCpp=1
 Folder=gfx
@@ -659,7 +599,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit65]
+[Unit61]
 FileName=src\gfx\color.hpp
 CompileCpp=1
 Folder=gfx
@@ -669,7 +609,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit66]
+[Unit62]
 FileName=src\gfx\controller.cpp
 CompileCpp=1
 Folder=gfx
@@ -679,7 +619,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit67]
+[Unit63]
 FileName=src\gfx\controller.hpp
 CompileCpp=1
 Folder=gfx
@@ -689,7 +629,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit68]
+[Unit64]
 FileName=src\gfx\curves.cpp
 CompileCpp=1
 Folder=gfx
@@ -699,7 +639,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit69]
+[Unit65]
 FileName=src\gfx\curves.hpp
 CompileCpp=1
 Folder=gfx
@@ -709,7 +649,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit70]
+[Unit66]
 FileName=src\n3dmath2\n3dmath2_vec.hpp
 CompileCpp=1
 Folder=n3dmath2
@@ -719,7 +659,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit71]
+[Unit67]
 FileName=src\n3dmath2\n3dmath2.cpp
 CompileCpp=1
 Folder=n3dmath2
@@ -729,7 +669,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit72]
+[Unit68]
 FileName=src\n3dmath2\n3dmath2.hpp
 CompileCpp=1
 Folder=n3dmath2
@@ -739,7 +679,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit73]
+[Unit69]
 FileName=src\n3dmath2\n3dmath2_mat.cpp
 CompileCpp=1
 Folder=n3dmath2
@@ -749,7 +689,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit74]
+[Unit70]
 FileName=src\n3dmath2\n3dmath2_mat.hpp
 CompileCpp=1
 Folder=n3dmath2
@@ -759,7 +699,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit75]
+[Unit71]
 FileName=src\n3dmath2\n3dmath2_qdr.cpp
 CompileCpp=1
 Folder=n3dmath2
@@ -769,7 +709,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit76]
+[Unit72]
 FileName=src\n3dmath2\n3dmath2_qdr.hpp
 CompileCpp=1
 Folder=n3dmath2
@@ -779,7 +719,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit77]
+[Unit73]
 FileName=src\n3dmath2\n3dmath2_qua.cpp
 CompileCpp=1
 Folder=n3dmath2
@@ -789,7 +729,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit78]
+[Unit74]
 FileName=src\n3dmath2\n3dmath2_qua.hpp
 CompileCpp=1
 Folder=n3dmath2
@@ -799,7 +739,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit79]
+[Unit75]
 FileName=src\n3dmath2\n3dmath2_ray.cpp
 CompileCpp=1
 Folder=n3dmath2
@@ -809,10 +749,50 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit80]
+[Unit76]
 FileName=src\n3dmath2\n3dmath2_ray.hpp
 CompileCpp=1
 Folder=n3dmath2
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit77]
+FileName=src\n3dmath2\n3dmath2_types.hpp
+CompileCpp=1
+Folder=n3dmath2
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit78]
+FileName=src\n3dmath2\n3dmath2_vec.cpp
+CompileCpp=1
+Folder=n3dmath2
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit79]
+FileName=..\..\..\..\1path\3dengfx\src\fxwt\fxwt.cpp
+CompileCpp=1
+Folder=fxwt
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit80]
+FileName=..\..\..\..\1path\3dengfx\src\fxwt\widget.cpp
+CompileCpp=1
+Folder=fxwt
 Compile=1
 Link=1
 Priority=1000
@@ -891,6 +871,26 @@ AutoIncBuildNr=0
 FileName=src\3dengfx\sceneloader.cpp
 CompileCpp=1
 Folder=3dengfx
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit55]
+FileName=src\gfx\pbuffer.hpp
+CompileCpp=1
+Folder=gfx
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit56]
+FileName=src\gfx\3dgeom.cpp
+CompileCpp=1
+Folder=gfx
 Compile=1
 Link=1
 Priority=1000

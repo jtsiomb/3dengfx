@@ -36,7 +36,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 extern Matrix4x4 world_matrix, view_matrix;
 
-void CreateGraphicsContext(const GraphicsInitParameters &gip);
+bool CreateGraphicsContext(const GraphicsInitParameters &gip);
+bool StartGL();
 void DestroyGraphicsContext();
 void SetDefaultStates();
 const GraphicsInitParameters *GetGraphicsInitParameters();
@@ -130,7 +131,7 @@ Matrix4x4 CreateProjectionMatrix(scalar_t vfov, scalar_t aspect, scalar_t near, 
 bool ScreenCapture(char *fname = 0, enum image_file_format fmt = IMG_FMT_TGA);
 
 
-GraphicsInitParameters LoadGraphicsContextConfig(const char *fname);
+GraphicsInitParameters *LoadGraphicsContextConfig(const char *fname);
 void EngineLog(const char *log_data, const char *subsys = 0);
 SysCaps GetSystemCapabilities();
 const char *GetGLErrorString(GLenum error);

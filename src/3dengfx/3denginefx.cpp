@@ -28,14 +28,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include <list>
 #include "opengl.h"
-#include "SDL.h"
+#include "fxwt/fxwt.hpp"
+#include "fxwt/init.hpp"
+#include "fxwt/gfx_library.h"
 #include "3denginefx.hpp"
 #include "gfx/3dgeom.hpp"
-#include "except.hpp"
 #include "gfxprog.hpp"
 #include "gfx/image.h"
-#include "common/logger.h"
 #include "common/config_parser.h"
+#include "common/err_msg.h"
 
 using std::cout;
 using std::cerr;
@@ -120,21 +121,22 @@ _CGcontext *cgc;
 const Light *bump_light;
 
 
-GraphicsInitParameters LoadGraphicsContextConfig(const char *fname) {
-	GraphicsInitParameters gip;	
+GraphicsInitParameters *LoadGraphicsContextConfig(const char *fname) {
+	static GraphicsInitParameters gip;	
 	gip.x = 640;
 	gip.y = 480;
 	gip.bpp = 16;
 	gip.depth_bits = 16;
 	gip.stencil_bits = 8;
 	gip.dont_care_flags = 0;
+
+	set_log_filename("3dengfx.log");
+	set_verbosity(2);
 	
 	if(LoadConfigFile(fname) == -1) {
-		throw EngineException(__func__, "could not load config file");
+		error("%s: could not load config file", __func__);
+		return 0;
 	}
-	
-	char illegal_entry[100];
-	sprintf(illegal_entry, "error parsing config file %s", fname);
 	
 	const ConfigOption *cfgopt;
 	while((cfgopt = GetNextOption())) {
@@ -145,18 +147,21 @@ GraphicsInitParameters LoadGraphicsContextConfig(const char *fname) {
 			} else if(!strcmp(cfgopt->str_value, "false")) {
 				gip.fullscreen = false;
 			} else {
-				throw EngineException(__func__, illegal_entry);
+				error("%s: error parsing config file %s", __func__, fname);
+				return 0;
 			}
 		} else if(!strcmp(cfgopt->option, "resolution")) {
 			if(!isdigit(cfgopt->str_value[0])) {
-				throw EngineException(__func__, illegal_entry);
+				error("%s: error parsing config file %s", __func__, fname);
+				return 0;
 			}
 			gip.x = atoi(cfgopt->str_value);
 			
 			char *ptr = cfgopt->str_value;
 			while(*ptr && *ptr != 'x') *ptr++;
 			if(!*ptr || !*(ptr+1) || !isdigit(*(ptr+1))) {
-				throw EngineException(__func__, illegal_entry);
+				error("%s: error parsing config file %s", __func__, fname);
+				return 0;
 			}
 			
 			gip.y = atoi(ptr + 1);
@@ -167,7 +172,8 @@ GraphicsInitParameters LoadGraphicsContextConfig(const char *fname) {
 				gip.bpp = 32;
 				gip.dont_care_flags |= DONT_CARE_BPP;
 			} else {
-				throw EngineException(__func__, illegal_entry);
+				error("%s: error parsing config file %s", __func__, fname);
+				return 0;
 			}			
 		} else if(!strcmp(cfgopt->option, "zbuffer")) {
 			if(cfgopt->flags & CFGOPT_INT) {
@@ -176,7 +182,8 @@ GraphicsInitParameters LoadGraphicsContextConfig(const char *fname) {
 				gip.depth_bits = 32;
 				gip.dont_care_flags |= DONT_CARE_DEPTH;
 			} else {
-				throw EngineException(__func__, illegal_entry);
+				error("%s: error parsing config file %s", __func__, fname);
+				return 0;
 			}
 		} else if(!strcmp(cfgopt->option, "stencil")) {
 			if(cfgopt->flags & CFGOPT_INT) {
@@ -185,31 +192,16 @@ GraphicsInitParameters LoadGraphicsContextConfig(const char *fname) {
 				gip.stencil_bits = 8;
 				gip.dont_care_flags |= DONT_CARE_STENCIL;
 			} else {
-				throw EngineException(__func__, illegal_entry);
+				error("%s: error parsing config file %s", __func__, fname);
+				return 0;
 			}
 		}
 	}
 	
 	DestroyConfigParser();
 	
-	return gip;		
+	return &gip;		
 }
-
-/* ---- EngineLog(string) ----
- * handles uniform logging for 3D engine messages
- */
-void EngineLog(const char *log_str, const char *subsys) {
-	using std::string;
-	
-	string str = string("[3dengfx");
-	if(subsys) {
-		str += string("::") + string(subsys);
-	}
-	str += string("] ") + string(log_str) + string("\n");
-	
-	Log("3dengfx.log", str.c_str());
-}
-
 
 /* ---- GetSystemCapabilities() ----
  * Retrieves information on the graphics subsystem capabilities
@@ -225,6 +217,10 @@ SysCaps GetSystemCapabilities() {
 	
 	// get extensions & vendor strings
 	const char *tmp_str = (const char*)glGetString(GL_EXTENSIONS);
+	if(!tmp_str) {
+		error("%s: glGetString() failed, possibly no valid GL context", __func__);
+		exit(-1);
+	}
 	char *ext_str = new char[strlen(tmp_str) + 1];
 	strcpy(ext_str, tmp_str);
 	
@@ -233,21 +229,21 @@ SysCaps GetSystemCapabilities() {
 		if(*cptr == ' ') *cptr = '\n';
 		cptr++;
 	}
-	Log("gl_ext.log", "Supported extensions:\n-------------\n");
-	Log("gl_ext.log", ext_str);
-	Log("gl_ext.log", "\n");
-	
-	EngineLog("Rendering System Information:");
-	tmp_str = (const char*)glGetString(GL_VENDOR);
-	EngineLog(("  Vendor: " + std::string(tmp_str)).c_str());
-	tmp_str = (const char*)glGetString(GL_RENDERER);
-	EngineLog(("Renderer: " + std::string(tmp_str)).c_str());
-	tmp_str = (const char*)glGetString(GL_VERSION);
-	EngineLog((" Version: " + std::string(tmp_str)).c_str());
-	EngineLog("(note: the list of extensions is logged seperately at \"gl_ext.log\")");
+
+	set_log_filename("gl_ext.log");
+	info("Supported extensions:\n-------------\n%s", ext_str);
+	set_log_filename("3dengfx.log");
+		
+	info("Rendering System Information:");
+
+	const char *vendor = (const char*)glGetString(GL_VENDOR);
+	info("  Vendor: %s", vendor);
+	info("Renderer: %s", glGetString(GL_RENDERER));
+	info(" Version: %s", glGetString(GL_VERSION));
+	info("(note: the list of extensions is logged seperately at \"gl_ext.log\")");
 
 	// fill the SysCaps structure
-	SysCaps sys_caps;
+	//SysCaps sys_caps;
 	sys_caps.load_transpose = (bool)strstr(ext_str, "GL_ARB_transpose_matrix");
 	sys_caps.gen_mipmaps = (bool)strstr(ext_str, "GL_SGIS_generate_mipmap");
 	sys_caps.tex_combine_ops = (bool)strstr(ext_str, "GL_ARB_texture_env_combine");
@@ -266,38 +262,25 @@ SysCaps GetSystemCapabilities() {
 	delete [] ext_str;
 	
 	// also log these things
-	char log_str[512];
-	EngineLog("-------------------");
-	EngineLog("System Capabilities");
-	EngineLog("-------------------");
-	sprintf(log_str, "Load transposed matrices: %s", sys_caps.load_transpose ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Auto-generate mipmaps (SGIS): %s", sys_caps.gen_mipmaps ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Custom texture combination operations: %s", sys_caps.tex_combine_ops ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Diffuse bump mapping (dot3): %s", sys_caps.bump_dot3 ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Specular bump mapping (env-bump): %s", sys_caps.bump_env ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Video memory vertex/index buffers: %s", sys_caps.vertex_buffers ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Depth texture: %s", sys_caps.depth_texture ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Shadow mapping: %s", sys_caps.shadow_mapping ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Programmable vertex processing: %s", sys_caps.vertex_program ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Programmable pixel processing: %s", sys_caps.pixel_program ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "OpenGL 2.0 shading language: %s", sys_caps.glslang ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Point sprites: %s", sys_caps.point_sprites ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Point parameters: %s", sys_caps.point_params ? "yes" : "no");
-	EngineLog(log_str);
-	sprintf(log_str, "Texture units: %d", sys_caps.max_texture_units);
-	EngineLog(log_str);
+	info("-------------------");
+	info("System Capabilities");
+	info("-------------------");
+	info("Load transposed matrices: %s", sys_caps.load_transpose ? "yes" : "no");
+	info("Auto-generate mipmaps (SGIS): %s", sys_caps.gen_mipmaps ? "yes" : "no");
+	info("Custom texture combination operations: %s", sys_caps.tex_combine_ops ? "yes" : "no");
+	info("Diffuse bump mapping (dot3): %s", sys_caps.bump_dot3 ? "yes" : "no");
+	info("Specular bump mapping (env-bump): %s", sys_caps.bump_env ? "yes" : "no");
+	info("Video memory vertex/index buffers: %s", sys_caps.vertex_buffers ? "yes" : "no");
+	info("Depth texture: %s", sys_caps.depth_texture ? "yes" : "no");
+	info("Shadow mapping: %s", sys_caps.shadow_mapping ? "yes" : "no");
+	info("Programmable vertex processing: %s", sys_caps.vertex_program ? "yes" : "no");
+	info("Programmable pixel processing: %s", sys_caps.pixel_program ? "yes" : "no");
+	info("OpenGL 2.0 shading language: %s", sys_caps.glslang ? "yes" : "no");
+	info("Point sprites: %s", sys_caps.point_sprites ? "yes" : "no");
+	info("Point parameters: %s", sys_caps.point_params ? "yes" : "no");
+	info("Texture units: %d", sys_caps.max_texture_units);
+
+	set_verbosity(3);
 	
 	return sys_caps;
 }
@@ -333,133 +316,58 @@ void LoadMatrix_TransposeManual(const Matrix4x4 &mat) {
 /* ---- CreateGraphicsContext() ----
  * initializes the graphics subsystem according to the init parameters
  */
-void CreateGraphicsContext(const GraphicsInitParameters &gip) {
+bool CreateGraphicsContext(const GraphicsInitParameters &gip) {
 	
 	gparams = gip;
 
 	remove("3dengfx.log");
-	remove("gl_ext.log");	
-	EngineLog("Initializing SDL");
-	
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1) {
-		throw EngineException(__func__, "Could not initialize SDL library.");
+	remove("gl_ext.log");
+
+	set_log_filename("3dengfx.log");
+	set_verbosity(2);
+
+	if(!fxwt::InitGraphics(&gparams)) {
+		return false;
 	}
 
-	if(gparams.fullscreen) SDL_ShowCursor(0);
-	
-	if(!gparams.fullscreen) {
-		const SDL_VideoInfo *vid_inf = SDL_GetVideoInfo();
-		gparams.bpp = vid_inf->vfmt->BitsPerPixel;
-	}
-	
-	char video_mode[150];
-	sprintf(video_mode, "Trying to set Video Mode %dx%dx%d, d:%d s:%d %s", gparams.x, gparams.y, gparams.bpp, gparams.depth_bits, gparams.stencil_bits, gparams.fullscreen ? "fullscreen" : "windowed");
-	EngineLog(video_mode);
-	
-	int rbits, gbits, bbits;
-	switch(gparams.bpp) {
-	case 32:
-		rbits = gbits = bbits = 8;
-		break;
-		
-	case 16:
-		rbits = bbits = 6;
-		gbits = 5;
-		break;
-		
-	default:
-		char bpp_str[32];
-		sprintf(bpp_str, "%d", gparams.bpp);
-		throw EngineException(__func__, "Tried to set unsupported pixel format: " + std::string(bpp_str) + " bpp");
-	}
-	
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, rbits);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, gbits);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bbits);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, gparams.depth_bits);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, gparams.stencil_bits);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	
-	unsigned long flags = SDL_OPENGL;
-	if(gparams.fullscreen) flags |= SDL_FULLSCREEN;
-	if(!SDL_SetVideoMode(gparams.x, gparams.y, gparams.bpp, flags)) {
-		if(gparams.depth_bits == 32) gparams.depth_bits = 24;
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, gparams.depth_bits);
-		
-		if(!SDL_SetVideoMode(gparams.x, gparams.y, gparams.bpp, flags)) {
-			throw EngineException(__func__, "Could not set requested video mode");
-		}
-	}
-	
-	// now check the actual video mode we got
-	int arbits, agbits, abbits, azbits, astencilbits;
-	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &arbits);
-	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &agbits);
-	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &abbits);
-	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &azbits);
-	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &astencilbits);
+#if GFX_LIBRARY == GTK
+	return true;
+#else
+	return StartGL();
+#endif	// GTK
+}
 
-	char bppstr[64];
-	sprintf(bppstr, "    bpp: %d (%d%d%d)", arbits + agbits + abbits, arbits, agbits, abbits);
-	char zstr[40];
-	sprintf(zstr, "zbuffer: %d", azbits);
-	char stencilstr[40];
-	sprintf(stencilstr, "stencil: %d", astencilbits);
-	
-	EngineLog("Initialized Video Mode:");
-	EngineLog(bppstr);
-	EngineLog(zstr);
-	EngineLog(stencilstr);
-
-	/* if the dont_care_flags does not contain DONT_CARE_BPP and our color bits
-	 * does not match, we should throw the exception, however we test against
-	 * the difference allowing a +/-1 difference in order to allow for 16bpp
-	 * formats of either 565 or 555 and consider them equal.
-	 */
-	if(!(gparams.dont_care_flags & DONT_CARE_BPP) && abs(arbits - rbits) > 1 && abs(agbits - gbits) > 1 && abs(abbits - bbits) > 1) {
-		throw EngineException(__func__, "Could not set requested exact bpp mode");
-	}
-	
-	// now if we don't have DONT_CARE_DEPTH in the dont_care_flags check for 
-	// exact depth buffer format, however consider 24 and 32 bit the same
-	if(!(gparams.dont_care_flags & DONT_CARE_DEPTH) && azbits != gparams.depth_bits) {
-		if(!(gparams.depth_bits == 32 && azbits == 24 || gparams.depth_bits == 24 && azbits == 32)) {
-			throw EngineException(__func__, "Could not set requested exact zbuffer depth");
-		}
-	}
-	
-	// if we don't have DONT_CARE_STENCIL make sure we have the stencil format
-	// that was asked.
-	if(!(gparams.dont_care_flags & DONT_CARE_STENCIL) && astencilbits != gparams.stencil_bits) {
-		throw EngineException(__func__, "Could not set exact stencil format");
-	}
-	
-	sys_caps = GetSystemCapabilities();
+/* OpenGL startup after initialization */
+bool StartGL() {
+	SysCaps sys_caps = GetSystemCapabilities();
 	if(sys_caps.max_texture_units < 2) {
-		throw EngineException(__func__, "Your system does not meet the minimum requirements (at least 2 texture units)");
+		error("%s: Your system does not meet the minimum requirements (at least 2 texture units)", __func__);
+		return false;
 	}
 
 #ifdef USING_CG_TOOLKIT
 	// create a Cg context
 	if(!(cgc = cgCreateContext())) {
-		throw EngineException(__func__, "Could not create Cg context");
+		error("%s: Could not create Cg context", __func__);
+		return false;
 	}
 	cgGLSetOptimalOptions(CG_PROFILE_ARBFP1);
 	cgGLSetOptimalOptions(CG_PROFILE_ARBVP1);
 #endif	// USING_CG_TOOLKIT
 
-	glext::glActiveTexture = (PFNGLACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glActiveTextureARB");
-	glext::glClientActiveTexture = (PFNGLCLIENTACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glClientActiveTextureARB");
+	glext::glActiveTexture = (PFNGLACTIVETEXTUREARBPROC)glGetProcAddress("glActiveTextureARB");
+	glext::glClientActiveTexture = (PFNGLCLIENTACTIVETEXTUREARBPROC)glGetProcAddress("glClientActiveTextureARB");
 	
 	if(!glext::glActiveTexture || !glext::glClientActiveTexture) {
-		throw EngineException(__func__, "OpenGL implementation less than 1.3 and could not load multitexturing ARB extensions");
+		error("%s: OpenGL implementation less than 1.3 and could not load multitexturing ARB extensions", __func__);
+		return false;
 	}
 
 	if(sys_caps.load_transpose) {
 #ifdef SINGLE_PRECISION_MATH
-		glLoadTransposeMatrix = (PFNGLLOADTRANSPOSEMATRIXFARBPROC)SDL_GL_GetProcAddress("glLoadTransposeMatrixfARB");
+		glLoadTransposeMatrix = (PFNGLLOADTRANSPOSEMATRIXFARBPROC)glGetProcAddress("glLoadTransposeMatrixfARB");
 #else
-		glLoadTransposeMatrix = (PFNGLLOADTRANSPOSEMATRIXDARBPROC)SDL_GL_GetProcAddress("glLoadTransposeMatrixdARB");
+		glLoadTransposeMatrix = (PFNGLLOADTRANSPOSEMATRIXDARBPROC)glGetProcAddress("glLoadTransposeMatrixdARB");
 #endif	// SINGLE_PRECISION_MATH
 		
 		LoadMatrixGL = LoadMatrix_TransposeARB;
@@ -468,28 +376,29 @@ void CreateGraphicsContext(const GraphicsInitParameters &gip) {
 	}
 
 	if(sys_caps.vertex_buffers) {
-		glBindBuffer = (PFNGLBINDBUFFERARBPROC)SDL_GL_GetProcAddress("glBindBufferARB");
-		glBufferData = (PFNGLBUFFERDATAARBPROC)SDL_GL_GetProcAddress("glBufferDataARB");
-		glDeleteBuffers = (PFNGLDELETEBUFFERSARBPROC)SDL_GL_GetProcAddress("glDeleteBuffersARB");
-		glIsBuffer = (PFNGLISBUFFERARBPROC)SDL_GL_GetProcAddress("glIsBufferARB");
-		glMapBuffer = (PFNGLMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glMapBufferARB");
-		glUnmapBuffer = (PFNGLUNMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glUnmapBufferARB");
-		glGenBuffers = (PFNGLGENBUFFERSARBPROC)SDL_GL_GetProcAddress("glGenBuffersARB");
+		glBindBuffer = (PFNGLBINDBUFFERARBPROC)glGetProcAddress("glBindBufferARB");
+		glBufferData = (PFNGLBUFFERDATAARBPROC)glGetProcAddress("glBufferDataARB");
+		glDeleteBuffers = (PFNGLDELETEBUFFERSARBPROC)glGetProcAddress("glDeleteBuffersARB");
+		glIsBuffer = (PFNGLISBUFFERARBPROC)glGetProcAddress("glIsBufferARB");
+		glMapBuffer = (PFNGLMAPBUFFERARBPROC)glGetProcAddress("glMapBufferARB");
+		glUnmapBuffer = (PFNGLUNMAPBUFFERARBPROC)glGetProcAddress("glUnmapBufferARB");
+		glGenBuffers = (PFNGLGENBUFFERSARBPROC)glGetProcAddress("glGenBuffersARB");
 	}
 
 	if(sys_caps.vertex_program || sys_caps.pixel_program) {
-		glBindProgram = (PFNGLBINDPROGRAMARBPROC)SDL_GL_GetProcAddress("glBindProgramARB");
-		glGenPrograms = (PFNGLGENPROGRAMSARBPROC)SDL_GL_GetProcAddress("glGenProgramsARB");
-		glDeletePrograms = (PFNGLDELETEPROGRAMSARBPROC)SDL_GL_GetProcAddress("glDeleteProgramsARB");
-		glProgramString = (PFNGLPROGRAMSTRINGARBPROC)SDL_GL_GetProcAddress("glProgramStringARB");
+		glBindProgram = (PFNGLBINDPROGRAMARBPROC)glGetProcAddress("glBindProgramARB");
+		glGenPrograms = (PFNGLGENPROGRAMSARBPROC)glGetProcAddress("glGenProgramsARB");
+		glDeletePrograms = (PFNGLDELETEPROGRAMSARBPROC)glGetProcAddress("glDeleteProgramsARB");
+		glProgramString = (PFNGLPROGRAMSTRINGARBPROC)glGetProcAddress("glProgramStringARB");
 	}
 	
 	if(sys_caps.point_params) {
-		glPointParameterf = (PFNGLPOINTPARAMETERFARBPROC)SDL_GL_GetProcAddress("glPointParameterfARB");
-		glPointParameterfv = (PFNGLPOINTPARAMETERFVARBPROC)SDL_GL_GetProcAddress("glPointParameterfvARB");
+		glPointParameterf = (PFNGLPOINTPARAMETERFARBPROC)glGetProcAddress("glPointParameterfARB");
+		glPointParameterfv = (PFNGLPOINTPARAMETERFVARBPROC)glGetProcAddress("glPointParameterfvARB");
 	}
 	
-	SetDefaultStates();	
+	SetDefaultStates();
+	return true;
 }
 
 void DestroyGraphicsContext() {
@@ -497,8 +406,7 @@ void DestroyGraphicsContext() {
 	cgDestroyContext(cgc);
 #endif	// USING_CG_TOOLKIT
 	
-	if(gparams.fullscreen) SDL_ShowCursor(1);
-	SDL_Quit();
+	fxwt::DestroyGraphics();
 }
 
 void SetDefaultStates() {
@@ -557,7 +465,7 @@ void ClearZBufferStencil(scalar_t zval, unsigned char sval) {
 }
 
 void Flip() {
-	SDL_GL_SwapBuffers();
+	fxwt::SwapBuffers();
 }
 
 void LoadXFormMatrices() {
@@ -723,7 +631,8 @@ void SetColorWrite(bool red, bool green, bool blue, bool alpha) {
 }
 
 void SetWireframe(bool enable) {
-	SetPrimitiveType(enable ? LINE_LIST : TRIANGLE_LIST);
+	//SetPrimitiveType(enable ? LINE_LIST : TRIANGLE_LIST);
+	glPolygonMode(GL_FRONT, enable ? GL_LINE : GL_FILL);
 }
 	
 
@@ -961,7 +870,7 @@ void SetGfxProgram(GfxProg *prog, bool enable) {
 			cgGLDisableProfile(cg_prof);
 		}
 #else
-		EngineLog("tried to set a Cg GfxProg, but this 3dengfx lib is not compiled with Cg support");
+		error("tried to set a Cg GfxProg, but this 3dengfx lib is not compiled with Cg support");
 #endif	// USING_CG_TOOLKI
 	}
 }

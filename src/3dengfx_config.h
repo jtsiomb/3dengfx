@@ -10,6 +10,20 @@
 /* DON'T remove this definition */
 #define USING_3DENGFX
 
+#define VER_STR		"0.2rc1"
+
+/* installation path prefix */
+#define PREFIX	"/usr/local"
+
+/* underlying graphics support library selection. */
+#define SDL		1
+#define GLUT	2
+#define GTK		3
+#define GTKMM	4
+#define NATIVE	5
+
+#define GFX_LIBRARY		SDL
+
 /* define this to use single precision floating point scalars
  * throughout the 3dengine code.
  */

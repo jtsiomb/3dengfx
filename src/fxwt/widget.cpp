@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <list>
 #include "widget.hpp"
+#include "common/err_msg.h"
 #include "dsys/demosys.hpp"
 
 using namespace fxwt;
@@ -194,7 +195,7 @@ Container::~Container() {}
 
 void Container::AddWidget(Widget *w) {
 	if(w->parent) {
-		EngineLog("warning: adding a widget that already has a parent\n", "fxwt");
+		warning("fxwt: adding a widget that already has a parent");
 	}
 	
 	/* A bit of a hack here, any widget that derives from Container

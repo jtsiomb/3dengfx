@@ -3,6 +3,8 @@
 #include <stdarg.h>
 #include "err_msg.h"
 
+int vsnprintf(char *str, size_t size, const char *format, va_list ap);
+
 /* verbosity setting:
  * 0 = do not output anything
  * 1 = output only errors
@@ -14,38 +16,53 @@ static int verbosity = 3;
 static int log_verbosity = 4;
 
 static FILE *log_file;
-static char err_buf[512];
-static int initialized = 0;
+
+#define ERR_BUF_SIZE	4096
+static char err_buf[ERR_BUF_SIZE];
 
 #define MAX_LOG_FNAME	256
 static char log_fname[MAX_LOG_FNAME];
 
-static int init() {
-	set_log_filename("program.log");
+static int open_log_file() {
+	if(log_fname[0] == 0) {
+		set_log_filename("program.log");
+	}
 	
-	initialized = 1;
-	if((log_file = fopen(log_fname, "w"))) {
+	if((log_file = fopen(log_fname, "a"))) {
 		setbuf(log_file, 0);
 	} else {
-		warning("could not init.log for writing");
+		int prev_lv = log_verbosity;
+		log_verbosity = 0;
+		warning("could not open %s for writing", log_fname);
+		log_verbosity = prev_lv;
 	}
 
 	return log_file == 0 ? -1 : 0;
+}
+
+static void close_log_file() {
+	fclose(log_file);
 }
 
 void set_log_filename(const char *fname) {
 	strncpy(log_fname, fname, MAX_LOG_FNAME-1);
 }
 
+void set_verbosity(int v) {
+	verbosity = v;
+}
+
+void set_log_verbosity(int v) {
+	log_verbosity = v;
+}
+
 void error(const char *str, ...) {
 	va_list arg_list;
-
-	if(!initialized) init();
 
 	strcpy(err_buf, "E: ");
 		
 	va_start(arg_list, str);
-	vsprintf(err_buf+3, str, arg_list);
+	vsnprintf(err_buf+3, ERR_BUF_SIZE, str, arg_list);
 	va_end(arg_list);
 	
 	if(verbosity > 0) {
@@ -53,21 +70,20 @@ void error(const char *str, ...) {
 		fputc('\n', stderr);
 	}
 
-	if(log_verbosity > 0 && log_file) {
+	if(log_verbosity > 0 && open_log_file() != -1) {
 		fputs(err_buf, log_file);
 		fputc('\n', log_file);
+		close_log_file();
 	}
 }
 
 void warning(const char *str, ...) {
 	va_list arg_list;
 
-	if(!initialized) init();
-
 	strcpy(err_buf, "W: ");
 	
 	va_start(arg_list, str);
-	vsprintf(err_buf+3, str, arg_list);
+	vsnprintf(err_buf+3, ERR_BUF_SIZE, str, arg_list);
 	va_end(arg_list);
 	
 	if(verbosity > 1) {
@@ -75,21 +91,20 @@ void warning(const char *str, ...) {
 		fputc('\n', stderr);
 	}
 
-	if(log_verbosity > 1 && log_file) {
+	if(log_verbosity > 1 && open_log_file() != -1) {
 		fputs(err_buf, log_file);
 		fputc('\n', log_file);
+		close_log_file();
 	}
 }
 
 void info(const char *str, ...) {
 	va_list arg_list;
 
-	if(!initialized) init();
-
 	strcpy(err_buf, "I: ");
 	
 	va_start(arg_list, str);
-	vsprintf(err_buf+3, str, arg_list);
+	vsnprintf(err_buf+3, ERR_BUF_SIZE, str, arg_list);
 	va_end(arg_list);
 	
 	if(verbosity > 2) {
@@ -97,8 +112,9 @@ void info(const char *str, ...) {
 		fputc('\n', stdout);
 	}
 
-	if(log_verbosity > 2 && log_file) {
+	if(log_verbosity > 2 && open_log_file() != -1) {
 		fputs(err_buf, log_file);
 		fputc('\n', log_file);
+		close_log_file();
 	}
 }

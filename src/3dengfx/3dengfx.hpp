@@ -23,7 +23,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "../3dengfx_config.h"
 #include "3denginefx.hpp"
 #include "camera.hpp"
-#include "except.hpp"
 #include "ggen.hpp"
 #include "light.hpp"
 #include "load_geom.hpp"
@@ -34,5 +33,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sceneloader.hpp"
 #include "gfxprog.hpp"
 #include "psys.hpp"
+#include "fxwt/fxwt.hpp"
 
 #endif	// _3DENGFX_HPP_

@@ -3,8 +3,8 @@ obj :=
 opt := -g
 inc_flags := -Isrc
 
-CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC $(inc_flags) `sdl-config --cflags`
-CFLAGS := $(opt) -std=c89 -pedantic -Wall -fPIC $(inc_flags) `sdl-config --cflags`
+CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC $(inc_flags) `./3dengfx-config --cflags`
+CFLAGS := $(opt) -std=c89 -pedantic -Wall -fPIC $(inc_flags) `./3dengfx-config --cflags`
 
 include src/3dengfx/Makefile-part
 include src/gfx/Makefile-part
@@ -14,11 +14,14 @@ include src/common/Makefile-part
 include src/nlibase/Makefile-part
 include src/fxwt/Makefile-part
 
-lib3dengfx.so.0.1.0: $(obj)
+lib3dengfx.so.0.1.0: 3dengfx-config $(obj)
 	$(CXX) -shared -Wl,-soname,lib3dengfx.so.0 -o $@ $(obj)
 
-lib3dengfx.a: $(obj)
+lib3dengfx.a: 3dengfx-config $(obj)
 	$(AR) rcs $@ $(obj)
+
+3dengfx-config: install/3dengfx_config.c src/3dengfx_config.h
+	$(CC) -o $@ install/3dengfx_config.c -Isrc
 
 include $(obj:.o=.d)
 

@@ -1,7 +1,8 @@
 #ifndef _FXWT_HPP_
 #define _FXWT_HPP_
 
-#include "widget.hpp"
+//#include "widget.hpp"
+#include "init.hpp"
 
 namespace fxwt {
 
@@ -26,6 +27,7 @@ namespace fxwt {
 	void RemoveButtonHandler(void (*handler)(int, int, int, int));
 
 	void SetWindowTitle(const char *title);
+	void SwapBuffers();
 	
 	int MainLoop();
 }

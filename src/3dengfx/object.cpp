@@ -319,6 +319,8 @@ void Object::RenderHack(unsigned long time) {
 	//SetAlphaBlending(true);
 	SetBlendFunc(render_params.src_blend, render_params.dest_blend);
 
+	if(render_params.wire) ::SetWireframe(true);
+
 	if(render_params.pprog) ::SetGfxProgram(render_params.pprog);
 	if(render_params.vprog) ::SetGfxProgram(render_params.vprog);
 	
@@ -326,6 +328,8 @@ void Object::RenderHack(unsigned long time) {
 
 	if(render_params.pprog) SetPixelProgramming(false);
 	if(render_params.vprog) SetVertexProgramming(false);
+	
+	if(render_params.wire) ::SetWireframe(false);
 	//SetAlphaBlending(false);
 	if(render_params.blending) SetAlphaBlending(false);
 	if(render_params.zwrite) ::SetZWrite(true);
@@ -400,14 +404,14 @@ void Object::SetupBumpLight(unsigned long time) {
 		Vector3 normal = -vptr->normal;
 		Vector3 tan = utan[i];
 		tan = (tan - normal * DotProduct(normal, tan)).Normalized();
-		Vector3 bitan = CrossProduct(tan, normal);
+		Vector3 bitan = CrossProduct(normal, tan);
 
 		Base tbn(tan, bitan, normal);
 		lvec.Transform(tbn.CreateRotationMatrix());
 		//lvec.Normalize();
 		
 		vptr->tex[1].u = -lvec.z;
-		vptr->tex[1].v = lvec.y;
+		vptr->tex[1].v = -lvec.y;
 		vptr->tex[1].w = lvec.x;
 		vptr++;
 	}

@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include "3dscene.hpp"
 #include "texman.hpp"
+#include "common/err_msg.h"
 
 using std::string;
 
@@ -263,7 +264,7 @@ void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
 	Texture *tex = obj->GetMaterialPtr()->GetTexture(TEXTYPE_ENVMAP);
 
 	if(!tex || (tex && tex->GetType() != TEX_CUBE)) {
-		EngineLog("tried to RenderCubeMap() on a non-cubemapped object");
+		warning("tried to RenderCubeMap() on a non-cubemapped object");
 		return;
 	}
 

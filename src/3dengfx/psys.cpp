@@ -107,6 +107,9 @@ void BillboardParticle::Update(const Vector3 &ext_force) {
 	color = BlendColors(start_color, end_color, t);
 }
 
+
+
+
 void BillboardParticle::Draw() const {
 	static int times;
 
@@ -124,7 +127,7 @@ ParticleSystem::ParticleSystem(const char *fname) {
 
 	if(fname) {
 		if(!psys::LoadParticleSysParams(fname, &psys_params)) {
-			std::cerr << "Error loading particle file\n";
+			std::cerr << "Error loading particle file: " << fname << std::endl;
 		}
 	}
 }

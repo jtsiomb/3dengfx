@@ -18,29 +18,16 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "3dengfx_config.h"
+/* master init source, includes all the specific ones
+ *
+ * Author: John Tsiombikas 2004
+ */
 
-#include <typeinfo>
-#include "except.hpp"
-#include "3denginefx.hpp"
+#include <stdlib.h>
+#include "init.hpp"
+#include "gfx_library.h"
+#include "3dengfx/3denginefx.hpp"
+#include "common/err_msg.h"
 
-#ifdef GetMessage
-#undef GetMessage
-#endif	// GetMesage
-
-
-using namespace std;
-
-EngineException::EngineException(string src, string reason) {
-	source = src;
-	this->reason = reason;
-
-	EngineLog(GetMessage().c_str());
-}
-
-string EngineException::GetMessage() const {	
-	return 	"[3dengfx]: 3D Visualization Subsystem panicked\n"
-			"   source: " + source + "\n" 
-			"   reason: " + reason + "\n"
-			"           commiting suicide...\n";
-}
+#include "init_sdl.cpp"
+#include "init_gtk.cpp"

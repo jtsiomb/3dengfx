@@ -55,7 +55,7 @@ void SetParserState(enum ParserState state, int value) {
 int LoadConfigFile(const char *fname) {
 	FILE *fp;
 	int fsize;
-	char *temp;
+	char *temp, *line;
 	
 	if(!fname) return -1;	
 	if(!(fp = fopen(fname, "r"))) return -1;
@@ -68,9 +68,9 @@ int LoadConfigFile(const char *fname) {
 	config_file = temp;
 	
 	cfgptr = config_file;
-	temp = malloc(max_line_len + 1);
-	while(fgets(temp, max_line_len, fp)) {
-		char *ptr = temp;
+	if(!(line = malloc(max_line_len + 1))) return -1;
+	while(fgets(line, max_line_len, fp)) {
+		char *ptr = line;
 		
 		if(*ptr == '\n') continue;	/* kill empty lines, they irritate the parser */
 		
@@ -81,7 +81,7 @@ int LoadConfigFile(const char *fname) {
 			ptr++;
 		}
 		
-		if(*ptr == sym_comment && ptr != temp) {
+		if(*ptr == sym_comment && ptr != line) {
 			*cfgptr++ = '\n';
 		}
 	}
@@ -90,7 +90,7 @@ int LoadConfigFile(const char *fname) {
 	
 	memset(&cfg_opt, 0, sizeof(struct ConfigOption));
 	cfgptr = config_file;
-	free(temp);
+	free(line);
 	return 0;
 }
 
@@ -137,4 +137,5 @@ void DestroyConfigParser() {
 	if(cfg_opt.str_value) free(cfg_opt.str_value);
 	if(cfg_opt.option) free(cfg_opt.option);
 	if(config_file) free(config_file);
+	config_file = 0;
 }

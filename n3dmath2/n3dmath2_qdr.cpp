@@ -26,6 +26,14 @@ Quadratic::Quadratic(const Vector3 &pos) {
 
 Quadratic::~Quadratic() {}
 
+void Quadratic::SetPosition(const Vector3 &pos) {
+	this->pos = pos;
+}
+
+Vector3 Quadratic::GetPosition() const {
+	return pos;
+}
+
 //////////////// sphere implementation ///////////////
 
 Sphere::Sphere(const Vector3 &pos, scalar_t rad) : Quadratic(pos) {
@@ -34,28 +42,57 @@ Sphere::Sphere(const Vector3 &pos, scalar_t rad) : Quadratic(pos) {
 
 Sphere::~Sphere() {}
 
+void Sphere::SetRadius(scalar_t rad) {
+	radius = rad;
+}
+
+scalar_t Sphere::GetRadius() const {
+	return radius;
+}
+
+Vector2 Sphere::InvMap(const Vector3 &pt, const Quaternion &rot) const {
+	Vector3 normal = (pt - pos) / radius;
+	Vector3 pole = Vector3(0, 1, 0).Transformed(rot);
+	Vector3 equator = Vector3(0, 0, 1).Transformed(rot);
+	Vector2 imap;
+
+	scalar_t phi = acos(DotProduct(normal, pole));
+	imap.y = phi / pi;
+
+	if(imap.y < xsmall_number || 1.0 - imap.y < xsmall_number) {
+		imap.x = 0.0;
+		return imap;
+	}
+
+	scalar_t theta = acos(DotProduct(equator, normal) / sin(phi)) / two_pi;
+	
+	imap.x = (DotProduct(CrossProduct(pole, equator), normal) < 0.0) ? theta : 1.0 - theta;
+
+	return imap;
+}
+
 bool Sphere::CheckIntersection(const Ray &ray) const {
 	return FindIntersection(ray, 0);
 }
 
 bool Sphere::FindIntersection(const Ray &ray, SurfPoint *isect) const {	
 	// find terms of the quadratic equation
-	double a = SQ(ray.dir.x) + SQ(ray.dir.y) + SQ(ray.dir.z);
-	double b = 	2.0 * ray.dir.x * (ray.origin.x - pos.x) +
+	scalar_t a = SQ(ray.dir.x) + SQ(ray.dir.y) + SQ(ray.dir.z);
+	scalar_t b = 2.0 * ray.dir.x * (ray.origin.x - pos.x) +
 				2.0 * ray.dir.y * (ray.origin.y - pos.y) +
 				2.0 * ray.dir.z * (ray.origin.z - pos.z);
-	double c = 	SQ(pos.x) + SQ(pos.y) + SQ(pos.z) +
+	scalar_t c = SQ(pos.x) + SQ(pos.y) + SQ(pos.z) +
 				SQ(ray.origin.x) + SQ(ray.origin.y) + SQ(ray.origin.z) +
 				2.0 * (-pos.x * ray.origin.x - pos.y * ray.origin.y - pos.z * ray.origin.z) - SQ(radius);
 	
 	// find the discriminant
-	double d = SQ(b) - 4.0 * a * c;
+	scalar_t d = SQ(b) - 4.0 * a * c;
 	if(d < 0.0) return false;
 	
 	// solve
-	double sqrt_d = sqrt(d);
-	double t1 = (-b + sqrt_d) / (2.0 * a);
-	double t2 = (-b - sqrt_d) / (2.0 * a);
+	scalar_t sqrt_d = sqrt(d);
+	scalar_t t1 = (-b + sqrt_d) / (2.0 * a);
+	scalar_t t2 = (-b - sqrt_d) / (2.0 * a);
 
 	if(t1 < error_margin && t2 < error_margin) return false;
 
@@ -65,7 +102,7 @@ bool Sphere::FindIntersection(const Ray &ray, SurfPoint *isect) const {
 		isect->t = t1 < t2 ? t1 : t2;
 		isect->pos = ray.origin + ray.dir * isect->t;
 
-		Vector3 normal = (isect->pos - pos) / radius;
+		isect->normal = (isect->pos - pos) / radius;
 		isect->pre_ior = ray.ior;
 		//isect->post_ior = mat.ior;
 	}
@@ -80,8 +117,18 @@ Plane::Plane(const Vector3 &pos, const Vector3 &normal) : Quadratic(pos) {
 
 Plane::~Plane() {}
 
+void Plane::SetNormal(const Vector3 &normal) {
+	this->normal = normal;
+}
+
 Vector3 Plane::GetNormal() const {
 	return normal;
+}
+
+Vector2 Plane::InvMap(const Vector3 &pt, const Quaternion &rot) const {
+	static int dbg; dbg++;
+	if(dbg == 1) std::cerr << "inverse mapping for planes not implemented yet!\n";
+	return Vector2(0, 0);
 }
 
 bool Plane::CheckIntersection(const Ray &ray) const {
@@ -92,7 +139,9 @@ bool Plane::FindIntersection(const Ray &ray, SurfPoint *isect) const {
 	scalar_t normal_dot_dir = DotProduct(normal, ray.dir);
 	if(fabs(normal_dot_dir) < error_margin) return false;
 	
+	// TODO: this is only correct if pos is the projection of the origin on the plane
 	scalar_t d = pos.Length();
+	
 	scalar_t t = -(DotProduct(normal, ray.origin) + d) / normal_dot_dir;
 
 	if(t < error_margin) return false;

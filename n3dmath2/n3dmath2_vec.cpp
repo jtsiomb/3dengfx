@@ -66,7 +66,7 @@ Vector2 Vector2::Reflection(const Vector2 &normal) const {
 }
 
 Vector2 Vector2::Refraction(const Vector2 &normal, scalar_t src_ior, scalar_t dst_ior) const {
-	return Vector2();
+	return *this;
 }
 
 std::ostream &operator <<(std::ostream &out, const Vector2 &vec) {
@@ -109,11 +109,22 @@ Vector3 Vector3::Normalized() const {
 }
 
 Vector3 Vector3::Reflection(const Vector3 &normal) const {
-	return 2.0 * DotProduct(*this, normal) * normal - *this;
+	return -(2.0 * DotProduct(*this, normal) * normal - *this);
 }
 
 Vector3 Vector3::Refraction(const Vector3 &normal, scalar_t src_ior, scalar_t dst_ior) const {
-	return Vector3();
+	scalar_t cos_inc = DotProduct(*this, -normal);
+	scalar_t ior = src_ior / dst_ior;
+
+	scalar_t radical = 1.0 + SQ(ior) * (SQ(cos_inc) - 1.0);
+
+	if(radical < 0.0) {		// total internal reflection
+		return Reflection(normal);
+	}
+
+	scalar_t beta = ior * cos_inc - sqrt(radical);
+
+	return *this * ior + normal * beta;
 }
 
 void Vector3::Transform(const Matrix3x3 &mat) {

@@ -27,6 +27,13 @@ Ray::Ray() {
 	ior = 1.0;
 }
 
+Ray::Ray(const Vector3 &origin, const Vector3 &dir) {
+	this->origin = origin;
+	this->dir = dir;
+	energy = 1.0;
+	ior = 1.0;
+}
+
 void Ray::Enter(scalar_t new_ior) {
 	ior = new_ior;
 	ior_stack.push(ior);

@@ -100,7 +100,7 @@ static const char *gl_error_string[] = {
 static GraphicsInitParameters gparams;
 static SysCaps sys_caps;
 Matrix4x4 world_matrix;
-Matrix4x4 view_matrix;
+Matrix4x4 view_matrix, inv_view_matrix;
 const Camera *view_mat_camera;
 Matrix4x4 proj_matrix;
 static Matrix4x4 tex_matrix[8];
@@ -606,6 +606,45 @@ void Draw(const VertexArray &varray, const IndexArray &iarray) {
 	}
 }
 
+
+/* DrawLine(start_vertex, end_vertex, start_width, end_width)
+ * Draws a line as a cylindrically billboarded elongated quad.
+ */
+void DrawLine(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2) {	
+	if(w2 < 0.0) w2 = w1;
+
+	Vector3 p1 = v1.pos;
+	Vector3 p2 = v2.pos;
+
+	Vector3 cam_pos = Vector3(0,0,0).Transformed(inv_view_matrix);
+	
+	Vector3 vec = p2 - p1;
+	scalar_t len = vec.Length();
+	
+	Base basis;
+	basis.k = -(cam_pos - ((p2 + p1) / 2)).Normalized();
+	basis.j = vec / len;
+	basis.i = CrossProduct(basis.j, basis.k).Normalized();
+	basis.k = CrossProduct(basis.i, basis.j).Normalized();
+
+	world_matrix.SetTranslation(p1);
+	world_matrix = world_matrix * Matrix4x4(basis.CreateRotationMatrix());
+	LoadXFormMatrices();
+
+	Vertex quad[] = {
+		Vertex(Vector3(-w1, 0, 0), 0.0, v1.tex[0].u),
+		Vertex(Vector3(-w2, len, 0), 0.0, v2.tex[0].u),
+		Vertex(Vector3(w2, len, 0), 1.0, v2.tex[0].u),
+		Vertex(Vector3(w1, 0, 0), 1.0, v1.tex[0].u)
+	};
+
+	SetLighting(false);
+	SetPrimitiveType(QUAD_LIST);
+	Draw(VertexArray(quad, 4));
+	SetPrimitiveType(TRIANGLE_LIST);
+	SetLighting(true);
+}
+
 int GetTextureUnitCount() {
 	return sys_caps.max_texture_units;
 }
@@ -933,6 +972,7 @@ void SetMatrix(TransformType xform_type, const Matrix4x4 &mat, int num) {
 		
 	case XFORM_VIEW:
 		view_matrix = mat;
+		inv_view_matrix = view_matrix.Inverse();
 		view_mat_camera = 0;
 		break;
 		

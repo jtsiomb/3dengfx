@@ -43,11 +43,13 @@ public:
 	friend inline Vector2 operator +(const Vector2 &v1, const Vector2 &v2);
 	friend inline Vector2 operator -(const Vector2 &v1, const Vector2 &v2);	
 	friend inline Vector2 operator *(const Vector2 &v1, const Vector2 &v2);
+	friend inline Vector2 operator /(const Vector2 &v1, const Vector2 &v2);
 	friend inline bool operator ==(const Vector2 &v1, const Vector2 &v2);
 	
 	friend inline void operator +=(Vector2 &v1, const Vector2 &v2);
 	friend inline void operator -=(Vector2 &v1, const Vector2 &v2);
 	friend inline void operator *=(Vector2 &v1, const Vector2 &v2);
+	friend inline void operator /=(Vector2 &v1, const Vector2 &v2);
 	
 	// binary vector (op) scalar and scalar (op) vector operations
 	friend inline Vector2 operator +(const Vector2 &vec, scalar_t scalar);
@@ -98,11 +100,13 @@ public:
 	friend inline Vector3 operator +(const Vector3 &v1, const Vector3 &v2);
 	friend inline Vector3 operator -(const Vector3 &v1, const Vector3 &v2);	
 	friend inline Vector3 operator *(const Vector3 &v1, const Vector3 &v2);	
+	friend inline Vector3 operator /(const Vector3 &v1, const Vector3 &v2);	
 	friend inline bool operator ==(const Vector3 &v1, const Vector3 &v2);
 	
 	friend inline void operator +=(Vector3 &v1, const Vector3 &v2);
 	friend inline void operator -=(Vector3 &v1, const Vector3 &v2);
 	friend inline void operator *=(Vector3 &v1, const Vector3 &v2);
+	friend inline void operator /=(Vector3 &v1, const Vector3 &v2);
 	
 	// binary vector (op) scalar and scalar (op) vector operations
 	friend inline Vector3 operator +(const Vector3 &vec, scalar_t scalar);
@@ -157,11 +161,13 @@ public:
 	friend inline Vector4 operator +(const Vector4 &v1, const Vector4 &v2);
 	friend inline Vector4 operator -(const Vector4 &v1, const Vector4 &v2);	
 	friend inline Vector4 operator *(const Vector4 &v1, const Vector4 &v2);	
+	friend inline Vector4 operator /(const Vector4 &v1, const Vector4 &v2);	
 	friend inline bool operator ==(const Vector4 &v1, const Vector4 &v2);
 	
 	friend inline void operator +=(Vector4 &v1, const Vector4 &v2);
 	friend inline void operator -=(Vector4 &v1, const Vector4 &v2);
 	friend inline void operator *=(Vector4 &v1, const Vector4 &v2);
+	friend inline void operator /=(Vector4 &v1, const Vector4 &v2);
 	
 	// binary vector (op) scalar and scalar (op) vector operations
 	friend inline Vector4 operator +(const Vector4 &vec, scalar_t scalar);

@@ -24,13 +24,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 #include <string>
 #include "n3dmath2/n3dmath2.hpp"
-#include "3dengfx/3dengfx.hpp"
+#include "3dengfx/textures.hpp"
+#include "3dengfx/gfxprog.hpp"
 #include "gfx/3dgeom.hpp"
 
 namespace fxwt {
 
-	class Widget;
-	extern Widget *root_win;	// TODO: make this Window
+	class DrawableWidget;
+	extern DrawableWidget *root_win;
 
 	void WidgetInit();
 		
@@ -49,6 +50,7 @@ namespace fxwt {
 
 		void (*focus)(bool has_focus);
 		void (*click)(int, const Vector2&);
+		void (*drag)(const Vector2&);
 		// TODO: add drag and drop high level events and scroll events?
 	};
 
@@ -59,15 +61,18 @@ namespace fxwt {
 		EventHandlers handlers;
 
 		Vector2 pos, size;
-		bool focus, sz_relative;
 
 	protected:
+		bool movable;
+		bool focus, sz_relative;
+
 		virtual void DispHandler();
 		virtual void KeybHandler(int key);
 		virtual void MotionHandler(const Vector2 &pos);
 		virtual void ButtonHandler(int bn, bool press, const Vector2 &pos);
 		virtual void FocusHandler(bool has_focus);
 		virtual void ClickHandler(int bn, const Vector2 &pos);
+		virtual void DragHandler(const Vector2 &rel_pos);
 
 	public:
 		Widget();
@@ -86,6 +91,9 @@ namespace fxwt {
 		void SetSize(const Vector2 &pos, bool relative = true);
 		Vector2 GetSize() const;
 
+		void SetMovable(bool enable);
+		bool GetMovable() const;
+
 		bool HasFocus() const;
 
 		virtual bool HitTest(const Vector2 &global_pt) const;
@@ -96,22 +104,18 @@ namespace fxwt {
 		void SetButtonHandler(void (*bn_handler)(int, bool, const Vector2&));
 		void SetFocusHandler(void (*focus_handler)(bool));
 		void SetClickHandler(void (*click_handler)(int, const Vector2&));
+		void SetDragHandler(void (*drag_handler)(const Vector2&));
 
-		friend void fxwt::WidgetDisplayHandler();
-		friend void fxwt::WidgetKeyboardHandler(int key);
-		friend void fxwt::WidgetMotionHandler(int x, int y);
-		friend void fxwt::WidgetButtonHandler(int bn, int press, int x, int y);
-
-		friend void fxwt::Redraw();
 	};
 
 	class DrawableWidget : public Widget {
-	private:
+	protected:
 		Color color;
 		Texture *tex;
 		GfxProg *shader;
+		bool visible;
+		scalar_t border;
 
-	protected:
 		virtual void DispHandler();
 		
 	public:
@@ -121,8 +125,16 @@ namespace fxwt {
 		void SetColor(const Color &col);
 		void SetTexture(Texture *tex);
 		void SetShader(GfxProg *sdr);
+		void SetVisible(bool vis);
+		void SetBorder(scalar_t border);
 
-		void Draw() const;
+		virtual void Draw() const;
+
+		friend void fxwt::WidgetDisplayHandler();
+		friend void fxwt::WidgetKeyboardHandler(int key);
+		friend void fxwt::WidgetMotionHandler(int x, int y);
+		friend void fxwt::WidgetButtonHandler(int bn, int press, int x, int y);
+		friend void fxwt::Redraw();
 	};
 }
 

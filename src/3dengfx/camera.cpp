@@ -39,7 +39,7 @@ void Camera::Activate(unsigned long msec) const {
 	if(flip.x) flip_matrix[0][0] = -1;
 	if(flip.y) flip_matrix[1][1] = -1;
 	if(flip.z) flip_matrix[2][2] = -1;
-	view_matrix = flip_matrix * view_matrix;
+	SetMatrix(XFORM_VIEW, flip_matrix * view_matrix);
 
 	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
 	SetMatrix(XFORM_PROJECTION, proj);
@@ -101,7 +101,7 @@ void TargetCamera::Activate(unsigned long msec) const {
 									n.x, n.y, n.z, tz,
 									0.0, 0.0, 0.0, 1.0);
 
-	view_matrix = cam_matrix;
+	SetMatrix(XFORM_VIEW, cam_matrix);
 	
 	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
 	SetMatrix(XFORM_PROJECTION, proj);

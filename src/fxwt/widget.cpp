@@ -20,8 +20,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "3dengfx_config.h"
 
+#include <iostream>
 #include <list>
+#include "fxwt.hpp"
 #include "widget.hpp"
+#include "3dengfx/3denginefx.hpp"
 #include "3dengfx/textures.hpp"
 #include "3dengfx/gfxprog.hpp"
 #include "common/err_msg.h"
@@ -31,8 +34,10 @@ using namespace fxwt;
 using std::list;
 
 static int screenx, screeny;
+static int press_x[5] = {-1, -1, -1, -1, -1};
+static int press_y[5] = {-1, -1, -1, -1, -1};
 
-Widget *fxwt::root_win = 0;
+DrawableWidget *fxwt::root_win = 0;
 
 void fxwt::WidgetInit() {
 	SetDisplayHandler(WidgetDisplayHandler);
@@ -44,7 +49,7 @@ void fxwt::WidgetInit() {
 	screenx = gip->x;
 	screeny = gip->y;
 	
-	root_win = new Widget;
+	root_win = new DrawableWidget;
 	root_win->SetParent(0);
 	root_win->SetSize(Vector2(1, 1), false);
 }
@@ -60,20 +65,34 @@ void fxwt::WidgetKeyboardHandler(int key) {
 void fxwt::WidgetMotionHandler(int x, int y) {
 	Vector2 pos((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
 	root_win->MotionHandler(pos);
+
+	// generate drag events
+	for(int i=0; i<3; i++) {
+		if(MouseButtonPressed(i)) {
+			if(press_x[i] != x || press_y[i] != y) {
+				Vector2 press_pos((scalar_t)press_x[i] / (scalar_t)screenx, (scalar_t)press_y[i] / (scalar_t)screeny);
+				root_win->DragHandler(pos - press_pos);
+
+				press_x[i] = x;
+				press_y[i] = y;
+				break;
+			}
+		}
+	}
 }
 
 void fxwt::WidgetButtonHandler(int bn, int press, int x, int y) {
 	Vector2 pos((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
 	root_win->ButtonHandler(bn, press, pos);
 	
-	static int press_x, press_y;
 	if(press) {
-		press_x = x;
-		press_y = y;
+		press_x[bn] = x;
+		press_y[bn] = y;
 	} else {
-		if(x == press_x && y == press_y) {
+		if(x == press_x[bn] && y == press_y[bn]) {
 			root_win->ClickHandler(bn, pos);
 		}
+		press_x[bn] = press_y[bn] = -1;
 	}
 }
 
@@ -87,6 +106,7 @@ Widget::Widget() {
 	size = Vector2(1, 1);
 	focus = false;
 	sz_relative = true;
+	movable = false;
 
 	memset(&handlers, 0, sizeof handlers);
 }
@@ -119,6 +139,8 @@ void Widget::MotionHandler(const Vector2 &pos) {
 		if(children[i]->HitTest(pos)) {
 			if(!children[i]->HasFocus()) children[i]->FocusHandler(true);
 			children[i]->MotionHandler(pos);
+		} else {
+			if(children[i]->HasFocus()) children[i]->FocusHandler(false);
 		}
 	}
 }
@@ -147,6 +169,19 @@ void Widget::ClickHandler(int bn, const Vector2 &pos) {
 	}
 }
 
+void Widget::DragHandler(const Vector2 &rel_pos) {
+	if(movable) {
+		SetPosition(pos + rel_pos);
+	} else {
+		Vector2 mpos = GetMousePosNormalized();
+		for(size_t i=0; i<children.size(); i++) {
+			if(children[i]->HitTest(mpos)) {
+				children[i]->DragHandler(rel_pos);
+			}
+		}
+	}
+}
+
 void Widget::SetParent(Widget *w) {
 	parent = w;
 }
@@ -157,11 +192,15 @@ void Widget::AddWidget(Widget *w) {
 }
 
 Vector2 Widget::ToLocalPos(const Vector2 &p) const {
-	return p + pos + (parent ? parent->GetPosition() : Vector2(0, 0));
+	return Vector2();
 }
 
 Vector2 Widget::ToGlobalPos(const Vector2 &p) const {
-	return p * GetSize() + pos + (parent ? parent->GetPosition() : Vector2(0, 0));
+	Vector2 par_space_pos = p * GetSize() + pos;
+	if(parent) {
+		return par_space_pos * parent->GetSize() + parent->GetPosition();
+	}
+	return par_space_pos;
 }
 
 void Widget::SetPosition(const Vector2 &pos) {
@@ -184,14 +223,22 @@ Vector2 Widget::GetSize() const {
 	return size;
 }
 
+void Widget::SetMovable(bool enable) {
+	movable = enable;
+}
+
+bool Widget::GetMovable() const {
+	return movable;
+}
+
 bool Widget::HasFocus() const {
 	return focus;
 }
 
 bool Widget::HitTest(const Vector2 &global_pt) const {
-	Vector2 pt = ToLocalPos(global_pt);
-	Vector2 sz = GetSize();
-	return pt.x >= 0.0 && pt.y >= 0.0 && pt.x < sz.x && pt.y < sz.y;
+	Vector2 pos = GetPosition();
+	Vector2 pos2 = pos + GetSize();
+	return global_pt.x >= pos.x && global_pt.y >= pos.y && global_pt.x < pos2.x && global_pt.y < pos2.y;
 }
 
 void Widget::SetDisplayHandler(void (*disp_handler)()) {
@@ -218,6 +265,9 @@ void Widget::SetClickHandler(void (*click_handler)(int, const Vector2&)) {
 	handlers.click = click_handler;
 }
 
+void Widget::SetDragHandler(void (*drag_handler)(const Vector2&)) {
+	handlers.drag = drag_handler;
+}
 
 // ------ drawable -------
 
@@ -230,8 +280,8 @@ DrawableWidget::DrawableWidget(const Color &col, Texture *tex, GfxProg *sdr) {
 DrawableWidget::~DrawableWidget() {}
 
 void DrawableWidget::DispHandler() {
-	Draw();
-	Widget::DispHandler();
+	if(visible) Draw();
+	if(visible || this == root_win)	Widget::DispHandler();
 }
 
 void DrawableWidget::SetColor(const Color &col) {
@@ -246,7 +296,23 @@ void DrawableWidget::SetShader(GfxProg *sdr) {
 	shader = sdr;
 }
 
+void DrawableWidget::SetVisible(bool vis) {
+	visible = vis;
+}
+
+void DrawableWidget::SetBorder(scalar_t border) {
+	this->border = border;
+}
+
 void DrawableWidget::Draw() const {
 	Vector2 pos = GetPosition();
-	dsys::Overlay(tex, pos, pos + GetSize(), color, shader);
+	static const Color bcol(0.05, 0.05, 0.05, 0.0);
+
+	if(border == 0.0) {
+		dsys::Overlay(tex, pos, pos + GetSize(), color, shader);
+	} else {
+		Vector2 boff(border, border);
+		dsys::Overlay(tex, pos, pos + GetSize(), color + bcol, shader);
+		dsys::Overlay(tex, pos + boff, pos + GetSize() - boff, color, shader);
+	}
 }

@@ -1,4 +1,4 @@
 obj +=  src/3dengfx/3denginefx.o src/3dengfx/textures.o src/3dengfx/camera.o \
 	src/3dengfx/material.o src/3dengfx/object.o src/3dengfx/texman.o src/3dengfx/light.o src/3dengfx/load_geom.o\
 	src/3dengfx/ggen.o src/3dengfx/3dscene.o src/3dengfx/sceneloader.o src/3dengfx/gfxprog.o\
-	src/3dengfx/psys.o src/3dengfx/isosurf.o
+	src/3dengfx/psys.o src/3dengfx/isosurf.o src/3dengfx/rend_curve.o

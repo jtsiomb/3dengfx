@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/image.h"
 #include "light.hpp"
 
-extern Matrix4x4 world_matrix, view_matrix;
+extern Matrix4x4 world_matrix, view_matrix, inv_view_matrix;
 
 bool CreateGraphicsContext(const GraphicsInitParameters &gip);
 bool StartGL();
@@ -52,6 +52,7 @@ void Flip();
 void LoadXFormMatrices();
 void Draw(const VertexArray &varray);
 void Draw(const VertexArray &varray, const IndexArray &iarray);
+void DrawLine(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2 = -1.0);
 
 int GetTextureUnitCount();
 

@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the graphics core library.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 the graphics core library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  * author: John Tsiombikas 2003
  * modified:
- * 		John Tsiombikas 2004
+ * 		John Tsiombikas 2004, 2005
  * 		Mihalis Georgoulopoulos 2004
  */
 

@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "load_geom.hpp"
 #include "material.hpp"
 #include "object.hpp"
+#include "rend_curve.hpp"
 #include "texman.hpp"
 #include "textures.hpp"
 #include "sceneloader.hpp"

@@ -51,6 +51,10 @@ inline Vector2 operator *(const Vector2 &v1, const Vector2 &v2) {
 	return Vector2(v1.x * v2.x, v1.y * v2.y);
 }
 
+inline Vector2 operator /(const Vector2 &v1, const Vector2 &v2) {
+	return Vector2(v1.x / v2.x, v1.y / v2.y);
+}
+
 inline bool operator ==(const Vector2 &v1, const Vector2 &v2) {
 	return (fabs(v1.x - v2.x) < xsmall_number) && (fabs(v1.y - v2.x) < xsmall_number);
 }
@@ -68,6 +72,11 @@ inline void operator -=(Vector2 &v1, const Vector2 &v2) {
 inline void operator *=(Vector2 &v1, const Vector2 &v2) {
 	v1.x *= v2.x;
 	v1.y *= v2.y;
+}
+
+inline void operator /=(Vector2 &v1, const Vector2 &v2) {
+	v1.x /= v2.x;
+	v1.y /= v2.y;
 }
 
 inline Vector2 operator +(const Vector2 &vec, scalar_t scalar) {
@@ -165,6 +174,10 @@ inline Vector3 operator *(const Vector3 &v1, const Vector3 &v2) {
 	return Vector3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
 }
 
+inline Vector3 operator /(const Vector3 &v1, const Vector3 &v2) {
+	return Vector3(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);
+}
+
 inline bool operator ==(const Vector3 &v1, const Vector3 &v2) {
 	return (fabs(v1.x - v2.x) < xsmall_number) && (fabs(v1.y - v2.y) < xsmall_number) && (fabs(v1.z - v2.z) < xsmall_number);
 }
@@ -187,6 +200,11 @@ inline void operator *=(Vector3 &v1, const Vector3 &v2) {
 	v1.z *= v2.z;
 }
 
+inline void operator /=(Vector3 &v1, const Vector3 &v2) {
+	v1.x /= v2.x;
+	v1.y /= v2.y;
+	v1.z /= v2.z;
+}
 // binary vector (op) scalar and scalar (op) vector operations
 inline Vector3 operator +(const Vector3 &vec, scalar_t scalar) {
 	return Vector3(vec.x + scalar, vec.y + scalar, vec.z + scalar);
@@ -299,6 +317,10 @@ inline Vector4 operator *(const Vector4 &v1, const Vector4 &v2) {
 	return Vector4(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
 }
 
+inline Vector4 operator /(const Vector4 &v1, const Vector4 &v2) {
+	return Vector4(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
+}
+
 inline bool operator ==(const Vector4 &v1, const Vector4 &v2) {
 	return 	(fabs(v1.x - v2.x) < xsmall_number) && 
 			(fabs(v1.y - v2.y) < xsmall_number) && 
@@ -325,6 +347,13 @@ inline void operator *=(Vector4 &v1, const Vector4 &v2) {
 	v1.y *= v2.y;
 	v1.z *= v2.z;
 	v1.w *= v2.w;
+}
+
+inline void operator /=(Vector4 &v1, const Vector4 &v2) {
+	v1.x /= v2.x;
+	v1.y /= v2.y;
+	v1.z /= v2.z;
+	v1.w /= v2.w;
 }
 
 // binary vector (op) scalar and scalar (op) vector operations

@@ -44,6 +44,9 @@ static list<void (*)(int)> keyb_handlers;
 static list<void (*)(int, int)> motion_handlers;
 static list<void (*)(int, int, int, int)> button_handlers;
 
+static bool button_state[5];
+static int screenx, screeny;
+
 #if GFX_LIBRARY == GTK
 static GdkGLContext *gl_context;
 static GdkGLDrawable *gl_drawable;
@@ -52,6 +55,10 @@ static GdkGLDrawable *gl_drawable;
 void fxwt::Init() {
 	fxwt::TextInit();
 	fxwt::WidgetInit();
+
+	const GraphicsInitParameters *gip = GetGraphicsInitParameters();
+	screenx = gip->x;
+	screeny = gip->y;
 }
 
 void fxwt::SetDisplayHandler(void (*handler)()) {
@@ -92,6 +99,19 @@ void fxwt::RemoveMotionHandler(void (*handler)(int, int)) {
 
 void fxwt::RemoveButtonHandler(void (*handler)(int, int, int, int)) {
 	button_handlers.remove(handler);
+}
+
+bool fxwt::MouseButtonPressed(int bn) {
+	return button_state[bn];
+}
+
+Vector2 fxwt::GetMousePosNormalized() {
+	int x, y;
+#if GFX_LIBRARY == SDL
+	SDL_GetMouseState(&x, &y);
+#endif
+
+	return Vector2((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
 }
 
 void fxwt::SetWindowTitle(const char *title) {
@@ -180,6 +200,7 @@ static void HandleEvent(const SDL_Event &event) {
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_MOUSEBUTTONUP:
 		{
+			button_state[event.button.button] = event.button.state;
 			list<void (*)(int, int, int, int)>::iterator iter = button_handlers.begin();
 			while(iter != button_handlers.end()) {
 				(*iter++)(event.button.button, event.button.state == SDL_PRESSED, event.button.x, event.button.y);

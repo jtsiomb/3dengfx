@@ -27,6 +27,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define _FXWT_HPP_
 
 #include "widget.hpp"
+#include "label.hpp"
+#include "button.hpp"
+#include "window.hpp"
+
 #include "text.hpp"
 #include "init.hpp"
 #include "keysyms.hpp"
@@ -54,6 +58,10 @@ namespace fxwt {
 	void RemoveKeyboardHandler(void (*handler)(int));
 	void RemoveMotionHandler(void (*handler)(int, int));
 	void RemoveButtonHandler(void (*handler)(int, int, int, int));
+
+	bool MouseButtonPressed(int bn);
+
+	Vector2 GetMousePosNormalized();
 
 	void SetWindowTitle(const char *title);
 	void SwapBuffers();

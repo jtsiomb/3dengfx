@@ -1,11 +1,11 @@
 [Project]
-FileName=3DENGF~1.DEV
+FileName=3dengfx_devcpp.dev
 Name=3dengfx_devcpp
 UnitCount=82
 Type=2
 Ver=1
 ObjFiles=
-Includes=C:\cygwin\home\mike\3dengfx\src;C:\SDL\include
+Includes=src;C:\SDL\include
 Libs=C:\SDL\lib-mingw
 PrivateResource=
 ResourceIncludes=

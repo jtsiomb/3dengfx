@@ -66,6 +66,8 @@ public:
 	void SetWireframe(bool enable);
 	void SetVertexProgram(GfxProg *prog);
 	void SetPixelProgram(GfxProg *prog);
+	void SetAutoCubeMaps(bool enable);
+	void SetHidden(bool enable);
 
 	void ApplyXForm(unsigned long time = XFORM_LOCAL_PRS);
 	

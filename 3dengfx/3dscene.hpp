@@ -42,12 +42,13 @@ class Scene {
 private:
 	Light *lights[8];
 	std::list<Camera *> cameras;
+	Camera *cubic_cam[6];
 	std::list<Object *> objects;
 	//std::list<ShadowVolume> StaticShadowVolumes;
 	std::list<Curve *> curves;
 	bool ManageData;
 
-	Camera *ActiveCamera;
+	const Camera *ActiveCamera;
 
 	bool Shadows;
 	bool LightHalos;
@@ -58,6 +59,8 @@ private:
 	bool UseFog;
 	Color FogColor;
 	float NearFogRange, FarFogRange;
+	
+	void RenderAllCubeMaps(unsigned long msec = XFORM_LOCAL_PRS) const;
 		
 public:
 
@@ -80,7 +83,7 @@ public:
 
 	std::list<Object*> *GetObjectsList();
 
-	void SetActiveCamera(Camera *cam);
+	void SetActiveCamera(const Camera *cam);
 	Camera *GetActiveCamera() const;
 
 	//void SetShadows(bool enable);
@@ -95,6 +98,7 @@ public:
 
 	//void RenderShadows() const;
 	void Render(unsigned long msec = XFORM_LOCAL_PRS) const;
+	void RenderCubeMap(Object *obj, unsigned long msec = XFORM_LOCAL_PRS) const;
 };
 	
 

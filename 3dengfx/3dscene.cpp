@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <string>
 #include "3dscene.hpp"
+#include "texman.hpp"
 
 using std::string;
 
@@ -36,9 +37,29 @@ Scene::Scene() {
 
 	AmbientLight = Color(0.0f, 0.0f, 0.0f);
 	ManageData = true;
+
+	// setup the cube-map cameras
+	for(int i=0; i<6; i++) {
+		cubic_cam[i] = new Camera;
+		//cubic_cam[i]->SetFOV(half_pi);
+		cubic_cam[i]->SetFOV(half_pi);
+		cubic_cam[i]->Rotate(Vector3(pi, 0, 0));
+		cubic_cam[i]->SetAspect(1.0);
+	}
+
+	cubic_cam[CUBE_MAP_INDEX_NX]->Rotate(Vector3(0, half_pi, 0));
+	cubic_cam[CUBE_MAP_INDEX_PZ]->Rotate(Vector3(0, pi, 0));
+	cubic_cam[CUBE_MAP_INDEX_PX]->Rotate(Vector3(0, -half_pi, 0));
+
+	cubic_cam[CUBE_MAP_INDEX_NY]->Rotate(Vector3(half_pi, 0, 0));
+	cubic_cam[CUBE_MAP_INDEX_PY]->Rotate(Vector3(-half_pi, 0, 0));
 }
 
 Scene::~Scene() {
+
+	for(int i=0; i>6; i++) {
+		delete cubic_cam[i];
+	}
 
 	if(ManageData) {
 		std::list<Object*>::iterator obj = objects.begin();
@@ -152,12 +173,12 @@ std::list<Object*> *Scene::GetObjectsList() {
 }
 
 
-void Scene::SetActiveCamera(Camera *cam) {
+void Scene::SetActiveCamera(const Camera *cam) {
 	ActiveCamera = cam;
 }
 
 Camera *Scene::GetActiveCamera() const {
-	return ActiveCamera;
+	return const_cast<Camera*>(ActiveCamera);
 }
 
 void Scene::SetHaloDrawing(bool enable) {
@@ -210,15 +231,17 @@ void Scene::Render(unsigned long msec) const {
 	float near_clip, far_clip;
 	near_clip = ActiveCamera->GetClippingPlane(CLIP_NEAR);
 	far_clip = ActiveCamera->GetClippingPlane(CLIP_FAR);
-	Matrix4x4 proj = CreateProjectionMatrix(ActiveCamera->GetFOV(), 1.333333f, near_clip, far_clip);
-	SetMatrix(XFORM_PROJECTION, proj);
+	//Matrix4x4 proj = CreateProjectionMatrix(ActiveCamera->GetFOV(), ActiveCamera->GetAspect(), near_clip, far_clip);
+	//SetMatrix(XFORM_PROJECTION, proj);
 
 	// render objects
 	std::list<Object *>::const_iterator iter = objects.begin();
 	while(iter != objects.end()) {
 		Object *obj = *iter++;
 
-		obj->Render(msec);
+		if(!obj->GetRenderParams().hidden) {
+			obj->Render(msec);
+		}
 	}
 	/*
 	for(int i=0; i<8; i++) {
@@ -236,3 +259,76 @@ void Scene::Render(unsigned long msec) const {
 	}
 	*/
 }
+
+
+void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
+	Texture *tex = obj->GetMaterialPtr()->GetTexture(TEXTYPE_ENVMAP);
+
+	if(!tex || (tex && tex->GetType() != TEX_CUBE)) {
+		EngineLog("tried to RenderCubeMap() on a non-cubemapped object");
+		return;
+	}
+
+	RenderParams render_params = obj->GetRenderParams();
+	if(render_params.hidden) return;
+
+	Vector3 obj_pos = obj->GetPRS(msec).position;
+	for(int i=0; i<6; i++) {
+		cubic_cam[i]->SetPosition(obj_pos);
+	}
+
+	const Camera *active_cam = GetActiveCamera();
+
+	obj->SetHidden(true);
+
+	Scene *non_const_this = const_cast<Scene*>(this);
+
+	SetRenderTarget(tex, CUBE_MAP_PX);
+	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PX]);
+	Clear(0);
+	ClearZBufferStencil(1.0, 0);
+	Render(msec);
+	SetRenderTarget(0);
+
+	SetRenderTarget(tex, CUBE_MAP_NX);
+	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NX]);
+	Clear(0);
+	ClearZBufferStencil(1.0, 0);
+	Render(msec);
+	SetRenderTarget(0);
+	
+	SetRenderTarget(tex, CUBE_MAP_PY);
+	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PY]);
+	Clear(0);
+	ClearZBufferStencil(1.0, 0);
+	Render(msec);
+	SetRenderTarget(0);
+	
+	SetRenderTarget(tex, CUBE_MAP_NY);
+	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NY]);
+	Clear(0);
+	ClearZBufferStencil(1.0, 0);
+	Render(msec);
+	SetRenderTarget(0);
+	
+	SetRenderTarget(tex, CUBE_MAP_PZ);
+	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_PZ]);
+	Clear(0);
+	ClearZBufferStencil(1.0, 0);
+	Render(msec);
+	SetRenderTarget(0);
+	
+	SetRenderTarget(tex, CUBE_MAP_NZ);
+	non_const_this->SetActiveCamera(cubic_cam[CUBE_MAP_INDEX_NZ]);
+	Clear(0);
+	ClearZBufferStencil(1.0, 0);
+	Render(msec);
+	SetRenderTarget(0);
+	
+
+	non_const_this->SetActiveCamera(active_cam);
+
+	obj->SetHidden(false);
+}
+
+void Scene::RenderAllCubeMaps(unsigned long msec) const {}

@@ -135,6 +135,13 @@ void Object::SetPixelProgram(GfxProg *prog) {
 	}
 }
 
+void Object::SetAutoCubeMaps(bool enable) {
+	render_params.auto_cube_maps = enable;
+}
+
+void Object::SetHidden(bool enable) {
+	render_params.hidden = enable;
+}
 
 void Object::ApplyXForm(unsigned long time) {
 	world_mat = GetPRS(time).GetXFormMatrix();
@@ -267,10 +274,7 @@ void Object::RenderHack() {
 			inv_view[0][3] = inv_view[1][3] = inv_view[2][3] = 0.0;
 			inv_view.Transpose();
 
-			Matrix4x4 invert_maps;
-			invert_maps.SetScaling(Vector3(-1.0, -1.0, 1.0));
-			
-			SetMatrix(XFORM_TEXTURE, inv_view * invert_maps, tex_unit);
+			SetMatrix(XFORM_TEXTURE, inv_view, tex_unit);
 
 			SetTextureAddressing(tex_unit, TEXADDR_CLAMP, TEXADDR_CLAMP);
 		} else {

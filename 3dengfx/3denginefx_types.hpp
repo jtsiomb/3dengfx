@@ -133,6 +133,8 @@ struct RenderParams {
 	BlendingFactor src_blend, dest_blend;
 	bool wire;
 	GfxProg *vprog, *pprog;
+	bool auto_cube_maps;
+	bool hidden;
 };
 
 #define DONT_CARE_BPP		1	// 0001

@@ -167,4 +167,16 @@ int get_next_command(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
 	ds->line_buffer[0] = 0;
 	
 	return 0;
-}		
+}
+
+long str_to_time(const char *str) {
+	long time;
+	
+	if(!isdigit(*str)) return -1;
+
+	time = atol(str);
+
+	while(isdigit(*str)) str++;
+	
+	return *str == 's' ? time * 1000 : time;
+}

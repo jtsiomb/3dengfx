@@ -35,4 +35,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 	CMD(RENAME_PART),\
 	CMD(SET_RTARGET),\
 	CMD(SET_CLEAR),\
-	CMD(END)
+	CMD(END),\
+	CMD(FX)

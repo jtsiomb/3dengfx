@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "3dengfx_config.h"
 
+#include <list>
 #include "fx.hpp"
 #include "3dengfx/3dengfx.hpp"
 
@@ -174,7 +175,7 @@ void dsys::Overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2,
 void dsys::Negative(const Vector2 &corner1, const Vector2 &corner2) {
 	SetAlphaBlending(true);
 	SetBlendFunc(BLEND_ONE_MINUS_DST_COLOR, BLEND_ZERO);
-	dsys::Overlay(0, corner1, corner2, Color(1.0f, 1.0f, 1.0f, 1.0f), false);
+	dsys::Overlay(0, corner1, corner2, Color(1.0f, 1.0f, 1.0f, 1.0f), 0, false);
 	SetAlphaBlending(false);
 }
 
@@ -188,4 +189,56 @@ void dsys::Flash(unsigned long time, unsigned long when, unsigned long dur) {
 		
 		dsys::Overlay(0, Vector3(0,0), Vector3(1,1), Color(1.0f, 1.0f, 1.0f, alpha));
 	}
+}
+
+
+
+// ------------- Image Effect manager --------------
+
+using std::list;
+using namespace dsys;
+
+static list<ImageFx*> fx_list;
+
+void dsys::AddImageFx(ImageFx *fx) {
+	fx_list.push_back(fx);
+}
+
+void dsys::RemoveImageFx(ImageFx *fx) {
+	fx_list.erase(find(fx_list.begin(), fx_list.end(), fx));
+}
+
+void dsys::ApplyImageFx(unsigned long time) {
+	list<ImageFx*>::iterator iter = fx_list.begin();
+
+	while(iter != fx_list.end()) {
+		(*iter++)->Apply(time);
+	}
+}
+
+
+// -------------- Image Effect class --------------
+
+ImageFx::ImageFx(unsigned long time, unsigned long dur) {
+	this->time = time;
+	duration = dur;
+}
+
+void ImageFx::SetTime(unsigned long time) {
+	this->time = time;
+}
+
+void ImageFx::SetDuration(unsigned long dur) {
+	duration = dur;
+}
+
+
+// ------------- Negative (inverse video) effect ---------------
+
+FxNegative::FxNegative(unsigned long time, unsigned long dur) : ImageFx(time, dur) {}
+
+void FxNegative::Apply(unsigned long time) {
+	if(time < this->time || time > this->time + duration) return;
+
+	Negative();
 }

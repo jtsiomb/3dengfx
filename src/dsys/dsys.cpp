@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include "dsys.hpp"
 #include "part.hpp"
+#include "fx.hpp"
 #include "cmd.hpp"
 #include "script.h"
 #include "3dengfx/3dengfx.hpp"
@@ -150,8 +151,10 @@ static void UpdateNode(BSTreeNode<Part*> *node) {
 int dsys::UpdateGraphics() {
 	if(!demo_running) return 1;
 
+	unsigned long time = timer_getmsec(&timer);
+
 	int res;
-	while((res = ExecuteScript(ds, timer_getmsec(&timer))) != 1) {
+	while((res = ExecuteScript(ds, time)) != 1) {
 		if(res == EOF) {
 			EndDemo();
 			return -1;
@@ -163,6 +166,9 @@ int dsys::UpdateGraphics() {
 	ClearZBufferStencil(1.0f, 0);
 	
 	running.Traverse(UpdateNode, TRAVERSE_INORDER);
+
+	// apply any post effects
+	ApplyImageFx(time);
 
 	Flip();
 	return 0;

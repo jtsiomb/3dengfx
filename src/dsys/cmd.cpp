@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "script.h"
 #include "dsys.hpp"
 #include "part.hpp"
+#include "fx.hpp"
 #include "common/err_msg.h"
 
 using namespace dsys;
@@ -40,6 +41,7 @@ static bool RenamePart(const char *pname, const char **args);
 static bool SetRenderTarget(const char *pname, const char **args);
 static bool SetClear(const char *pname, const char **args);
 static bool End(const char *unused, const char **args);
+static bool Effect(const char *fxname, const char **args);
 
 static bool (*ftbl[64])(const char*, const char**);
 
@@ -50,6 +52,7 @@ void cmd::RegisterCommands() {
 	ftbl[CMD_SET_RTARGET] = SetRenderTarget;
 	ftbl[CMD_SET_CLEAR] = SetClear;
 	ftbl[CMD_END] = End;
+	ftbl[CMD_FX] = Effect;
 }
 
 bool cmd::Command(CommandType cmd_id, const char *pname, const char **args) {
@@ -136,4 +139,23 @@ static bool End(const char *unused, const char **args) {
 
 	info("end");
 	EndDemo();
+	return true;
+}
+
+static bool Effect(const char *fxname, const char **args) {
+	if(!strcmp(fxname, "neg")) {
+		long time, dur;
+		if(!args[0] || (time = str_to_time(args[0])) == -1 ||
+			!args[1] || (dur = str_to_time(args[1])) == -1) {
+			error("fx neg: invalid syntax, should be: neg <start time> <duration>");
+			return false;
+		}
+		info("adding negative t: %ld d: %ld", time, dur);
+		AddImageFx(new FxNegative(time, dur));
+	} else {
+		error("unknown effect: %s, ignoring", fxname);
+		return false;
+	}
+
+	return true;
 }

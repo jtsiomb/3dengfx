@@ -39,6 +39,31 @@ namespace dsys {
 	void Flash(unsigned long time, unsigned long when, unsigned long dur);
 	
 	// integration with the scripting system
+	
+	class ImageFx;
+
+	void AddImageFx(ImageFx *fx);
+	void RemoveImageFx(ImageFx *fx);
+	void ApplyImageFx(unsigned long time);
+
+	class ImageFx {
+	protected:
+		unsigned long time, duration;
+
+	public:
+		ImageFx(unsigned long time, unsigned long dur);
+
+		virtual void SetTime(unsigned long time);
+		virtual void SetDuration(unsigned long dur);
+
+		virtual void Apply(unsigned long time) = 0;
+	};
+
+	class FxNegative : public ImageFx {
+	public:
+		FxNegative(unsigned long time = 0, unsigned long dur = INT_MAX);
+		virtual void Apply(unsigned long time);
+	};
 }
 
 #endif	// _FX_HPP_

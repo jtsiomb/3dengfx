@@ -54,6 +54,8 @@ void close_script(DemoScript *ds);
  */
 int get_next_command(DemoScript *ds, DemoCommand *cmd, unsigned long time);
 
+long str_to_time(const char *str);
+
 #ifdef __cplusplus
 }
 #endif	/* __cplusplus */

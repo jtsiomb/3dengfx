@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo 'Creating 3dengfx-config program'
+gcc -o 3dengfx-config install/3dengfx_config.c -Isrc

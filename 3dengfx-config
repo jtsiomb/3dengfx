@@ -1,14 +1,6 @@
 #!/bin/sh
 
-cflags="-I/usr/local/include/3dengfx \
--I/usr/local/include/3dengfx/3dengfx \
--I/usr/local/include/3dengfx/3dengfx/3dwt \
--I/usr/local/include/3dengfx/gfx \
--I/usr/local/include/3dengfx/common \
--I/usr/local/include/3dengfx/dsys \
--I/usr/local/include/3dengfx/nlibase \
--I/usr/local/include/3dengfx/n3dmath2 \
--DHAVE_CONFIG_H"
+cflags="-I/usr/local/include/3dengfx/src -DHAVE_CONFIG_H"
 
 libs="-l3dengfx -lGL -lGLU -lCg -lCgGL -lbz2"
 

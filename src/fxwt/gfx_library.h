@@ -9,6 +9,7 @@
 
 #if GFX_LIBRARY == SDL
 #include "SDL.h"
+#define glGetProcAddress(x) SDL_GL_GetProcAddress(x)
 #endif	/* SDL */
 
 #if GFX_LIBRARY == GLUT
@@ -43,11 +44,13 @@
 
 #endif	/* NATIVE */
 
+#if GFX_LIBRARY != SDL
 #if defined(__unix__)
 #include <GL/glx.h>
 #define glGetProcAddress(x)		glXGetProcAddress((unsigned char*)x)
 #elif defined(WIN32)
 #define glGetProcAddress(x)		wglGetProcAddress(x)
-#endif
+#endif /* __unix__ */
+#endif /* GFX_LIBRARY != SDL */
 
 #endif	/* _GFX_LIBRARY_H_ */

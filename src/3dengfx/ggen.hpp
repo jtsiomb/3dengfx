@@ -35,5 +35,5 @@ void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv);
 void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv);
 void CreateBezierPatch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline &u1, const BezierSpline &u2, const BezierSpline &u3, int subdiv);
 void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv);
-
+void CreateTeapot(TriMesh *mesh, int subdiv);
 #endif	// _GGEN_HPP_

@@ -407,3 +407,67 @@ void CreateBezierPatch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline
 	delete [] cp;
 }
 
+/* CreateBezierMesh - (MG)
+ * tesselates a whole mesh of bezier patches.
+ * usefull when some patches share vertices
+ * TODO : Make a bezier patch class , like Triangle
+ * and Quad. Store indices
+ */
+void CreateBezierMesh(TriMesh *mesh, Vector3 *cp, 
+		unsigned long patch_count, unsigned long *patches,
+		int subdiv)
+{
+	TriMesh tmp_mesh;
+	Vector3 *control_pts = new Vector3[16];
+	for (unsigned long i=0; i<patch_count; i++)
+	{
+		for (int j=0; j<16; j++)
+		{
+			control_pts[j] = cp[ patches[16 * i + j] ];
+		}
+
+		CreateBezierPatch(&tmp_mesh, control_pts, subdiv);
+
+		JoinTriMesh(mesh, mesh, &tmp_mesh);
+	}
+	delete [] control_pts;
+}
+
+/* CreateTeapot - (MG)
+ * Creates a teapot TriMesh, using the original
+ * data file from Newell
+ */
+#include "gfx/teapot.h"
+void CreateTeapot(TriMesh *mesh, int subdiv)
+{
+	unsigned long *patches = new unsigned long [Teapot_num_patches * 16];
+	// fix indices to start from zero
+	for (unsigned long i=0; i<Teapot_num_patches * 16; i++)
+	{
+		patches[i] = Teapot_patches[i] - 1;
+	}
+
+	// rearrange patches to clockwise order
+	for (unsigned long p=0; p<Teapot_num_patches; p++)
+	{
+		unsigned long new_order[16];
+		for (unsigned long j=0; j<4; j++)
+		{
+			for (unsigned long i=0; i<4; i++)
+			{
+				new_order[i * 4 + (3 - j)] = patches[p * 16 + j * 4 + i];
+			}
+		}
+
+		for (unsigned long k=0; k<16; k++)
+		{
+			patches[16 * p + k] = new_order[k];
+		}
+	}
+	
+	CreateBezierMesh(mesh, (Vector3*)Teapot_vertices, 
+			Teapot_num_patches, patches, subdiv);
+
+	delete [] patches;
+}
+

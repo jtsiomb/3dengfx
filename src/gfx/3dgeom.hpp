@@ -191,6 +191,8 @@ public:
 	void CalculateNormals();
 
 	void ApplyXForm(const Matrix4x4 &xform);
+
+	void operator +=(const TriMesh *m2);
 };
 
 
@@ -266,7 +268,8 @@ public:
 
 /* utility functions
  */
-void JoinTriMesh(TriMesh *ret, TriMesh *m1, TriMesh *m2);
+void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2);
+TriMesh *JoinTriMesh(const TriMesh *m1, const TriMesh *m2);
 
 #include "3dgeom.inl"
 

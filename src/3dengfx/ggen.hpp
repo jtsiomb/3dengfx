@@ -33,11 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int subdiv);
 void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv);
 void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv);
-void CreateBezierPatch(TriMesh *mesh,
-		const BezierSpline &u0,
-		const BezierSpline &u1,
-		const BezierSpline &u2,
-		const BezierSpline &u3,
-		int subdiv);
+void CreateBezierPatch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline &u1, const BezierSpline &u2, const BezierSpline &u3, int subdiv);
+void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv);
 
 #endif	// _GGEN_HPP_

@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* fundamendal data structures for 3D graphics
  *
  * Author: John Tsiombikas 2004
+ * Modified: Mihalis Georgoulopoulos 2004
  */
 
 #include "3dengfx_config.h"
@@ -290,6 +291,10 @@ void TriMesh::ApplyXForm(const Matrix4x4 &xform) {
 	for(unsigned long i=0; i<count; i++) {
 		(*vptr++).pos.Transform(xform);
 	}
+}
+
+void TriMesh::operator +=(const TriMesh *m2) {
+	JoinTriMesh(this, this, m2);
 }
 
 ///////////////// PRS /////////////////////
@@ -667,7 +672,7 @@ static Keyframe *FindNearestKeyframe(Keyframe *start, Keyframe *end, unsigned lo
  * Gets 2 trimeshes and returns a new one
  * that contains both meshes
  */
-void JoinTriMesh(TriMesh *ret, TriMesh *m1, TriMesh *m2)
+void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2)
 {
 	const Vertex *varr1 = m1->GetVertexArray()->GetData();
 	const Vertex *varr2 = m2->GetVertexArray()->GetData();
@@ -708,3 +713,14 @@ void JoinTriMesh(TriMesh *ret, TriMesh *m1, TriMesh *m2)
 	delete [] varray;
 	delete [] tarray;
 }
+
+/* Nicer JoinTriMesh - (JT)
+ * This is a much better way to do things.
+ */
+TriMesh *JoinTriMesh(const TriMesh *m1, const TriMesh *m2) {
+	TriMesh *mesh = new TriMesh;
+	JoinTriMesh(mesh, m1, m2);
+	return mesh;
+}
+
+

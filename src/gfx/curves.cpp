@@ -18,6 +18,14 @@ along with the graphics core library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* 3D Curves
+ * 
+ * author: John Tsiombikas 2003
+ * modified:
+ * 		John Tsiombikas 2004
+ * 		Mihalis Georgoulopoulos 2004
+ */
+
 #include "3dengfx_config.h"
 
 #include <cmath>

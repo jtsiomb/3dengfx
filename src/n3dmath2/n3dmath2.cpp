@@ -102,11 +102,8 @@ scalar_t Bezier(const Vector4 &cp, scalar_t t)
 /* Bezier - (MG)
  * Vector3 overloaded bezier function
  */
-Vector3 Bezier(const Vector3 &p0, const Vector3 &p1,
-	       const Vector3 &p2, const Vector3 &p3,
-	       scalar_t t)
+Vector3 Bezier(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t)
 {
-
 	static scalar_t omt, omt3, t3, f;
 	t3 = t * t * t;
 	omt = 1.0f - t;
@@ -120,9 +117,7 @@ Vector3 Bezier(const Vector3 &p0, const Vector3 &p1,
  * returns a vector tangent to the 
  * Bezier curve at the specified point
  */
-Vector3 BezierTangent(const Vector3 &p0, const Vector3 &p1,
-		      const Vector3 &p2, const Vector3 &p3,
-		      scalar_t t)
+Vector3 BezierTangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t)
 {
 	static scalar_t omt;
 	omt = 1.0f - t;

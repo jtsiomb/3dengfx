@@ -242,8 +242,7 @@ void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int su
  * overloaded function that gets a vector3 array
  * and makes a single Bezier patch
  */
-
-static void CreateBezierPatch(TriMesh *mesh, Vector3 *cp, int subdiv)
+void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv)
 {
 
 	// make 8 BezierSpline's
@@ -364,12 +363,7 @@ static void CreateBezierPatch(TriMesh *mesh, Vector3 *cp, int subdiv)
  * segments, multiple patches will be included
  * in the output TriMesh
  */
-void CreateBezierPatch(TriMesh *mesh, 
-		const BezierSpline &u0,
-		const BezierSpline &u1,
-		const BezierSpline &u2,
-		const BezierSpline &u3,
-		int subdiv)
+void CreateBezierPatch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline &u1, const BezierSpline &u2, const BezierSpline &u3, int subdiv)
 {
 	// get minimum number of segments
 	unsigned long min_seg , tmp;

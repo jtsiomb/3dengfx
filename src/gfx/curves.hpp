@@ -17,6 +17,15 @@ You should have received a copy of the GNU General Public License
 along with the graphics core library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* 3D Curves
+ * 
+ * author: John Tsiombikas 2003
+ * modified:
+ * 		John Tsiombikas 2004
+ * 		Mihalis Georgoulopoulos 2004
+ */
+
 #ifndef _CURVES_HPP_
 #define _CURVES_HPP_
 

@@ -57,7 +57,7 @@ const char *loc_get_path(const char *file, enum loc_file_type file_type) {
 static const char *locate_config(const char *file) {
 	FILE *fp;
 	char *env, *pptr = path;
-	const char *fptr = file;
+	const char *ex_path, *fptr = file;
 	
 	/* first try $NLOC_CONFIG_PATH/file */
 	env = getenv(CONF_ENV);
@@ -123,13 +123,15 @@ static const char *locate_config(const char *file) {
 
 
 	/* finally as a last resort try the executable directory, this may not work */
-	strcpy(path, exec_path());
-	strcat(path, file);
+	if((ex_path = exec_path())) {
+		strcpy(path, ex_path);
+		strcat(path, file);
 
-	fprintf(stderr, "trying: %s\n", path);
-	if((fp = fopen(path, "r"))) {
-		fclose(fp);
-		return path;
+		fprintf(stderr, "trying: %s\n", path);
+		if((fp = fopen(path, "r"))) {
+			fclose(fp);
+			return path;
+		}
 	}
 
 	return 0;

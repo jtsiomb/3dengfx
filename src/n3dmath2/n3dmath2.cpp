@@ -56,6 +56,33 @@ scalar_t Gaussian(scalar_t x, scalar_t mean, scalar_t sdev) {
 }
 
 
+// -- b-spline approximation --
+scalar_t BSpline(const Vector4 &cpvec, scalar_t t) {
+	Matrix4x4 bspline_mat(	-1,  3, -3,  1,
+							 3, -6,  3,  0,
+							-3,  0,  3,  0,
+							 1,  4,  1,  0);
+	
+	scalar_t t_square = t * t;
+	scalar_t t_cube = t_square * t;
+	Vector4 params(t_cube, t_square, t, 1.0);
+
+	return DotProduct(params, cpvec.Transformed(bspline_mat) / 6.0);
+}
+
+// -- catmull rom spline interpolation --
+scalar_t CatmullRomSpline(const Vector4 &cpvec, scalar_t t) {
+	Matrix4x4 crspline_mat(	-1,  3, -3,  1,
+							 2, -5,  4, -1,
+							-1,  0,  1,  0,
+							 0,  2,  0,  0);
+
+	scalar_t t_square = t * t;
+	scalar_t t_cube = t_square * t;
+	Vector4 params(t_cube, t_square, t, 1.0);
+
+	return DotProduct(params, cpvec.Transformed(crspline_mat) / 2.0);
+}
 
 Base::Base() {
 	i = Vector3(1, 0, 0);

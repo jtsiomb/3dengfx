@@ -52,15 +52,16 @@ public:
 	virtual void SetEaseSampleCount(int count);
 
 	virtual Vector3 Interpolate(scalar_t t) = 0;
+	virtual Vector3 operator ()(scalar_t t);
 };
 
-class BSpline : public Curve {
+class BSplineCurve : public Curve {
 public:
 	virtual int GetSegmentCount() const;
 	virtual Vector3 Interpolate(scalar_t t);	
 };
 
-class CatmullRomSpline : public Curve {
+class CatmullRomSplineCurve : public Curve {
 public:
 	virtual int GetSegmentCount() const;
 	virtual Vector3 Interpolate(scalar_t t);

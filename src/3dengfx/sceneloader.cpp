@@ -203,7 +203,7 @@ bool SceneLoader::LoadScene(const char *fname, Scene **scene) {
 
 			case OBJ_CURVE:
 				{
-                    CatmullRomSpline *spline = (CatmullRomSpline*)objptr;
+                    CatmullRomSplineCurve *spline = (CatmullRomSplineCurve*)objptr;
 					scn->AddCurve(spline);
 				}
 				break;
@@ -698,7 +698,7 @@ int ReadObject(FILE *file, const ChunkHeader &ch, void **obj) {
 		}
 
 		if(curve) {
-			CatmullRomSpline *spline = new CatmullRomSpline;
+			CatmullRomSplineCurve *spline = new CatmullRomSplineCurve;
 			spline->name = name;
 			for(dword i=0; i<VertexCount; i++) {
 				spline->AddControlPoint(varray[i].pos);

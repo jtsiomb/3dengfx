@@ -57,6 +57,15 @@ scalar_t frand(scalar_t range);
 scalar_t Integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samples);
 scalar_t Gaussian(scalar_t x, scalar_t mean, scalar_t sdev);
 
+// -- interpolation and approximation --
+inline scalar_t Lerp(scalar_t a, scalar_t b, scalar_t t);
+
+scalar_t BSpline(const Vector4 &cpvec, scalar_t t);
+inline scalar_t BSpline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);
+
+scalar_t CatmullRomSpline(const Vector4 &cpvec, scalar_t t);
+inline scalar_t CatmullRomSpline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);
+
 // -- actual class definitions --
 #include "n3dmath2_vec.hpp"
 #include "n3dmath2_mat.hpp"
@@ -83,5 +92,7 @@ public:
 
 // bad ugly hack
 size_t SizeOfScalarType();
+
+#include "n3dmath2.inl"
 
 #endif	// _N3DMATH2_HPP_

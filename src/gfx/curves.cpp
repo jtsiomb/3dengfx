@@ -73,7 +73,7 @@ void Curve::SampleArcLengths() {
 	ArcParametrize = true;
 }
 
-int BinarySearch(Vector2 *array, scalar_t key, int begin, int end) {
+static int BinarySearch(Vector2 *array, scalar_t key, int begin, int end) {
 	int middle = begin + ((end - begin)>>1);
 
 	if(array[middle][ArcLen] == key) return middle;
@@ -138,14 +138,17 @@ void Curve::SetEaseSampleCount(int count) {
 	ease_step = (int)(1.0f / (scalar_t)ease_sample_count);
 }
 
+Vector3 Curve::operator ()(scalar_t t) {
+	return Interpolate(t);
+}
 
 ///////////////// B-Spline implementation ////////////////////
 
-int BSpline::GetSegmentCount() const {
+int BSplineCurve::GetSegmentCount() const {
 	return ControlPoints.Size() - 3;
 }
 
-Vector3 BSpline::Interpolate(scalar_t t) {
+Vector3 BSplineCurve::Interpolate(scalar_t t) {
 
 	if(ControlPoints.Size() < 4) return Vector3(0, 0, 0);
 
@@ -171,6 +174,7 @@ Vector3 BSpline::Interpolate(scalar_t t) {
 		iter = iter->next;
 	}
 
+	/*
 	Matrix4x4 BSplineMat(-1, 3, -3, 1, 3, -6, 3, 0, -3, 0, 3, 0, 1, 4, 1, 0);
 	//BSplineMat.Transpose();
 	Vector4 Params(t*t*t, t*t, t, 1);
@@ -191,17 +195,23 @@ Vector3 BSpline::Interpolate(scalar_t t) {
 	res.x = DotProduct(Params, CpX);
 	res.y = DotProduct(Params, CpY);
 	res.z = DotProduct(Params, CpZ);
+	*/
+
+	Vector3 res;
+	res.x = BSpline(Cp[0].x, Cp[1].x, Cp[2].x, Cp[3].x, t);
+	res.y = BSpline(Cp[0].y, Cp[1].y, Cp[2].y, Cp[3].y, t);
+	res.z = BSpline(Cp[0].z, Cp[1].z, Cp[2].z, Cp[3].z, t);
 
 	return res;
 }
 
 //////////////// Catmull-Rom Spline implementation //////////////////
 
-int CatmullRomSpline::GetSegmentCount() const {
+int CatmullRomSplineCurve::GetSegmentCount() const {
 	return ControlPoints.Size() - 1;
 }
 
-Vector3 CatmullRomSpline::Interpolate(scalar_t t) {
+Vector3 CatmullRomSplineCurve::Interpolate(scalar_t t) {
 
 	if(ControlPoints.Size() < 2) return Vector3(0, 0, 0);
 
@@ -237,6 +247,7 @@ Vector3 CatmullRomSpline::Interpolate(scalar_t t) {
 		Cp[3] = iter->next->next->data;
 	}
 
+	/*
 	Matrix4x4 BSplineMat(-1, 3, -3, 1, 2, -5, 4, -1, -1, 0, 1, 0, 0, 2, 0, 0);
 	//BSplineMat.Transpose();
 	Vector4 Params(t*t*t, t*t, t, 1);
@@ -257,6 +268,12 @@ Vector3 CatmullRomSpline::Interpolate(scalar_t t) {
 	res.x = DotProduct(Params, CpX);
 	res.y = DotProduct(Params, CpY);
 	res.z = DotProduct(Params, CpZ);
+	*/
+
+	Vector3 res;
+	res.x = CatmullRomSpline(Cp[0].x, Cp[1].x, Cp[2].x, Cp[3].x, t);
+	res.y = CatmullRomSpline(Cp[0].y, Cp[1].y, Cp[2].y, Cp[3].y, t);
+	res.z = CatmullRomSpline(Cp[0].z, Cp[1].z, Cp[2].z, Cp[3].z, t);
 
 	return res;
 }

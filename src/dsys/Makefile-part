@@ -1,1 +1,0 @@
-obj += src/dsys/dsys.o src/dsys/fx.o src/dsys/part.o src/dsys/script.o

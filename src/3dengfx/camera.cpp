@@ -59,9 +59,13 @@ Vector3 TargetCamera::GetTarget(unsigned long msec) const {
 
 void TargetCamera::Activate(unsigned long msec) const {
 	extern Matrix4x4 view_matrix;
+	PRS prs = GetPRS(msec);
 
-	Vector3 pos = GetPRS(msec).position;
 	Vector3 targ = target.GetPRS(msec).position;
+
+	Vector3 pvec = prs.position - targ;
+	pvec.Transform(prs.rotation.GetRotationMatrix());
+	Vector3 pos = targ + pvec;
 
 	Vector3 n = (targ - pos).Normalized();
 	Vector3 u = CrossProduct(up, n).Normalized();
@@ -75,6 +79,7 @@ void TargetCamera::Activate(unsigned long msec) const {
 							v.x, v.y, v.z, ty,
 							n.x, n.y, n.z, tz,
 							0.0, 0.0, 0.0, 1.0);
+
 	
 	SetMatrix(XFORM_PROJECTION, CreateProjectionMatrix(fov, aspect, near_clip, far_clip));
 }

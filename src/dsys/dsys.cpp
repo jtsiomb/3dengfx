@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "dsys.hpp"
 #include "part.hpp"
 #include "3dengfx/3dengfx.hpp"
+#include "n3dmath2/n3dmath2.hpp"
 #include "common/timer.h"
 #include "script.h"
 #include "common/bstree.hpp"

@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,9 +18,10 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* higher level 3d object entity
+/* higher level 3d object abstraction
  *
  * Author: John Tsiombikas 2004
+ * Modified: John Tsiombikas 2005
  */
 
 #include "3dengfx_config.h"
@@ -28,8 +29,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "opengl.h"
 #include "object.hpp"
 #include "3denginefx.hpp"
+#include "camera.hpp"
 #include "gfxprog.hpp"
 #include "texman.hpp"
+#include "common/err_msg.h"
 
 RenderParams::RenderParams() {
 	billboarded = false;
@@ -46,17 +49,23 @@ RenderParams::RenderParams() {
 }
 	
 
-Object::Object() {}
+Object::Object() {
+	bvol_valid = false;
+	bvol = 0;
+}
 
 Object::Object(const TriMesh &mesh) {
-	this->mesh = mesh;
+	bvol = 0;
+	SetTriMesh(mesh);
 }
 
 void Object::SetTriMesh(const TriMesh &mesh) {
 	this->mesh = mesh;
+	UpdateBoundingVolume();
 }
 
 TriMesh *Object::GetTriMeshPtr() {
+	bvol_valid = false;
 	return &mesh;
 }
 
@@ -179,8 +188,33 @@ void Object::NormalizeNormals() {
 
 void Object::Render8TexUnits() {}
 
-void Object::Render(unsigned long time) {
+bool Object::Render(unsigned long time) {
 	world_mat = GetPRS(time).GetXFormMatrix();
+
+	if(!bvol_valid) UpdateBoundingVolume();
+
+	// set the active world-space transformation for the bounding volume ...
+	bvol->SetTransform(world_mat);
+	
+	/* if we have the camera that generated the active view matrix available
+	 * chances are it already has the view frustum, so use it directly to test
+	 * the object, otherwise generate one.
+	 */
+	extern const Camera *view_mat_camera;
+	if(view_mat_camera) {
+		if(!bvol->Visible(view_mat_camera->GetFrustum())) return false;
+	} else {
+		extern Matrix4x4 proj_matrix;
+		Matrix4x4 view_proj = proj_matrix * view_matrix;
+		
+		FrustumPlane frustum[6];
+		for(int i=0; i<6; i++) {
+			frustum[i] = FrustumPlane(view_proj, i);
+		}
+
+		if(!bvol->Visible(frustum)) return false;
+	}
+	
 	
 	SetMatrix(XFORM_WORLD, world_mat);
 	mat.SetGLMaterial();
@@ -188,6 +222,7 @@ void Object::Render(unsigned long time) {
 	//Render8TexUnits();
 	RenderHack(time);
 
+	return true;
 }
 
 void Object::RenderHack(unsigned long time) {
@@ -402,4 +437,25 @@ void Object::SetupBumpLight(unsigned long time) {
 	
 	delete [] utan;
 	delete [] vtan;
+}
+
+
+void Object::UpdateBoundingVolume() {
+	VertexStatistics vstat = mesh.GetVertexStats();
+
+	if(!bvol) {
+		bvol = new BoundingSphere(vstat.centroid, vstat.max_dist);
+		bvol_valid = true;
+	} else {
+		BoundingSphere *bsph;
+		
+		if((bsph = dynamic_cast<BoundingSphere*>(bvol))) {
+			bsph->SetPosition(vstat.centroid);
+			bsph->SetRadius(vstat.max_dist);
+			bvol_valid = true;
+		} else {
+			int dbg;
+			if(!dbg++) error("obj \"%s\": only bounding spheres are supported at this point", name.c_str());
+		}
+	}
 }

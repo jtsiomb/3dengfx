@@ -109,7 +109,5 @@ public:
 
 // utility functions
 bool PointOverPlane(const Plane &plane, const Vector3 &point);
-bool LinePlaneIntersection(Vector3 *vec_out, const Plane &plane, const Vector3 &p1, const Vector3 &p2);
-
 
 #endif	// _N3DMATH2_QDR_HPP_

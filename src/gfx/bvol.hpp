@@ -31,15 +31,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/base_cam.hpp"
 
 class BoundingVolume {
-private:
+protected:
 	BoundingVolume *parent;
 	std::vector<BoundingVolume*> children;
+	Matrix4x4 transform;
 
 public:
 	BoundingVolume();
+	virtual ~BoundingVolume();
+
+	virtual void SetTransform(const Matrix4x4 &transform);
 
 	virtual bool RayHit(const Ray &ray) const = 0;
-	virtual bool Visible(const BaseCamera *cam) const = 0;
+	virtual bool Visible(const FrustumPlane *frustum) const = 0;
 };
 
 class BoundingSphere : public BoundingVolume, public Sphere {
@@ -47,7 +51,7 @@ public:
 	BoundingSphere(const Vector3 &pos = Vector3(0,0,0), scalar_t rad = 1.0);
 
 	virtual bool RayHit(const Ray &ray) const;
-	virtual bool Visible(const BaseCamera *cam) const;
+	virtual bool Visible(const FrustumPlane *frustum) const;
 };
 
 #endif	// _BVOL_HPP_

@@ -44,7 +44,10 @@ void Camera::Activate(unsigned long msec) const {
 	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
 	SetMatrix(XFORM_PROJECTION, proj);
 
-	const_cast<Camera*>(this)->SetupFrustum(view_matrix * proj);
+	extern const Camera *view_mat_camera;
+	view_mat_camera = this;
+
+	const_cast<Camera*>(this)->SetupFrustum(proj * view_matrix);
 }
 
 
@@ -103,7 +106,10 @@ void TargetCamera::Activate(unsigned long msec) const {
 	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
 	SetMatrix(XFORM_PROJECTION, proj);
 
-	const_cast<TargetCamera*>(this)->SetupFrustum(view_matrix * proj);
+	extern const Camera *view_mat_camera;
+	view_mat_camera = this;
+
+	const_cast<TargetCamera*>(this)->SetupFrustum(proj * view_matrix);
 }
 
 

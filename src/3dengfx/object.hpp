@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,6 +17,13 @@ You should have received a copy of the GNU General Public License
 along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* higher level 3d object abstraction
+ *
+ * Author: John Tsiombikas 2004
+ * Modified: John Tsiombikas 2005
+ */
+
 #ifndef _OBJECT_HPP_
 #define _OBJECT_HPP_
 
@@ -26,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "n3dmath2/n3dmath2.hpp"
 #include "material.hpp"
 #include "3denginefx.hpp"
+#include "gfx/bvol.hpp"
 
 struct RenderParams {
 	bool billboarded;
@@ -48,6 +56,8 @@ private:
 	Material mat;
 	Matrix4x4 world_mat;
 	RenderParams render_params;
+	BoundingVolume *bvol;
+	bool bvol_valid;
 	
 	//void Render2TexUnits();
 	//void Render4TexUnits();
@@ -58,6 +68,7 @@ private:
 	void DrawNormals();
 	
 	void SetupBumpLight(unsigned long time);
+	void UpdateBoundingVolume();
 	
 public:
 	Object();
@@ -97,7 +108,7 @@ public:
 	void CalculateNormals();
 	void NormalizeNormals();
 	
-	void Render(unsigned long time = XFORM_LOCAL_PRS);
+	bool Render(unsigned long time = XFORM_LOCAL_PRS);
 };
 
 #endif	// _OBJECT_HPP_

@@ -279,13 +279,6 @@ void Scene::Render(unsigned long msec) const {
 	
 	SetupLights(msec);
 
-	// set projection matrix
-	float near_clip, far_clip;
-	near_clip = active_camera->GetClippingPlane(CLIP_NEAR);
-	far_clip = active_camera->GetClippingPlane(CLIP_FAR);
-	//Matrix4x4 proj = CreateProjectionMatrix(active_camera->GetFOV(), active_camera->GetAspect(), near_clip, far_clip);
-	//SetMatrix(XFORM_PROJECTION, proj);
-
 	// render objects
 	std::list<Object *>::const_iterator iter = objects.begin();
 	while(iter != objects.end()) {
@@ -294,8 +287,9 @@ void Scene::Render(unsigned long msec) const {
 		RenderParams rp = obj->GetRenderParams();
 
 		if(!rp.hidden) {
-			obj->Render(msec);
-			poly_count += obj->GetTriMeshPtr()->GetTriangleArray()->GetCount();
+			if(obj->Render(msec)) {
+				poly_count += obj->GetTriMeshPtr()->GetTriangleArray()->GetCount();
+			}
 		}
 	}
 

@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "fxwt/init.hpp"
 #include "fxwt/gfx_library.h"
 #include "3denginefx.hpp"
+#include "camera.hpp"
 #include "gfx/3dgeom.hpp"
 #include "gfxprog.hpp"
 #include "gfx/image.h"
@@ -100,7 +101,8 @@ static GraphicsInitParameters gparams;
 static SysCaps sys_caps;
 Matrix4x4 world_matrix;
 Matrix4x4 view_matrix;
-static Matrix4x4 proj_matrix;
+const Camera *view_mat_camera;
+Matrix4x4 proj_matrix;
 static Matrix4x4 tex_matrix[8];
 
 static int coord_index[MAX_TEXTURES];
@@ -931,6 +933,7 @@ void SetMatrix(TransformType xform_type, const Matrix4x4 &mat, int num) {
 		
 	case XFORM_VIEW:
 		view_matrix = mat;
+		view_mat_camera = 0;
 		break;
 		
 	case XFORM_PROJECTION:

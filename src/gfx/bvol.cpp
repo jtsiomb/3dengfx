@@ -29,6 +29,11 @@ BoundingVolume::BoundingVolume() {
 	parent = 0;
 }
 
+BoundingVolume::~BoundingVolume() {}
+
+void BoundingVolume::SetTransform(const Matrix4x4 &transform) {
+	this->transform = transform;
+}
 
 BoundingSphere::BoundingSphere(const Vector3 &pos, scalar_t rad) {
 	SetPosition(pos);
@@ -36,7 +41,11 @@ BoundingSphere::BoundingSphere(const Vector3 &pos, scalar_t rad) {
 }
 
 bool BoundingSphere::RayHit(const Ray &ray) const {
-	if(!CheckIntersection(ray)) return false;
+	Sphere sph = *this;
+	Vector3 new_pos = sph.GetPosition();
+	sph.SetPosition(new_pos.Transformed(transform));
+	
+	if(!sph.CheckIntersection(ray)) return false;
 	if(!children.size()) return true;
 	
 	for(size_t i=0; i<children.size(); i++) {
@@ -46,12 +55,12 @@ bool BoundingSphere::RayHit(const Ray &ray) const {
 	return false;
 }
 
-bool BoundingSphere::Visible(const BaseCamera *cam) const {
-	const FrustumPlane *frustum = cam->GetFrustum();
+bool BoundingSphere::Visible(const FrustumPlane *frustum) const {
+	Vector3 new_pos = pos.Transformed(transform);
 	
 	for(int i=0; i<6; i++) {
 		Vector3 normal(frustum[i].a, frustum[i].b, frustum[i].c);
-		scalar_t dist = DotProduct(pos, normal) + frustum[i].d;
+		scalar_t dist = DotProduct(new_pos, normal) + frustum[i].d;
 
 		if(fabs(dist) < radius) break;
 		if(dist < -radius) return false;
@@ -61,8 +70,7 @@ bool BoundingSphere::Visible(const BaseCamera *cam) const {
 	if(!children.size()) return true;
 
 	for(size_t i=0; i<children.size(); i++) {
-		if(children[i]->Visible(cam)) return true;
+		if(children[i]->Visible(frustum)) return true;
 	}
-
 	return false;
 }

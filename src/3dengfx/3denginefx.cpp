@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <iostream>
 #include <list>
+#include <csignal>
 #include "opengl.h"
 #include "fxwt/fxwt.hpp"
 #include "fxwt/init.hpp"
@@ -311,6 +312,11 @@ void LoadMatrix_TransposeManual(const Matrix4x4 &mat) {
 
 //////////////// 3D Engine Initialization ////////////////
 
+static void SignalHandler(int sig) {
+	error("It seems this is the end... caught signal %d, exiting...\n", sig);
+	exit(-1);
+}
+
 /* ---- CreateGraphicsContext() ----
  * initializes the graphics subsystem according to the init parameters
  */
@@ -327,6 +333,13 @@ bool CreateGraphicsContext(const GraphicsInitParameters &gip) {
 	if(!fxwt::InitGraphics(&gparams)) {
 		return false;
 	}
+
+	atexit(fxwt::DestroyGraphics);
+	signal(SIGSEGV, SignalHandler);
+	signal(SIGILL, SignalHandler);
+	signal(SIGTERM, SignalHandler);
+	signal(SIGFPE, SignalHandler);
+	signal(SIGINT, SignalHandler);
 
 #if GFX_LIBRARY == GTK
 	fxwt::Init();

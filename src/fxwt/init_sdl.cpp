@@ -33,8 +33,6 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 		return false;
 	}
 
-	if(gparams->fullscreen) SDL_ShowCursor(0);
-	
 	if(!gparams->fullscreen) {
 		const SDL_VideoInfo *vid_inf = SDL_GetVideoInfo();
 		gparams->bpp = vid_inf->vfmt->BitsPerPixel;
@@ -114,14 +112,12 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 		error("%s: Could not set exact stencil format", __func__);
 		return false;
 	}
-	
+
 	return true;
 }
 
 
 void fxwt::DestroyGraphics() {
-	const GraphicsInitParameters *gparams = GetGraphicsInitParameters();
-	if(gparams->fullscreen) SDL_ShowCursor(1);
 	SDL_Quit();
 }
 #endif	// SDL

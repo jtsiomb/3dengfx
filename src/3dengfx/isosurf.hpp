@@ -47,9 +47,9 @@ private:
 public:
 	VoxelField(const Vector3 &size, int xcount, int ycount, int zcount);
 	~VoxelField();
-};
 
-void CreateIsoSurface(const std::vector<MetaObject*> &mvec, const VoxelField &field, TriMesh *mesh);
+	void CreateIsoSurface(scalar_t isoval, TriMesh *mesh);
+};
 
 
 #endif	/* _ISOSURF_HPP_ */

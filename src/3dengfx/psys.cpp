@@ -210,6 +210,7 @@ void ParticleSystem::Update(const Vector3 &ext_force) {
 		if(p->Alive()) {
 			iter++;
 		} else {
+			delete *iter;
 			iter = particles.erase(iter);
 		}
 	}

@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "isosurf.hpp"
 
+#define ISOSURF_SOURCE
+#include "mcube_tables.h"
+
 MetaSphere::MetaSphere(scalar_t potential) {
 	this->potential = potential;
 }
@@ -61,6 +64,6 @@ VoxelField::~VoxelField() {
 }
 
 
-void CreateIsoSurface(const std::vector<MetaObject*> &mvec, const VoxelField &field, TriMesh *mesh) {
-	// TODO: implement isosurface generation
+void VoxelField::CreateIsoSurface(scalar_t isoval, TriMesh *mesh) {
+	
 }

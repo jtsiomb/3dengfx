@@ -1,0 +1,1 @@
+obj += src/gfx/3dgeom.o src/gfx/controller.o src/gfx/base_cam.o src/gfx/curves.o src/gfx/color.o

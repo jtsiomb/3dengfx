@@ -42,12 +42,11 @@ Scene::Scene() {
 	for(int i=0; i<6; i++) {
 		cubic_cam[i] = new Camera;
 		cubic_cam[i]->SetFOV(half_pi);
-		cubic_cam[i]->Rotate(Vector3(pi, 0, 0));
 		cubic_cam[i]->SetAspect(1.0);
 	}
 
 	cubic_cam[CUBE_MAP_INDEX_NX]->Rotate(Vector3(0, half_pi, 0));
-	cubic_cam[CUBE_MAP_INDEX_PZ]->Rotate(Vector3(0, pi, 0));
+	cubic_cam[CUBE_MAP_INDEX_NZ]->Rotate(Vector3(0, pi, 0));
 	cubic_cam[CUBE_MAP_INDEX_PX]->Rotate(Vector3(0, -half_pi, 0));
 
 	cubic_cam[CUBE_MAP_INDEX_NY]->Rotate(Vector3(half_pi, 0, 0));
@@ -323,7 +322,7 @@ void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
 	ClearZBufferStencil(1.0, 0);
 	Render(msec);
 	SetRenderTarget(0);
-	
+
 
 	non_const_this->SetActiveCamera(active_cam);
 

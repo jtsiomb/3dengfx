@@ -1,8 +1,8 @@
 obj := n3dmath2.o n3dmath2_mat.o n3dmath2_vec.o n3dmath2_qua.o n3dmath2_ray.o n3dmath2_qdr.o
 
-opt := -O3 -mmmx -msse
+include ../Makefile-options
 
-CXXFLAGS := -g $(opt) -ansi -pedantic -Wall -fPIC -I..
+CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC -I..
 
 n3dmath2_pack.o: $(obj)
 	$(LD) -r -o $@ $(obj)

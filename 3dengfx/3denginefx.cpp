@@ -208,9 +208,9 @@ SysCaps GetSystemCapabilities() {
 	static bool first_call = true;
 	
 	if(!first_call) {
-		first_call = false;
 		return sys_caps;
 	}
+	first_call = false;
 	
 	// get extensions & vendor strings
 	const char *tmp_str = (const char*)glGetString(GL_EXTENSIONS);

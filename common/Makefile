@@ -1,6 +1,6 @@
 obj := image.o logger.o config_parser.o timer.o fps_counter.o err_msg.o
 
-opt := -O3 -mmmx -msse
+include ../Makefile-options
 
 CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC
 CFLAGS := $(opt) -ansi -pedantic -Wall -fPIC

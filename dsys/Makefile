@@ -1,8 +1,8 @@
 obj := dsys.o fx.o part.o script.o
 
-opt := -O3 -mmmx -msse
+include ../Makefile-options
 
-CXXFLAGS := -g $(opt) -ansi -pedantic -Wall -fPIC\
+CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC\
 			-I../common -I../3dengfx -I../gfx -I..
 
 CFLAGS := $(CXXFLAGS)

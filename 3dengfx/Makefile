@@ -3,9 +3,9 @@ obj :=  3denginefx.o textures.o camera.o except.o material.o\
 	ggen.o 3dscene.o sceneloader.o gfxprog.o\
 	3dwt/3dwt.o
 
-opt := -O3 -mmmx -msse
+include ../Makefile-options
 
-CXXFLAGS := -g $(opt) -ansi -pedantic -Wall -fPIC\
+CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC\
 			-I. -I../common -I../gfx -I../nlibase -I../dsys -I.. `sdl-config --cflags`
 
 3dengfx_pack.o: $(obj)

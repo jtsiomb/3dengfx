@@ -25,25 +25,26 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3denginefx.hpp"
 #include "gfxprog.hpp"
 
+static void InitRenderParams(RenderParams *rp) {
+	rp->shading = SHADING_GOURAUD;
+	rp->billboarded = false;
+	rp->zwrite = true;
+	rp->blending = false;
+	rp->src_blend = BLEND_SRC_ALPHA;
+	rp->dest_blend = BLEND_ONE_MINUS_SRC_ALPHA;
+	rp->wire = false;
+	rp->vprog = rp->pprog = 0;
+	rp->auto_cube_maps = false;
+	rp->hidden = false;
+}
+	
 
 Object::Object() {
-	render_params.shading = SHADING_GOURAUD;
-	render_params.billboarded = false;
-	render_params.zwrite = true;
-	render_params.blending = false;
-	render_params.src_blend = BLEND_SRC_ALPHA;
-	render_params.dest_blend = BLEND_ONE_MINUS_SRC_ALPHA;
-	render_params.vprog = render_params.pprog = 0;
+	InitRenderParams(&render_params);
 }
 
 Object::Object(const TriMesh &mesh) {
-	render_params.shading = SHADING_GOURAUD;
-	render_params.billboarded = false;
-	render_params.zwrite = true;
-	render_params.blending = false;
-	render_params.src_blend = BLEND_SRC_ALPHA;
-	render_params.dest_blend = BLEND_ONE_MINUS_SRC_ALPHA;
-	render_params.vprog = render_params.pprog = 0;
+	InitRenderParams(&render_params);
 	
 	this->mesh = mesh;
 }

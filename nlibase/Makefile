@@ -1,8 +1,8 @@
 obj := nlibase.o
 
-opt := -O3 -mmmx -msse
+include ../Makefile-options
 
-CFLAGS := $(opt) -g -std=c89 -pedantic -Wall -fPIC
+CFLAGS := $(opt) -std=c89 -pedantic -Wall -fPIC
 
 #nlibase.a: $(obj)
 #	ar crus $@ $(obj)

@@ -70,15 +70,31 @@ void Texture::AddFrame() {
 	
 	glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	if(type == TEX_CUBE) {
+		glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	} else {
+		glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
 	
 	frame_tex_id.push_back(tex_id);
 }
 
 void Texture::AddFrame(const PixelBuffer &pbuf) {
 	AddFrame();
-	SetPixelData(pbuf);
+
+	if(type == TEX_CUBE) {
+		SetPixelData(pbuf, CUBE_MAP_PX);
+		SetPixelData(pbuf, CUBE_MAP_NX);
+		SetPixelData(pbuf, CUBE_MAP_PY);
+		SetPixelData(pbuf, CUBE_MAP_NY);
+		SetPixelData(pbuf, CUBE_MAP_PZ);
+		SetPixelData(pbuf, CUBE_MAP_NZ);
+	} else {
+		SetPixelData(pbuf);
+	}
 }
 
 void Texture::SetActiveFrame(unsigned int frame) {

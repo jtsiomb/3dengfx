@@ -1,8 +1,8 @@
 obj := 3dgeom.o controller.o base_cam.o curves.o color.o
 
-opt := -O3 -mmmx -msse
+include ../Makefile-options
 
-CXXFLAGS := -g $(opt) -ansi -pedantic -Wall -fPIC -I. -I../common -I../3dengfx -I..
+CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC -I. -I../common -I../3dengfx -I..
 
 gfx_pack.o: $(obj)
 	$(LD) -r -o $@ $(obj)

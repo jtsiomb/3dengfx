@@ -329,9 +329,12 @@ bool CreateGraphicsContext(const GraphicsInitParameters &gip) {
 	}
 
 #if GFX_LIBRARY == GTK
+	fxwt::Init();
 	return true;
 #else
-	return StartGL();
+	if(!StartGL()) return false;
+	fxwt::Init();
+	return true;
 #endif	// GTK
 }
 

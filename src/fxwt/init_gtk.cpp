@@ -131,8 +131,6 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 	//gtk_container_add(GTK_CONTAINER(gl_window), gl_drawing_area);
 	//gtk_widget_show(gl_drawing_area);
 	//gtk_widget_show(gl_window);
-	
-	fxwt::Init();
 
 	return true;
 }

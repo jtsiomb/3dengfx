@@ -31,6 +31,9 @@ Material::Material() {
 	env_intensity = 1.0f;
 	bump_intensity = 1.0f;
 	alpha = 1.0f;
+
+	wireframe = false;
+	shading = SHADING_GOURAUD;
 	
 	memset(tex, 0, MAX_TEXTURES * sizeof(Texture*));
 }
@@ -48,7 +51,7 @@ Material::Material(const Color &col) {
 }
 
 void Material::SetTexture(Texture *texture, TextureType type) {
-	tex_count++;
+	if(texture) tex_count++;
 	tex[type] = texture;
 }
 

@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define _MATERIALS_HPP_
 
 #include <string>
+#include "3denginefx_types.hpp"
 #include "textures.hpp"
 #include "gfx/color.hpp"
 
@@ -53,6 +54,9 @@ public:
 	
 	Texture *tex[MAX_TEXTURES];
 	int tex_count;
+
+	bool wireframe;
+	ShadeMode shading;
 	
 	Material();
 	Material(const Color &col);

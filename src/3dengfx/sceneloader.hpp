@@ -1,7 +1,7 @@
 /*
 This file is part of the 3dengfx, realtime visualization system.
 
-Copyright (c) 2002 - 2005 John Tsiombikas <nuclear@siggraph.org>
+Copyright (c) 2005 John Tsiombikas <nuclear@siggraph.org>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,11 +18,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* Scene loader from 3ds files header.
- * see source file for details.
+/* Scene loader from 3ds files.
  *
- * author: John Tsiombikas 2002
- * modified: John Tsiombikas 2003, 2004, 2005
+ * author: John Tsiombikas 2005
  */
 
 #ifndef _SCENELOADER_HPP_
@@ -32,13 +30,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3dscene.hpp"
 #include "material.hpp"
 
-namespace SceneLoader {
-	void SetDataPath(const char *path);
-	void SetNormalFileSaving(bool enable);
+void SetSceneDataPath(const char *path);
 
-	bool LoadObject(const char *fname, const char *objname, Object **obj);
-	bool LoadScene(const char *fname, Scene **scene);
-	bool LoadMaterials(const char *fname, Material **materials);
-}
+Scene *LoadScene(const char *fname);
+
+bool LoadMaterial(const char *name, Material *mat);
 
 #endif	// _SCENELOADER_H_

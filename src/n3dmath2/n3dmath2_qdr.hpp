@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the n3dmath2 library.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 The n3dmath2 library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,26 +32,30 @@ struct SurfPoint {
 	scalar_t pre_ior, post_ior;	// obviously these come handy with raytracing
 };
 
-// Abstract base class for quadratic objects
-class Quadratic {
+// Abstract base class for surfaces
+class Surface {
 protected:
 	Vector3 pos;
+	Quaternion rot;
 
 public:
-	Quadratic(const Vector3 &pos=Vector3(0,0,0));
-	virtual ~Quadratic();
+	Surface(const Vector3 &pos=Vector3(0,0,0));
+	virtual ~Surface();
 
 	virtual void SetPosition(const Vector3 &pos);
 	virtual Vector3 GetPosition() const;
 
-	virtual Vector2 InvMap(const Vector3 &pt, const Quaternion &rot) const = 0;
+	virtual void SetRotation(const Quaternion &rot);
+	virtual Quaternion GetRotation() const;
+
+	virtual Vector2 InvMap(const Vector3 &pt) const = 0;
 	
 	virtual bool CheckIntersection(const Ray &ray) const = 0;
 	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const = 0;
 };
 
 // sphere (x² + y² + z² = r²)
-class Sphere : public Quadratic {
+class Sphere : public Surface {
 protected:
 	scalar_t radius;
 	
@@ -62,14 +66,14 @@ public:
 	virtual void SetRadius(scalar_t rad);
 	virtual scalar_t GetRadius() const;
 	
-	virtual Vector2 InvMap(const Vector3 &pt, const Quaternion &rot = Quaternion()) const;
+	virtual Vector2 InvMap(const Vector3 &pt) const;
 	
 	virtual bool CheckIntersection(const Ray &ray) const;
 	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;
 };
 
 // plane (ax + by + cz + d = 0)
-class Plane : public Quadratic {
+class Plane : public Surface {
 protected:
 	Vector3 normal;
 	
@@ -81,8 +85,24 @@ public:
 	virtual void SetNormal(const Vector3 &normal);
 	virtual Vector3 GetNormal() const;
 	
-	virtual Vector2 InvMap(const Vector3 &pt, const Quaternion &rot = Quaternion()) const;
+	virtual Vector2 InvMap(const Vector3 &pt) const;
 	
+	virtual bool CheckIntersection(const Ray &ray) const;
+	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;
+};
+
+class Box : public Surface {
+protected:
+	Vector3 verts[8];
+
+public:
+	Box(const Vector3 &min_vec = Vector3(-1,-1,-1), const Vector3 &max_vec = Vector3(1,1,1));
+	Box(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &v3,
+		const Vector3 &v4, const Vector3 &v5, const Vector3 &v6, const Vector3 &v7);
+	Box(const Vector3 *array);
+
+	virtual Vector2 InvMap(const Vector3 &pt) const;
+
 	virtual bool CheckIntersection(const Ray &ray) const;
 	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;
 };

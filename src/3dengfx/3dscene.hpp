@@ -56,6 +56,7 @@ private:
 	mutable unsigned long frame_count;
 	mutable unsigned long poly_count;
 	unsigned long scene_poly_count;
+	bool frustum_cull;
 	
 	void PlaceCubeCamera(const Vector3 &pos);
 	bool RenderAllCubeMaps(unsigned long msec = XFORM_LOCAL_PRS) const;
@@ -99,6 +100,7 @@ public:
 	void SetFog(bool enable, Color fog_color = Color(0l), float near_fog = 0.0f, float far_fog = 1000.0f);
 	void SetAutoClear(bool enable);
 	void SetBackground(const Color &bg);
+	void SetFrustumCulling(bool enable);
 
 	// render states
 	void SetupLights(unsigned long msec = XFORM_LOCAL_PRS) const;

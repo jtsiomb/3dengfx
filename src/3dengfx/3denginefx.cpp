@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -43,10 +43,6 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
-
-#ifndef __GNUC__
-#define __func__	__FUNCTION__
-#endif	// __GNUC__
 
 #ifdef SINGLE_PRECISION_MATH
 #define GL_SCALAR_TYPE	GL_FLOAT

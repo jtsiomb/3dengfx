@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the n3dmath2 library.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 The n3dmath2 library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,23 +20,31 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "n3dmath2_qdr.hpp"
 
-Quadratic::Quadratic(const Vector3 &pos) {
+Surface::Surface(const Vector3 &pos) {
 	this->pos = pos;
 }
 
-Quadratic::~Quadratic() {}
+Surface::~Surface() {}
 
-void Quadratic::SetPosition(const Vector3 &pos) {
+void Surface::SetPosition(const Vector3 &pos) {
 	this->pos = pos;
 }
 
-Vector3 Quadratic::GetPosition() const {
+Vector3 Surface::GetPosition() const {
 	return pos;
+}
+
+void Surface::SetRotation(const Quaternion &rot) {
+	this->rot = rot;
+}
+
+Quaternion Surface::GetRotation() const {
+	return rot;
 }
 
 //////////////// sphere implementation ///////////////
 
-Sphere::Sphere(const Vector3 &pos, scalar_t rad) : Quadratic(pos) {
+Sphere::Sphere(const Vector3 &pos, scalar_t rad) : Surface(pos) {
 	radius = rad;
 }
 
@@ -50,7 +58,7 @@ scalar_t Sphere::GetRadius() const {
 	return radius;
 }
 
-Vector2 Sphere::InvMap(const Vector3 &pt, const Quaternion &rot) const {
+Vector2 Sphere::InvMap(const Vector3 &pt) const {
 	Vector3 normal = (pt - pos) / radius;
 	Vector3 pole = Vector3(0, 1, 0).Transformed(rot);
 	Vector3 equator = Vector3(0, 0, 1).Transformed(rot);
@@ -111,14 +119,13 @@ bool Sphere::FindIntersection(const Ray &ray, SurfPoint *isect) const {
 }
 
 
-Plane::Plane(const Vector3 &pos, const Vector3 &normal) : Quadratic(pos) {
+Plane::Plane(const Vector3 &pos, const Vector3 &normal) : Surface(pos) {
 	this->normal = normal;
 }
 
-Plane::Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3) : Quadratic(p1)
+Plane::Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3) : Surface(p1)
 {
-        this->pos = p1;
-        this->normal = CrossProduct(p2 - p1, p3 - p1).Normalized();
+	normal = CrossProduct(p2 - p1, p3 - p1).Normalized();
 }
 
 Plane::~Plane() {}
@@ -131,7 +138,7 @@ Vector3 Plane::GetNormal() const {
 	return normal;
 }
 
-Vector2 Plane::InvMap(const Vector3 &pt, const Quaternion &rot) const {
+Vector2 Plane::InvMap(const Vector3 &pt) const {
 	static int dbg; dbg++;
 	if(dbg == 1) std::cerr << "inverse mapping for planes not implemented yet!\n";
 	return Vector2(0, 0);
@@ -163,6 +170,47 @@ bool Plane::FindIntersection(const Ray &ray, SurfPoint *isect) const {
 }
 
 
+Box::Box(const Vector3 &min_vec, const Vector3 &max_vec) {
+	verts[0] = Vector3(min_vec.x, max_vec.y, min_vec.z);
+	verts[1] = Vector3(max_vec.x, max_vec.y, min_vec.z);
+	verts[2] = Vector3(max_vec.x, min_vec.y, min_vec.z);
+	verts[3] = Vector3(min_vec.x, min_vec.y, min_vec.z);
+
+	verts[4] = Vector3(min_vec.x, max_vec.y, max_vec.z);
+	verts[5] = Vector3(max_vec.x, max_vec.y, max_vec.z);
+	verts[6] = Vector3(max_vec.x, min_vec.y, max_vec.z);
+	verts[7] = Vector3(min_vec.x, min_vec.y, max_vec.z);
+}
+
+Box::Box(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &v3,
+		const Vector3 &v4, const Vector3 &v5, const Vector3 &v6, const Vector3 &v7) {
+	verts[0] = v0;
+	verts[1] = v1;
+	verts[2] = v2;
+	verts[3] = v3;
+	verts[4] = v4;
+	verts[5] = v5;
+	verts[6] = v6;
+	verts[7] = v7;
+}
+
+Box::Box(const Vector3 *array) {
+	memcpy(verts, array, sizeof verts);
+}
+
+Vector2 Box::InvMap(const Vector3 &pt) const {
+	return Vector2();	// TODO: implement
+}
+
+bool Box::CheckIntersection(const Ray &ray) const {
+	return false;	// TODO: implement
+}
+
+bool Box::FindIntersection(const Ray &ray, SurfPoint *isect) const {
+	return false;	// TODO: implement
+}
+
+
 /*
  * PointOverPlane (MG)
  * returns true if the point is in the positive side of the
@@ -170,44 +218,10 @@ bool Plane::FindIntersection(const Ray &ray, SurfPoint *isect) const {
  */
 bool PointOverPlane(const Plane &plane, const Vector3 &point)
 {
-        if (DotProduct(plane.GetPosition() - point, plane.GetNormal()) < 0)
-        {
-                return true;
-        }
+	if (DotProduct(plane.GetPosition() - point, plane.GetNormal()) < 0)
+	{
+		return true;
+	}
 
-        return false;
+	return false;
 }
-
-/*
- * LinePlaneIntersection (MG)
- * requires that plane.normal is normalized !
- */
-bool LinePlaneIntersection(Vector3 *vec_out, const Plane &plane, const Vector3 &p1, const Vector3 &p2)
-{
-        // Decide early if the line does not intersect the plane
-        if (! (PointOverPlane(plane, p1) ^ PointOverPlane(plane, p2)))
-        {
-                // the points are both in the same side of the plane
-                return false;
-        }
-
-        Vector3 direction = p2 - p1;
-
-        // distance from the plane
-        scalar_t d1 = DotProduct(plane.GetNormal(), plane.GetPosition() - p1);
-
-        // dot of normal and ray's direction
-        scalar_t d2 = DotProduct(plane.GetNormal(), direction);
-
-        if (d2 == 0)
-        {
-                // just in case ...
-                return false;
-        }
-
-        scalar_t t = d1 / d2;
-        *vec_out = p1 + (direction * t);
-
-        return true;
-}
-

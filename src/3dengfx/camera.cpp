@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -34,13 +34,17 @@ void Camera::Activate(unsigned long msec) const {
 	view_matrix = prs.rotation.Inverse().GetRotationMatrix();
 	view_matrix.Translate(-prs.position);
 
+	// TODO: this does not work...
 	Matrix4x4 flip_matrix;
 	if(flip.x) flip_matrix[0][0] = -1;
 	if(flip.y) flip_matrix[1][1] = -1;
 	if(flip.z) flip_matrix[2][2] = -1;
 	view_matrix = flip_matrix * view_matrix;
 
-	SetMatrix(XFORM_PROJECTION, CreateProjectionMatrix(fov, aspect, near_clip, far_clip));
+	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
+	SetMatrix(XFORM_PROJECTION, proj);
+
+	const_cast<Camera*>(this)->SetupFrustum(view_matrix * proj);
 }
 
 
@@ -96,7 +100,10 @@ void TargetCamera::Activate(unsigned long msec) const {
 
 	view_matrix = cam_matrix;
 	
-	SetMatrix(XFORM_PROJECTION, CreateProjectionMatrix(fov, aspect, near_clip, far_clip));
+	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
+	SetMatrix(XFORM_PROJECTION, proj);
+
+	const_cast<TargetCamera*>(this)->SetupFrustum(view_matrix * proj);
 }
 
 

@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the graphics core library.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 the graphics core library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,6 +22,35 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "base_cam.hpp"
 
+FrustumPlane::FrustumPlane() {
+	a = b = c = d = 0;
+}
+
+FrustumPlane::FrustumPlane(scalar_t a, scalar_t b, scalar_t c, scalar_t d) {
+	this->a = a;
+	this->b = b;
+	this->c = c;
+	this->d = d;
+}
+
+// frustum plane extraction from a projection (or mvp) matrix
+FrustumPlane::FrustumPlane(const Matrix4x4 &mat, int plane) {
+	int i = plane / 2;
+	int neg = plane % 2;
+
+	a = mat[3][0] + (neg ? -mat[i][0] : mat[i][0]);
+	b = mat[3][1] + (neg ? -mat[i][1] : mat[i][1]);
+	c = mat[3][2] + (neg ? -mat[i][2] : mat[i][2]);
+	d = mat[3][3] + (neg ? -mat[i][3] : mat[i][3]);
+
+	// normalize plane equation
+	scalar_t len = Vector3(a, b, c).Length();
+	a /= len;
+	b /= len;
+	c /= len;
+	d /= len;
+}
+
 BaseCamera::BaseCamera(const Vector3 &trans, const Quaternion &rot) {
 	SetPosition(trans);
 	SetRotation(rot);
@@ -34,6 +63,12 @@ BaseCamera::BaseCamera(const Vector3 &trans, const Quaternion &rot) {
 }
 
 BaseCamera::~BaseCamera() {}
+
+void BaseCamera::SetupFrustum(const Matrix4x4 &m) {
+	for(int i=0; i<6; i++) {
+		frustum[i] = FrustumPlane(m, i);
+	}
+}
 
 void BaseCamera::SetUpVector(const Vector3 &up) {
 	this->up = up;
@@ -106,4 +141,8 @@ void BaseCamera::Flip(bool x, bool y, bool z) {
 	flip.x = x;
 	flip.y = y;
 	flip.z = z;
+}
+
+const FrustumPlane *BaseCamera::GetFrustum() const {
+	return frustum;
 }

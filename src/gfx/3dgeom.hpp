@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _3DGEOM_HPP_
 #define _3DGEOM_HPP_
 
-#include "config.h"
+#include "3dengfx_config.h"
 
 #include <vector>
 #include "n3dmath2/n3dmath2.hpp"

@@ -51,6 +51,17 @@ public:
 };
 
 
+/* this is used only by the rendering code
+ * to draw billboard particles. I just placed
+ * it here for convinience.
+ */
+struct ParticleVertex {
+	Vector3 pos;
+	Color col;
+	scalar_t size;
+};
+
+
 /* particle abstract base class.
  * Derived from XFormNode for controller functionality
  */
@@ -76,7 +87,12 @@ public:
 class BillboardParticle : public Particle {
 public:
 	Texture *texture;
+	Color start_color, end_color;
+	Color color;
 	
+	virtual ParticleVertex GetParticleVertex() const;
+	
+	virtual void Update(const Vector3 &ext_force = Vector3());
 	virtual void Draw() const;
 };
 
@@ -97,6 +113,8 @@ struct ParticleSysParams {
 	scalar_t friction;		// friction of the environment
 	FuzzyVec3 spawn_offset;	// where to spawn in relation to position
 	Texture *billboard_tex;	// texture used for billboards
+	Color start_color;		// start color
+	Color end_color;		// end color
 };
 
 enum ParticleType {PTYPE_PSYS, PTYPE_BILLBOARD, PTYPE_MESH};

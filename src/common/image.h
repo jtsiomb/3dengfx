@@ -1,7 +1,7 @@
 /*
 Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
 
-This is a small image loading library.
+This is a small image library.
 
 This library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,6 +21,35 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef IMAGE_H_
 #define IMAGE_H_
 
+/* always compile support for image formats that
+ * don't create any library dependencies.
+ */
+#define IMGLIB_USE_TGA
+
+/* for jpeg and png, make the default be to compile them in,
+ * unless explicitly disabled.
+ */
+#ifndef IMGLIB_NO_JPEG
+#define IMGLIB_USE_JPEG
+#endif	/* IMGLIB_NO_JPEG */
+
+#ifndef IMGLIB_NO_PNG
+#define IMGLIB_USE_PNG
+#endif	/* IMGLIB_NO_PNG */
+
+
+enum image_file_format {
+	IMG_FMT_PNG,
+	IMG_FMT_JPEG,
+	IMG_FMT_TGA
+};
+
+enum {
+	IMG_SAVE_ALPHA		= 1,
+	IMG_SAVE_COMPRESS	= 2,
+	IMG_SAVE_INVERT		= 4
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif	/* __cplusplus */
@@ -34,6 +63,13 @@ void *load_image(const char *fname, unsigned long *xsz, unsigned long *ysz);
  * note: provided for consistency, simply calls free()
  */
 void free_image(void *img);
+
+/* save the supplied image data in a file of the specified format */
+int save_image(const char *fname, void *pixels, unsigned long xsz, unsigned long ysz, enum image_file_format fmt);
+
+/* set/get save image options */
+void set_image_save_flags(unsigned int flags);
+unsigned int get_image_save_flags(void);
 
 #ifdef __cplusplus
 }

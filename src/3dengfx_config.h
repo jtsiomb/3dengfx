@@ -23,4 +23,12 @@
  */
 #define USING_CG_TOOLKIT
 
+
+/* define this to diable png load/save support */
+/* #define IMGLIB_NO_PNG */
+
+/* define this to disable jpeg load/save support */
+/* #define IMGLIB_NO_JPEG */
+
+
 #endif	/* _3DENGFX_CONFIG_H_ */

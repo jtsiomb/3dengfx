@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "opengl.h"
 
 using namespace std;
+using namespace glext;
 
 extern _CGcontext *cgc;
 
@@ -49,7 +50,7 @@ GfxProg::~GfxProg() {
 #endif	// USING_CG_TOOLKIT
 	}
 	if(asm_prog) {
-		glDeleteProgramsARB(1, &asm_prog);
+		glext::glDeletePrograms(1, &asm_prog);
 	}
 }
 
@@ -98,11 +99,11 @@ bool GfxProg::LoadProgram(const char *fname, int ptype) {
 	while(glGetError() != GL_NO_ERROR);
 
 	if(ptype == PROG_VP || ptype == PROG_FP) {
-		if(!asm_prog) glGenProgramsARB(1, &asm_prog);
+		if(!asm_prog) glGenPrograms(1, &asm_prog);
 		
 		GLenum gl_prog_type = ptype == PROG_FP ? GL_FRAGMENT_PROGRAM_ARB : GL_VERTEX_PROGRAM_ARB;
-		glBindProgramARB(gl_prog_type, asm_prog);
-		glProgramStringARB(gl_prog_type, GL_PROGRAM_FORMAT_ASCII_ARB, sz, prog_buf);
+		glBindProgram(gl_prog_type, asm_prog);
+		glProgramString(gl_prog_type, GL_PROGRAM_FORMAT_ASCII_ARB, sz, prog_buf);
 		
 		if(glGetError() != GL_NO_ERROR) {
 			cerr << "Error loading program \"" << fname << "\":\n";

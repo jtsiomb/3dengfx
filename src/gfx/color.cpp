@@ -122,5 +122,6 @@ Color BlendColors(const Color &c1, const Color &c2, scalar_t t) {
 	scalar_t r = c1.r + (c2.r - c1.r) * t;
 	scalar_t g = c1.g + (c2.g - c1.g) * t;
 	scalar_t b = c1.b + (c2.b - c1.b) * t;
-	return Color(r, g, b);
+	scalar_t a = c1.a + (c2.a - c1.a) * t;
+	return Color(r, g, b, a);
 }

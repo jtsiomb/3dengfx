@@ -107,7 +107,7 @@ static inline T wrap(T n, T low, T high) {
 	while(n < 0) {
 		n += high;
 	}
-	n %= high;
+	if(high) n %= high;
 	
 	return n + low;
 }

@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif	// USING_3DENGFX
 
 using std::vector;
+using namespace glext;
 
 // local function prototypes
 static Keyframe *FindNearestKeyframe(Keyframe *start, Keyframe *end, unsigned long time);
@@ -152,7 +153,7 @@ GeometryArray<Index>::~GeometryArray() {
 	if(data) delete [] data;
 #ifdef USING_3DENGFX
 	if(buffer_object != INVALID_VBO) {
-		glDeleteBuffersARB(1, &buffer_object);
+		glDeleteBuffers(1, &buffer_object);
 	}
 #endif	// USING_3DENGFX
 }
@@ -171,23 +172,23 @@ void GeometryArray<Index>::SyncBufferObject() {
 	if(dynamic) return;
 
 	if(buffer_object == INVALID_VBO) {
-		glGenBuffersARB(1, &buffer_object);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffer_object);
-		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, count * sizeof(Index), data, GL_STATIC_DRAW_ARB);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		glGenBuffers(1, &buffer_object);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, buffer_object);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER_ARB, count * sizeof(Index), data, GL_STATIC_DRAW_ARB);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
 
 		int glerr;
 		while((glerr = glGetError()) != GL_NO_ERROR) {
 			std::cerr << GetGLErrorString(glerr) << " ";
 		}
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffer_object);
-		Index *ptr = (Index*)glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, buffer_object);
+		Index *ptr = (Index*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 		
 		memcpy(ptr, data, count * sizeof(Index));
 			
-		glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	}
 #endif	// USING_3DENGFX
 	vbo_in_sync = true;
@@ -208,7 +209,7 @@ void GeometryArray<Index>::SetData(const Index *data, unsigned long count) {
 #ifdef USING_3DENGFX
 	if(!dynamic) {
 		if(buffer_object != INVALID_VBO && count != this->count) {
-			glDeleteBuffersARB(1, &buffer_object);
+			glDeleteBuffers(1, &buffer_object);
 		}
 		SyncBufferObject();
 		vbo_in_sync = true;

@@ -33,3 +33,13 @@ include $(obj:.o=.d)
 .PHONY: clean
 clean:
 	$(RM) $(obj)
+
+.PHONY: cleandep
+cleandep:
+	$(RM) src/3dengfx/*.d src/3dengfx/*.d.*
+	$(RM) src/gfx/*.d src/gfx/*.d.*
+	$(RM) src/n3dmath2/*.d src/n3dmath2/*.d.*
+	$(RM) src/dsys/*.d src/dsys/*.d.*
+	$(RM) src/common/*.d src/common/*.d.*
+	$(RM) src/nlibase/*.d src/nlibase/*.d.*
+	$(RM) src/fxwt/*.d src/fxwt/*.d.*

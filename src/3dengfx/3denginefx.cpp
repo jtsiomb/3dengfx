@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/3dgeom.hpp"
 #include "except.hpp"
 #include "gfxprog.hpp"
+#include "common/image.h"
 #include "common/logger.h"
 #include "common/config_parser.h"
 
@@ -49,37 +50,36 @@ using std::string;
 
 void (*LoadMatrixGL)(const Matrix4x4 &mat);
 
-#ifndef OPENGL_1_3
-PFNGLACTIVETEXTUREARBPROC glActiveTexture;
-PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture;
-#endif	// OPENGL_1_3
-
+namespace glext {
 #ifdef SINGLE_PRECISION_MATH
-PFNGLLOADTRANSPOSEMATRIXFARBPROC glLoadTransposeMatrixARB;
+	PFNGLLOADTRANSPOSEMATRIXFARBPROC glLoadTransposeMatrix;
 #else
-PFNGLLOADTRANSPOSEMATRIXDARBPROC glLoadTransposeMatrixARB;
+	PFNGLLOADTRANSPOSEMATRIXDARBPROC glLoadTransposeMatrix;
 #endif	// SINGLE_PRECISION_MATH
 
-PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
+	PFNGLACTIVETEXTUREARBPROC glActiveTexture;
+	PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture;
 
-PFNGLBINDBUFFERARBPROC glBindBufferARB;
-PFNGLBUFFERDATAARBPROC glBufferDataARB;
-PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB;
-PFNGLISBUFFERARBPROC glIsBufferARB;
-PFNGLMAPBUFFERARBPROC glMapBufferARB;
-PFNGLUNMAPBUFFERARBPROC glUnmapBufferARB;
-PFNGLGENBUFFERSARBPROC glGenBuffersARB;
+	PFNGLBINDBUFFERARBPROC glBindBuffer;
+	PFNGLBUFFERDATAARBPROC glBufferData;
+	PFNGLDELETEBUFFERSARBPROC glDeleteBuffers;
+	PFNGLISBUFFERARBPROC glIsBuffer;
+	PFNGLMAPBUFFERARBPROC glMapBuffer;
+	PFNGLUNMAPBUFFERARBPROC glUnmapBuffer;
+	PFNGLGENBUFFERSARBPROC glGenBuffers;
 
-// fragment/vertex program extensions
-PFNGLBINDPROGRAMARBPROC glBindProgramARB;
-PFNGLGENPROGRAMSARBPROC glGenProgramsARB;
-PFNGLDELETEPROGRAMSARBPROC glDeleteProgramsARB;
-PFNGLPROGRAMSTRINGARBPROC glProgramStringARB;
+	// fragment/vertex program extensions
+	PFNGLBINDPROGRAMARBPROC glBindProgram;
+	PFNGLGENPROGRAMSARBPROC glGenPrograms;
+	PFNGLDELETEPROGRAMSARBPROC glDeletePrograms;
+	PFNGLPROGRAMSTRINGARBPROC glProgramString;
 
-// point parameters
-PFNGLPOINTPARAMETERFARBPROC glPointParameterfARB;
-PFNGLPOINTPARAMETERFVARBPROC glPointParameterfvARB;
+	// point parameters
+	PFNGLPOINTPARAMETERFARBPROC glPointParameterf;
+	PFNGLPOINTPARAMETERFVARBPROC glPointParameterfv;
+}
 
+using namespace glext;
 
 static const char *gl_error_string[] = {
 	"GL_INVALID_ENUM",		// 0x500
@@ -309,7 +309,7 @@ const char *GetGLErrorString(GLenum error) {
  * LoadMatrixGL which is set during initialization to the correct one)
  */
 void LoadMatrix_TransposeARB(const Matrix4x4 &mat) {
-	glLoadTransposeMatrixARB(mat.OpenGLMatrix());
+	glLoadTransposeMatrix(mat.OpenGLMatrix());
 }
 
 void LoadMatrix_TransposeManual(const Matrix4x4 &mat) {
@@ -441,20 +441,18 @@ void CreateGraphicsContext(const GraphicsInitParameters &gip) {
 	cgGLSetOptimalOptions(CG_PROFILE_ARBVP1);
 #endif	// USING_CG_TOOLKIT
 
-#ifndef OPENGL_1_3
-	glActiveTexture = (PFNGLACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glActiveTextureARB");
-	glClientActiveTexture = (PFNGLCLIENTACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glClientActiveTextureARB");
+	glext::glActiveTexture = (PFNGLACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glActiveTextureARB");
+	glext::glClientActiveTexture = (PFNGLCLIENTACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glClientActiveTextureARB");
 	
-	if(!glActiveTexture || !glClientActiveTexture) {
+	if(!glext::glActiveTexture || !glext::glClientActiveTexture) {
 		throw EngineException(__func__, "OpenGL implementation less than 1.3 and could not load multitexturing ARB extensions");
 	}
-#endif	// OPENGL_1_3
 
 	if(sys_caps.load_transpose) {
 #ifdef SINGLE_PRECISION_MATH
-		glLoadTransposeMatrixARB = (PFNGLLOADTRANSPOSEMATRIXFARBPROC)SDL_GL_GetProcAddress("glLoadTransposeMatrixfARB");
+		glLoadTransposeMatrix = (PFNGLLOADTRANSPOSEMATRIXFARBPROC)SDL_GL_GetProcAddress("glLoadTransposeMatrixfARB");
 #else
-		glLoadTransposeMatrixARB = (PFNGLLOADTRANSPOSEMATRIXDARBPROC)SDL_GL_GetProcAddress("glLoadTransposeMatrixdARB");
+		glLoadTransposeMatrix = (PFNGLLOADTRANSPOSEMATRIXDARBPROC)SDL_GL_GetProcAddress("glLoadTransposeMatrixdARB");
 #endif	// SINGLE_PRECISION_MATH
 		
 		LoadMatrixGL = LoadMatrix_TransposeARB;
@@ -462,29 +460,26 @@ void CreateGraphicsContext(const GraphicsInitParameters &gip) {
 		LoadMatrixGL = LoadMatrix_TransposeManual;
 	}
 
-	glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)SDL_GL_GetProcAddress("glActiveTextureARB");
-	if(!glActiveTextureARB) std::cerr << "los poulos\n";
-
 	if(sys_caps.vertex_buffers) {
-		glBindBufferARB = (PFNGLBINDBUFFERARBPROC)SDL_GL_GetProcAddress("glBindBufferARB");
-		glBufferDataARB = (PFNGLBUFFERDATAARBPROC)SDL_GL_GetProcAddress("glBufferDataARB");
-		glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)SDL_GL_GetProcAddress("glDeleteBuffersARB");
-		glIsBufferARB = (PFNGLISBUFFERARBPROC)SDL_GL_GetProcAddress("glIsBufferARB");
-		glMapBufferARB = (PFNGLMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glMapBufferARB");
-		glUnmapBufferARB = (PFNGLUNMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glUnmapBufferARB");
-		glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)SDL_GL_GetProcAddress("glGenBuffersARB");
+		glBindBuffer = (PFNGLBINDBUFFERARBPROC)SDL_GL_GetProcAddress("glBindBufferARB");
+		glBufferData = (PFNGLBUFFERDATAARBPROC)SDL_GL_GetProcAddress("glBufferDataARB");
+		glDeleteBuffers = (PFNGLDELETEBUFFERSARBPROC)SDL_GL_GetProcAddress("glDeleteBuffersARB");
+		glIsBuffer = (PFNGLISBUFFERARBPROC)SDL_GL_GetProcAddress("glIsBufferARB");
+		glMapBuffer = (PFNGLMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glMapBufferARB");
+		glUnmapBuffer = (PFNGLUNMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glUnmapBufferARB");
+		glGenBuffers = (PFNGLGENBUFFERSARBPROC)SDL_GL_GetProcAddress("glGenBuffersARB");
 	}
 
 	if(sys_caps.vertex_program || sys_caps.pixel_program) {
-		glBindProgramARB = (PFNGLBINDPROGRAMARBPROC)SDL_GL_GetProcAddress("glBindProgramARB");
-		glGenProgramsARB = (PFNGLGENPROGRAMSARBPROC)SDL_GL_GetProcAddress("glGenProgramsARB");
-		glDeleteProgramsARB = (PFNGLDELETEPROGRAMSARBPROC)SDL_GL_GetProcAddress("glDeleteProgramsARB");
-		glProgramStringARB = (PFNGLPROGRAMSTRINGARBPROC)SDL_GL_GetProcAddress("glProgramStringARB");
+		glBindProgram = (PFNGLBINDPROGRAMARBPROC)SDL_GL_GetProcAddress("glBindProgramARB");
+		glGenPrograms = (PFNGLGENPROGRAMSARBPROC)SDL_GL_GetProcAddress("glGenProgramsARB");
+		glDeletePrograms = (PFNGLDELETEPROGRAMSARBPROC)SDL_GL_GetProcAddress("glDeleteProgramsARB");
+		glProgramString = (PFNGLPROGRAMSTRINGARBPROC)SDL_GL_GetProcAddress("glProgramStringARB");
 	}
 	
 	if(sys_caps.point_params) {
-		glPointParameterfARB = (PFNGLPOINTPARAMETERFARBPROC)SDL_GL_GetProcAddress("glPointParameterfARB");
-		glPointParameterfvARB = (PFNGLPOINTPARAMETERFVARBPROC)SDL_GL_GetProcAddress("glPointParameterfvARB");
+		glPointParameterf = (PFNGLPOINTPARAMETERFARBPROC)SDL_GL_GetProcAddress("glPointParameterfARB");
+		glPointParameterfv = (PFNGLPOINTPARAMETERFVARBPROC)SDL_GL_GetProcAddress("glPointParameterfvARB");
 	}
 	
 	SetDefaultStates();	
@@ -521,11 +516,11 @@ void SetDefaultStates() {
 	}
 
 	if(sys_caps.point_params) {
-		glPointParameterfARB(GL_POINT_SIZE_MIN_ARB, 1.0);
-		glPointParameterfARB(GL_POINT_SIZE_MAX_ARB, 256.0);
+		glPointParameterf(GL_POINT_SIZE_MIN_ARB, 1.0);
+		glPointParameterf(GL_POINT_SIZE_MAX_ARB, 256.0);
 
-		float quadratic[] = {0.0f, 0.0f, 0.5f};
-		glPointParameterfvARB(GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic);
+		float quadratic[] = {0.0f, 0.0f, 0.01f};
+		glPointParameterfv(GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic);
 	}
 }
 
@@ -560,7 +555,7 @@ void Flip() {
 
 void LoadXFormMatrices() {
 	for(int i=0; i<8; i++) {
-		glActiveTextureARB(GL_TEXTURE0 + i);
+		SelectTextureUnit(i);
 		glMatrixMode(GL_TEXTURE);
 		LoadMatrixGL(tex_matrix[i]);
 	}
@@ -586,13 +581,13 @@ void Draw(const VertexArray &varray) {
 	
 	if(use_vbo) {
 		Vertex v;
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, varray.GetBufferObject());
+		glBindBuffer(GL_ARRAY_BUFFER_ARB, varray.GetBufferObject());
 		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.pos - (char*)&v));
 		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.normal - (char*)&v));
 		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.color - (char*)&v));
 
 		for(int i=0; i<MAX_TEXTURES; i++) {
-			glClientActiveTexture(GL_TEXTURE0 + i);
+			SelectTextureUnit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			glTexCoordPointer(2, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
 		}
@@ -602,7 +597,7 @@ void Draw(const VertexArray &varray) {
 		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->color);
 
 		for(int i=0; i<MAX_TEXTURES; i++) {
-			glClientActiveTexture(GL_TEXTURE0 + i);
+			SelectTextureUnit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			glTexCoordPointer(2, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->tex[coord_index[i]]);
 		}
@@ -610,14 +605,14 @@ void Draw(const VertexArray &varray) {
 	
 	glDrawArrays(primitive_type, 0, varray.GetCount());
 	
-	if(use_vbo) glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	if(use_vbo) glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	
 	for(int i=0; i<MAX_TEXTURES; i++) {
-		glClientActiveTexture(GL_TEXTURE0 + i);
+		SelectTextureUnit(i);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 }
@@ -636,13 +631,13 @@ void Draw(const VertexArray &varray, const IndexArray &iarray) {
 	
 	if(use_vbo) {
 		Vertex v;
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, varray.GetBufferObject());
+		glBindBuffer(GL_ARRAY_BUFFER_ARB, varray.GetBufferObject());
 		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.pos - (char*)&v));
 		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.normal - (char*)&v));
 		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.color - (char*)&v));
 
 		for(int i=0; i<MAX_TEXTURES; i++) {
-			glClientActiveTexture(GL_TEXTURE0 + i);
+			SelectTextureUnit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			glTexCoordPointer(2, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
 		}
@@ -652,28 +647,28 @@ void Draw(const VertexArray &varray, const IndexArray &iarray) {
 		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->color);
 
 		for(int i=0; i<MAX_TEXTURES; i++) {
-			glClientActiveTexture(GL_TEXTURE0 + i);
+			SelectTextureUnit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			glTexCoordPointer(2, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->tex[coord_index[i]]);
 		}
 	}
 
 	if(use_ibo) {
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, iarray.GetBufferObject());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, iarray.GetBufferObject());
 		glDrawElements(primitive_type, iarray.GetCount(), GL_UNSIGNED_SHORT, 0);
 	} else {
 		glDrawElements(primitive_type, iarray.GetCount(), GL_UNSIGNED_SHORT, iarray.GetData());
 	}
 	
-	if(use_ibo) glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-	if(use_vbo) glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	if(use_ibo) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	if(use_vbo) glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	
 	for(int i=0; i<MAX_TEXTURES; i++) {
-		glClientActiveTexture(GL_TEXTURE0 + i);
+		SelectTextureUnit(i);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 }
@@ -834,8 +829,8 @@ void SetTextureBorderColor(int tex_unit, const Color &color) {
 	glTexParameterfv(ttype[tex_unit], GL_TEXTURE_BORDER_COLOR, col);
 }
 
-void SetTexture(int tex_unit, Texture *tex) {
-	glActiveTextureARB(GL_TEXTURE0 + tex_unit);
+void SetTexture(int tex_unit, const Texture *tex) {
+	SelectTextureUnit(tex_unit);
 	glBindTexture(tex->GetType(), tex->tex_id);
 	ttype[tex_unit] = tex->GetType();
 }
@@ -871,19 +866,24 @@ void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face) {
 
 // multitexturing interface
 
+void SelectTextureUnit(int tex_unit) {
+	glext::glActiveTexture(GL_TEXTURE0 + tex_unit);
+	glext::glClientActiveTexture(GL_TEXTURE0 + tex_unit);
+}
+
 void EnableTextureUnit(int tex_unit) {
-	glActiveTextureARB(GL_TEXTURE0 + tex_unit);
+	SelectTextureUnit(tex_unit);
 	glEnable(ttype[tex_unit]);
 }
 
 void DisableTextureUnit(int tex_unit) {
-	glActiveTextureARB(GL_TEXTURE0 + tex_unit);
+	SelectTextureUnit(tex_unit);
 	glDisable(ttype[tex_unit]);
 }
 
 void SetTextureUnitColor(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3) {
 	
-	glActiveTextureARB(GL_TEXTURE0 + tex_unit);
+	SelectTextureUnit(tex_unit);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, op);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, arg1);
@@ -895,7 +895,7 @@ void SetTextureUnitColor(int tex_unit, TextureBlendFunction op, TextureBlendArgu
 
 void SetTextureUnitAlpha(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3) {
 	
-	glActiveTextureARB(GL_TEXTURE0 + tex_unit);
+	SelectTextureUnit(tex_unit);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, op);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, arg1);
@@ -911,7 +911,7 @@ void SetTextureCoordIndex(int tex_unit, int index) {
 
 void SetTextureConstant(int tex_unit, const Color &col) {
 	float color[] = {col.r, col.g, col.b, col.a};
-	glActiveTextureARB(GL_TEXTURE0 + tex_unit);
+	SelectTextureUnit(tex_unit);
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color);
 }
 
@@ -919,7 +919,7 @@ void SetTextureConstant(int tex_unit, const Color &col) {
 //void SetTextureCoordGenerator(int stage, TexGen tgen);
 
 void SetPointSpriteCoords(int tex_unit, bool enable) {
-	glActiveTextureARB(GL_TEXTURE0 + tex_unit);
+	SelectTextureUnit(tex_unit);
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, enable ? GL_TRUE : GL_FALSE);
 }
 
@@ -930,7 +930,7 @@ void SetGfxProgram(GfxProg *prog, bool enable) {
 		
 		if(enable) {
 			glEnable(ptype);
-			glBindProgramARB(ptype, prog->asm_prog);
+			glBindProgram(ptype, prog->asm_prog);
 		} else {
 			glDisable(ptype);
 		}
@@ -1043,4 +1043,31 @@ Matrix4x4 CreateProjectionMatrix(scalar_t vfov, scalar_t aspect, scalar_t near_c
 	mat[2][3] = -q * near_clip;
 	
 	return mat;
+}
+
+
+// ---- misc ----
+
+bool ScreenCapture(char *fname, enum image_file_format fmt) {
+	static int scr_num;
+	static const char *suffix[] = {"png", "jpg", "tga", "oug1", "oug2"};
+	int x = gparams.x;
+	int y = gparams.y;
+
+	unsigned long *pixels = new unsigned long[x * y];
+	glReadPixels(0, 0, x, y, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+	
+	if(!fname) {
+		static char fname_buf[50];
+		fname = fname_buf;
+		sprintf(fname, "3dengfx_shot%02d.%s", scr_num++, suffix[fmt]);
+	}
+
+	unsigned int flags = get_image_save_flags();
+	set_image_save_flags(flags | IMG_SAVE_INVERT);
+	int res = save_image(fname, pixels, x, y, fmt);
+	set_image_save_flags(flags);
+	
+	delete [] pixels;
+	return res != -1;
 }

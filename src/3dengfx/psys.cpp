@@ -18,6 +18,7 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <vector>
 #include <cmath>
 #include "3dengfx_config.h"
 #include "3denginefx.hpp"
@@ -25,8 +26,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "psys.hpp"
 #include "common/config_parser.h"
 
+#ifdef SINGLE_PRECISION_MATH
+#define GL_SCALAR_TYPE	GL_FLOAT
+#else
+#define GL_SCALAR_TYPE	GL_DOUBLE
+#endif	// SINGLE_PRECISION_MATH
+
 static scalar_t global_time;
 static const scalar_t timeslice = 1.0 / 30.0;
+
+#define PVERT_BUF_SIZE		2048
+static ParticleVertex pvert_buf[PVERT_BUF_SIZE];
 
 Fuzzy::Fuzzy(scalar_t num, scalar_t range) {
 	this->num = num;
@@ -72,43 +82,38 @@ bool Particle::Alive() const {
 void Particle::Update(const Vector3 &ext_force) {
 	scalar_t time = global_time - birth_time;
 	if(time > lifespan) return;
-	scalar_t t = time / lifespan;
 
 	velocity = (velocity + ext_force) * friction;
 	Translate(velocity);	// update position
 }
 
 
+ParticleVertex BillboardParticle::GetParticleVertex() const {
+	ParticleVertex pv;
+	pv.pos = GetPRS().position;
+	pv.size = size;
+	pv.col = Color(color.r, color.g, color.b, color.a);
+
+	return pv;
+}
+
+void BillboardParticle::Update(const Vector3 &ext_force) {
+	Particle::Update(ext_force);
+	
+	scalar_t time = global_time - birth_time;
+	if(time > lifespan) return;
+	scalar_t t = time / lifespan;
+	
+	color = BlendColors(start_color, end_color, t);
+}
+
 void BillboardParticle::Draw() const {
-	Vector3 pos = GetPRS().position;
-	
-	SetLighting(false);
-	SetZWrite(false);
-	SetAlphaBlending(true);
-	SetBlendFunc(BLEND_ONE, BLEND_ONE);
+	static int times;
 
-	if(texture) {
-		SetPointSprites(true);
-		SetTexture(0, texture);
-		EnableTextureUnit(0);
-		DisableTextureUnit(1);
-		SetPointSpriteCoords(0, true);
+	if(!times) {
+		std::cout << "WARNING: BillboardParticle::Draw() is just a stub, due efficiency reasons\n";
+		times++;
 	}
-	
-	glPointSize(size * 10.0);
-	glBegin(GL_POINTS);
-	glColor3f(1.0, 1.0, 1.0);
-	glVertex3f(pos.x, pos.y, pos.z);
-	glEnd();
-
-	if(texture) {
-		SetPointSpriteCoords(0, true);
-		DisableTextureUnit(0);
-	}
-
-	SetAlphaBlending(false);
-	SetZWrite(true);
-	SetLighting(true);
 }
 
 
@@ -163,7 +168,12 @@ void ParticleSystem::Update(const Vector3 &ext_force) {
 		switch(ptype) {
 		case PTYPE_BILLBOARD:
 			particle = new BillboardParticle;
-			((BillboardParticle*)particle)->texture = psys_params.billboard_tex;
+			{
+				BillboardParticle *bbp = (BillboardParticle*)particle;
+				bbp->texture = psys_params.billboard_tex;
+				bbp->start_color = psys_params.start_color;
+				bbp->end_color = psys_params.end_color;
+			}
 
 			break;
 
@@ -191,28 +201,95 @@ void ParticleSystem::Update(const Vector3 &ext_force) {
 	
 	std::list<Particle*>::iterator iter = particles.begin();
 	while(iter != particles.end()) {
-		if((*iter)->Alive()) {
-			for(int i=0; i<updates_missed; i++) {
-				(*iter)->Update(psys_params.gravity);
-			}
+		Particle *p = *iter;
+		int i = 0;
+		while(p->Alive() && i++ < updates_missed) {
+			p->Update(psys_params.gravity);
+		}
+
+		if(p->Alive()) {
+			iter++;
 		} else {
 			iter = particles.erase(iter);
 		}
-		iter++;
 	}
 
 	prev_update = global_time;
 }
 
 
+static void RenderParticleBuffer(int count, const Texture *tex) {
+	SetLighting(false);
+	SetZWrite(false);
+	SetAlphaBlending(true);
+	SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE);
+
+	if(tex) {
+		SetPointSprites(true);
+		EnableTextureUnit(0);
+		DisableTextureUnit(1);
+		SetTexture(0, tex);
+		SetPointSpriteCoords(0, true);
+	}
+
+	SetTextureUnitColor(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+	SetTextureUnitAlpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+		
+	glPointSize(pvert_buf[0].size);
+	
+	/* I would prefer using vertex arrays, but I can't seem to be able
+	 * to make points sprites work with it. So let's leave it for the
+	 * time being
+	 */
+	glBegin(GL_POINTS);
+	for(int i=0; i<count; i++) {
+		glColor4f(pvert_buf[i].col.r, pvert_buf[i].col.g, pvert_buf[i].col.b, pvert_buf[i].col.a);
+		glVertex3f(pvert_buf[i].pos.x, pvert_buf[i].pos.y, pvert_buf[i].pos.z);
+	}
+	glEnd();
+
+	glPointSize(1.0);
+
+	if(tex) {
+		SetPointSpriteCoords(0, true);
+		DisableTextureUnit(0);
+		SetPointSprites(true);
+	}
+
+	SetAlphaBlending(false);
+	SetZWrite(true);
+	SetLighting(true);
+}
+
 void ParticleSystem::Draw() const {
 	SetMatrix(XFORM_WORLD, Matrix4x4());
 	LoadXFormMatrices();
 
+	int i = 0;
+	ParticleVertex *pv_ptr = pvert_buf;
+	
 	std::list<Particle*>::const_iterator iter = particles.begin();
 	while(iter != particles.end()) {
-		(*iter++)->Draw();	// TODO: do something a little bit more efficient :)
-	}
+		if(ptype == PTYPE_BILLBOARD) {
+			/* if the particles of this system are billboards
+			 * insert split them into runs of as many vertices
+			 * fit in the pvert_buf array and render them in batches.
+			 */
+			*pv_ptr++ = ((BillboardParticle*)(*iter++))->GetParticleVertex();
+			i++;
+
+			if(i >= PVERT_BUF_SIZE || iter == particles.end()) {
+				// render i particles
+				RenderParticleBuffer(i, psys_params.billboard_tex);
+
+				i = 0;
+				pv_ptr = pvert_buf;
+			}
+				
+		} else {
+			(*iter++)->Draw();
+		}
+	} 
 }
 
 
@@ -251,6 +328,46 @@ static Vector3 GetVector(const char *str) {
 	delete [] buf;
 	return res;
 }
+
+static Vector4 GetVector4(const char *str) {
+	char *buf = new char[strlen(str) + 1];
+	strcpy(buf, str);
+
+	Vector4 res;
+
+	char *beg = buf;
+	char *ptr;
+	
+	res.x = atof(beg);
+	if(!(ptr = strchr(beg, ','))) {
+		delete [] buf;
+		return res;
+	}
+	*ptr = 0;
+	beg = ptr + 1;
+	
+	res.y = atof(beg);
+	if(!(ptr = strchr(beg, ','))) {
+		delete [] buf;
+		return res;
+	}
+	*ptr = 0;
+	beg = ptr + 1;
+
+	res.z = atof(beg);
+	if(!(ptr = strchr(beg, ','))) {
+		delete [] buf;
+		return res;
+	}
+	*ptr = 0;
+	beg = ptr + 1;
+	
+	res.w = atof(beg);
+
+	delete [] buf;
+	return res;
+}
+
 
 bool psys::LoadParticleSysParams(const char *fname, ParticleSysParams *psp) {
 	Vector3 shoot, shoot_range;
@@ -306,6 +423,17 @@ bool psys::LoadParticleSysParams(const char *fname, ParticleSysParams *psp) {
 				std::cerr << "Could not load texture: \"" << opt->str_value << "\"\n";
 			}
 
+		} else if(!strcmp(opt->option, "color")) {
+			Vector4 v = GetVector4(opt->str_value);
+			psp->start_color = psp->end_color = Color(v.x, v.y, v.z, v.w);
+			
+		} else if(!strcmp(opt->option, "color_start")) {
+			Vector4 v = GetVector4(opt->str_value);
+			psp->start_color = Color(v.x, v.y, v.z, v.w);
+
+		} else if(!strcmp(opt->option, "color_end")) {
+			Vector4 v = GetVector4(opt->str_value);
+			psp->end_color = Color(v.x, v.y, v.z, v.w);
 		}
 			
 	}
@@ -315,5 +443,3 @@ bool psys::LoadParticleSysParams(const char *fname, ParticleSysParams *psp) {
 
 	return true;
 }
-
-

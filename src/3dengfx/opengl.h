@@ -46,36 +46,39 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <GL/glu.h>
 
-//#define GL_GLEXT_PROTOTYPES
+#undef GL_GLEXT_PROTOTYPES
 #include <GL/glext.h>
 
 /* GL_ARB_transpose_matrix */
 
+namespace glext {
 #ifdef SINGLE_PRECISION_MATH
-extern PFNGLLOADTRANSPOSEMATRIXFARBPROC glLoadTransposeMatrix;
+	extern PFNGLLOADTRANSPOSEMATRIXFARBPROC glLoadTransposeMatrix;
 #else
-extern PFNGLLOADTRANSPOSEMATRIXDARBPROC glLoadTransposeMatrix;
+	extern PFNGLLOADTRANSPOSEMATRIXDARBPROC glLoadTransposeMatrix;
 #endif	/* SINGLE_PRECISION_MATH */
 
-extern PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
+	extern PFNGLACTIVETEXTUREARBPROC glActiveTexture;
+	extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture;
 
-/* GL_ARB_vertex_array_object */
-extern PFNGLBINDBUFFERARBPROC glBindBufferARB;
-extern PFNGLBUFFERDATAARBPROC glBufferDataARB;
-extern PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB;
-extern PFNGLISBUFFERARBPROC glIsBufferARB;
-extern PFNGLMAPBUFFERARBPROC glMapBufferARB;
-extern PFNGLUNMAPBUFFERARBPROC glUnmapBufferARB;
-extern PFNGLGENBUFFERSARBPROC glGenBuffersARB;
+	/* GL_ARB_vertex_array_object */
+	extern PFNGLBINDBUFFERARBPROC glBindBuffer;
+	extern PFNGLBUFFERDATAARBPROC glBufferData;
+	extern PFNGLDELETEBUFFERSARBPROC glDeleteBuffers;
+	extern PFNGLISBUFFERARBPROC glIsBuffer;
+	extern PFNGLMAPBUFFERARBPROC glMapBuffer;
+	extern PFNGLUNMAPBUFFERARBPROC glUnmapBuffer;
+	extern PFNGLGENBUFFERSARBPROC glGenBuffers;
 
-// fragment/vertex program extensions
-extern PFNGLBINDPROGRAMARBPROC glBindProgramARB;
-extern PFNGLGENPROGRAMSARBPROC glGenProgramsARB;
-extern PFNGLDELETEPROGRAMSARBPROC glDeleteProgramsARB;
-extern PFNGLPROGRAMSTRINGARBPROC glProgramStringARB;
+	// fragment/vertex program extensions
+	extern PFNGLBINDPROGRAMARBPROC glBindProgram;
+	extern PFNGLGENPROGRAMSARBPROC glGenPrograms;
+	extern PFNGLDELETEPROGRAMSARBPROC glDeletePrograms;
+	extern PFNGLPROGRAMSTRINGARBPROC glProgramString;
 
-// point parameters
-extern PFNGLPOINTPARAMETERFARBPROC glPointParameterfARB;
-extern PFNGLPOINTPARAMETERFVARBPROC glPointParameterfvARB;
+	// point parameters
+	extern PFNGLPOINTPARAMETERFARBPROC glPointParameterf;
+	extern PFNGLPOINTPARAMETERFVARBPROC glPointParameterfv;
+}
 
 #endif	/* _OPENGL_H_ */

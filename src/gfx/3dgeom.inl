@@ -64,7 +64,7 @@ GeometryArray<DataType>::~GeometryArray() {
 	if(data) delete [] data;
 #ifdef USING_3DENGFX
 	if(buffer_object != INVALID_VBO) {
-		glDeleteBuffersARB(1, &buffer_object);
+		glext::glDeleteBuffers(1, &buffer_object);
 	}
 #endif	// USING_3DENGFX
 }
@@ -85,17 +85,17 @@ void GeometryArray<DataType>::SyncBufferObject() {
 	if(dynamic) return;
 
 	if(buffer_object == INVALID_VBO) {
-		glGenBuffersARB(1, &buffer_object);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer_object);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, count * sizeof(DataType), data, GL_STATIC_DRAW_ARB);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glext::glGenBuffers(1, &buffer_object);
+		glext::glBindBuffer(GL_ARRAY_BUFFER_ARB, buffer_object);
+		glext::glBufferData(GL_ARRAY_BUFFER_ARB, count * sizeof(DataType), data, GL_STATIC_DRAW_ARB);
+		glext::glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	} else {
 
 		while(glGetError() != GL_NO_ERROR);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer_object);
+		glext::glBindBuffer(GL_ARRAY_BUFFER_ARB, buffer_object);
 
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, count * sizeof(DataType), data, GL_STATIC_DRAW_ARB);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glext::glBufferData(GL_ARRAY_BUFFER_ARB, count * sizeof(DataType), data, GL_STATIC_DRAW_ARB);
+		glext::glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	}
 #endif	// USING_3DENGFX
 	vbo_in_sync = true;
@@ -118,7 +118,7 @@ inline void GeometryArray<DataType>::SetData(const DataType *data, unsigned long
 #ifdef USING_3DENGFX
 	if(!dynamic) {
 		if(buffer_object != INVALID_VBO && count != this->count) {
-			glDeleteBuffersARB(1, &buffer_object);
+			glext::glDeleteBuffers(1, &buffer_object);
 		}
 		SyncBufferObject();
 		vbo_in_sync = true;

@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "textures.hpp"
 #include "material.hpp"
 #include "gfx/3dgeom.hpp"
+#include "common/image.h"
 
 extern Matrix4x4 world_matrix, view_matrix;
 
@@ -78,7 +79,7 @@ void SetPointSprites(bool enable);
 void SetTextureFiltering(int tex_unit, TextureFilteringType tex_filter);
 void SetTextureAddressing(int tex_unit, TextureAddressing uaddr, TextureAddressing vaddr);
 void SetTextureBorderColor(int tex_unit, const Color &color);
-void SetTexture(int tex_unit, Texture *tex);
+void SetTexture(int tex_unit, const Texture *tex);
 //void SetTextureFactor(dword factor);
 void SetMipMapping(bool enable);
 void SetMaterial(const Material &mat);
@@ -86,6 +87,7 @@ void SetMaterial(const Material &mat);
 void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face = CUBE_MAP_PX);
 
 // multitexturing interface
+void SelectTextureUnit(int tex_unit);
 void EnableTextureUnit(int tex_unit);
 void DisableTextureUnit(int tex_unit);
 void SetTextureUnitColor(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3 = TARG_NONE);
@@ -114,6 +116,9 @@ Matrix4x4 GetMatrix(TransformType xform_type, int num = 0);
 void SetViewport(unsigned int x, unsigned int y, unsigned int xsize, unsigned int ysize);
 
 Matrix4x4 CreateProjectionMatrix(scalar_t vfov, scalar_t aspect, scalar_t near, scalar_t far);
+
+// misc
+bool ScreenCapture(char *fname = 0, enum image_file_format fmt = IMG_FMT_TGA);
 
 
 ////////////// function prototypes ///////////////

@@ -92,7 +92,10 @@ public:
 	void SetShowNormalsScale(scalar_t scale);
 	void SetAutoGlobal(bool enable);
 
-	void ApplyXForm(bool recalc_normals = false, unsigned long time = XFORM_LOCAL_PRS);
+	void ApplyXForm(unsigned long time = XFORM_LOCAL_PRS);
+
+	void CalculateNormals();
+	void NormalizeNormals();
 	
 	void Render(unsigned long time = XFORM_LOCAL_PRS);
 };

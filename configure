@@ -2,3 +2,6 @@
 
 echo 'Creating 3dengfx-config program'
 gcc -o 3dengfx-config inst/3dengfx_config.c -Isrc
+
+echo 'Creating installer program'
+gcc -o inst/inst inst/inst.c -Isrc

@@ -284,6 +284,14 @@ void TriMesh::CalculateNormals() {
 	delete [] tri_indices;
 }
 
+
+void TriMesh::NormalizeNormals() {
+	Vertex *vptr = varray.GetModData();
+	for(unsigned int i=0; i<varray.GetCount(); i++) {
+		vptr[i].normal.Normalize();
+	}
+}
+
 /* TriMesh::InvertWinding() - (JT)
  * inverts the order of vertices (cw/ccw) as well as the normals
  */

@@ -232,7 +232,7 @@ void XFormNode::SetPosition(const Vector3 &pos, unsigned long time) {
 		local_prs.position = pos;
 	} else {
 		Keyframe *keyframe = GetNearestKey(time);
-		if(keyframe->time == time) {
+		if(keyframe && keyframe->time == time) {
 			keyframe->prs.position = pos;
 		}
 	}
@@ -244,7 +244,7 @@ void XFormNode::SetRotation(const Quaternion &rot, unsigned long time) {
 		local_prs.rotation = rot;
 	} else {
 		Keyframe *keyframe = GetNearestKey(time);
-		if(keyframe->time == time) {
+		if(keyframe && keyframe->time == time) {
 			keyframe->prs.rotation = rot;
 		}
 	}
@@ -262,7 +262,7 @@ void XFormNode::SetRotation(const Vector3 &euler, unsigned long time) {
 		local_prs.rotation = xrot * yrot * zrot;
 	} else {
 		Keyframe *keyframe = GetNearestKey(time);
-		if(keyframe->time == time) {
+		if(keyframe && keyframe->time == time) {
 			keyframe->prs.rotation = xrot * yrot * zrot;
 		}
 	}
@@ -274,7 +274,7 @@ void XFormNode::SetScaling(const Vector3 &scale, unsigned long time) {
 		local_prs.scale = scale;
 	} else {
 		Keyframe *keyframe = GetNearestKey(time);
-		if(keyframe->time == time) {
+		if(keyframe && keyframe->time == time) {
 			keyframe->prs.scale = scale;
 		}
 	}
@@ -309,7 +309,7 @@ void XFormNode::Translate(const Vector3 &trans, unsigned long time) {
 		local_prs.position += trans;
 	} else {
 		Keyframe *keyframe = GetNearestKey(time);
-		if(keyframe->time == time) {
+		if(keyframe && keyframe->time == time) {
 			keyframe->prs.position += trans;
 		}
 	}
@@ -321,7 +321,7 @@ void XFormNode::Rotate(const Quaternion &rot, unsigned long time) {
 		local_prs.rotation = rot * local_prs.rotation;
 	} else {
 		Keyframe *keyframe = GetNearestKey(time);
-		if(keyframe->time == time) {
+		if(keyframe && keyframe->time == time) {
 			keyframe->prs.rotation = rot * keyframe->prs.rotation;
 		}
 	}
@@ -339,7 +339,7 @@ void XFormNode::Rotate(const Vector3 &euler, unsigned long time) {
 		local_prs.rotation = xrot * yrot * zrot * local_prs.rotation;
 	} else {
 		Keyframe *keyframe = GetNearestKey(time);
-		if(keyframe->time == time) {
+		if(keyframe && keyframe->time == time) {
 			keyframe->prs.rotation = xrot * yrot * zrot * keyframe->prs.rotation;
 		}
 	}
@@ -366,7 +366,7 @@ void XFormNode::Scale(const Vector3 &scale, unsigned long time) {
 		local_prs.scale.z *= scale.z;
 	} else {
 		Keyframe *keyframe = GetNearestKey(time);
-		if(keyframe->time == time) {
+		if(keyframe && keyframe->time == time) {
 			keyframe->prs.scale.x *= scale.x;
 			keyframe->prs.scale.y *= scale.y;
 			keyframe->prs.scale.z *= scale.z;

@@ -15,6 +15,9 @@ include src/nlibase/Makefile-part
 include src/fxwt/Makefile-part
 include src/sim/Makefile-part
 
+.PHONY: all
+all: lib3dengfx.so.0.1.0 lib3dengfx.a
+
 .PHONY: shared
 shared: lib3dengfx.so.0.1.0
 
@@ -52,3 +55,11 @@ cleandep:
 	$(RM) src/nlibase/*.d src/nlibase/*.d.*
 	$(RM) src/fxwt/*.d src/fxwt/*.d.*
 	$(RM) src/sim/*.d src/sim/*.d.*
+
+.PHONY: install
+install:
+	inst/inst
+
+.PHONY: remove
+remove:
+	inst/inst -r

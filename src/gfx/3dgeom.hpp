@@ -202,6 +202,7 @@ public:
 	void SetData(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount);	
 		
 	void CalculateNormals();
+	void NormalizeNormals();
 	void InvertWinding();
 
 	void ApplyXForm(const Matrix4x4 &xform);

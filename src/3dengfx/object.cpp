@@ -163,13 +163,19 @@ void Object::SetAutoGlobal(bool enable) {
 	mat.auto_refl = enable;
 }
 
-void Object::ApplyXForm(bool recalc_normals, unsigned long time) {
+void Object::ApplyXForm(unsigned long time) {
 	world_mat = GetPRS(time).GetXFormMatrix();
 	mesh.ApplyXForm(world_mat);
 	ResetXForm(time);
-	if(recalc_normals) mesh.CalculateNormals();
 }
 
+void Object::CalculateNormals() {
+	mesh.CalculateNormals();
+}
+
+void Object::NormalizeNormals() {
+	mesh.NormalizeNormals();
+}
 
 void Object::Render8TexUnits() {}
 

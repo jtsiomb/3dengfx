@@ -97,7 +97,7 @@ void print_libs_no_3dengfx(void) {
 	FILE *p;
 	int c;
 		
-	printf("-lGL -lGLU %s %s %s ", LD_JPEG, LD_PNG, LD_CG);
+	printf("-lGL -lGLU -l3ds -lbz2 %s %s %s ", LD_JPEG, LD_PNG, LD_CG);
 
 	if((p = popen(LIBS_CMD, "r"))) {
 		while((c = fgetc(p)) != -1) putchar(c);

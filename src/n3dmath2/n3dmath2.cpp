@@ -193,3 +193,5 @@ size_t SizeOfScalarType() {
 	static const scalar_t temp = 0.0;
 	return sizeof(temp);
 }
+
+

@@ -75,6 +75,7 @@ protected:
 	
 public:
 	Plane(const Vector3 &pos=Vector3(0,0,0), const Vector3 &normal=Vector3(0,0,-1));
+	Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3);
 	virtual ~Plane();
 
 	virtual void SetNormal(const Vector3 &normal);
@@ -85,5 +86,10 @@ public:
 	virtual bool CheckIntersection(const Ray &ray) const;
 	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;
 };
+
+// utility functions
+bool PointOverPlane(const Plane &plane, const Vector3 &point);
+bool LinePlaneIntersection(Vector3 *vec_out, const Plane &plane, const Vector3 &p1, const Vector3 &p2);
+
 
 #endif	// _N3DMATH2_QDR_HPP_

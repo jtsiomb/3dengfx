@@ -115,6 +115,12 @@ Plane::Plane(const Vector3 &pos, const Vector3 &normal) : Quadratic(pos) {
 	this->normal = normal;
 }
 
+Plane::Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3) : Quadratic(p1)
+{
+        this->pos = p1;
+        this->normal = CrossProduct(p2 - p1, p3 - p1).Normalized();
+}
+
 Plane::~Plane() {}
 
 void Plane::SetNormal(const Vector3 &normal) {
@@ -155,3 +161,53 @@ bool Plane::FindIntersection(const Ray &ray, SurfPoint *isect) const {
 	}
 	return true;
 }
+
+
+/*
+ * PointOverPlane (MG)
+ * returns true if the point is in the positive side of the
+ * plane
+ */
+bool PointOverPlane(const Plane &plane, const Vector3 &point)
+{
+        if (DotProduct(plane.GetPosition() - point, plane.GetNormal()) < 0)
+        {
+                return true;
+        }
+
+        return false;
+}
+
+/*
+ * LinePlaneIntersection (MG)
+ * requires that plane.normal is normalized !
+ */
+bool LinePlaneIntersection(Vector3 *vec_out, const Plane &plane, const Vector3 &p1, const Vector3 &p2)
+{
+        // Decide early if the line does not intersect the plane
+        if (! (PointOverPlane(plane, p1) ^ PointOverPlane(plane, p2)))
+        {
+                // the points are both in the same side of the plane
+                return false;
+        }
+
+        Vector3 direction = p2 - p1;
+
+        // distance from the plane
+        scalar_t d1 = DotProduct(plane.GetNormal(), plane.GetPosition() - p1);
+
+        // dot of normal and ray's direction
+        scalar_t d2 = DotProduct(plane.GetNormal(), direction);
+
+        if (d2 == 0)
+        {
+                // just in case ...
+                return false;
+        }
+
+        scalar_t t = d1 / d2;
+        *vec_out = p1 + (direction * t);
+
+        return true;
+}
+

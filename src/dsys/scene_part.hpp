@@ -18,47 +18,32 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _PART_HPP_
-#define _PART_HPP_
+/* Scene derived class for ready 3d scenes
+ *
+ * Author: John Tsiombikas 2005
+ */
 
-#include "common/timer.h"
-#include "dsys.hpp"
+#ifndef _SCENE_PART_HPP_
+#define _SCENE_PART_HPP_
+
+#include "part.hpp"
+#include "3dengfx/3dscene.hpp"
 
 namespace dsys {
 
-	class Part {
+	class ScenePart : public Part {
 	protected:
-		char *name;
-		ntimer timer;
-		unsigned long time;
-		dsys::RenderTarget target;
-		bool clear;
+		Scene *scene;
 
-		virtual void PreDraw();
-		virtual void DrawPart() = 0;
-		virtual void PostDraw();
+		virtual void DrawPart();
 
 	public:
+		ScenePart(const char *name = 0, Scene *scene = 0);
+		ScenePart(const char *name, const char *scene_file);
+		virtual ~ScenePart();
 
-		Part(const char *name = 0);
-		virtual ~Part();
-
-		void SetName(const char *name);
-		const char *GetName() const;
-		virtual void SetClear(bool enable);
-
-		virtual void Start();
-		virtual void Stop();
-
-		virtual void SetTarget(RenderTarget targ);
-
-		virtual void UpdateGraphics();
-
-		/* the < operator compares the names,
-		 * intended for use by the binary tree.
-		 */
-		bool operator <(const Part &part) const;
+		void SetScene(Scene *scene);
 	};
 }
 
-#endif	// _PART_HPP_
+#endif	// _SCRENE_PART_HPP_

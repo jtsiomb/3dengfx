@@ -23,11 +23,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include "dsys.hpp"
 #include "part.hpp"
+#include "cmd.hpp"
+#include "script.h"
 #include "3dengfx/3dengfx.hpp"
 #include "n3dmath2/n3dmath2.hpp"
 #include "common/timer.h"
-#include "script.h"
 #include "common/bstree.hpp"
+#include "common/err_msg.h"
 
 using namespace dsys;
 using std::cerr;
@@ -67,7 +69,9 @@ bool dsys::Init() {
 		tex[i] = new Texture(rtex_size_x, rtex_size_y);
 	}
 
-	strcpy(script_fname, "data/demoscript");
+	strcpy(script_fname, "demoscript");
+
+	cmd::RegisterCommands();
 
 	return true;
 }
@@ -87,106 +91,55 @@ void dsys::AddPart(Part *part) {
 	parts.Insert(part);
 }
 
+void dsys::RemovePart(Part *part) {
+	parts.Remove(part);
+}
+
+void dsys::StartPart(Part *part) {
+	running.Insert(part);
+	part->Start();
+}
+
+void dsys::StopPart(Part *part) {
+	part->Stop();
+	running.Remove(part);
+}
 
 class _KeyPart : public dsys::Part {
 protected:
 	virtual void DrawPart() {}	// must implement the pure virtuals of the parent
-};		
+};
 
-bool dsys::StartPart(const char *pname) {
+Part *dsys::GetPart(const char *pname) {
 	_KeyPart key;
 	key.SetName(pname);
 	BSTreeNode<Part*> *node = parts.Find(&key);
-	if(node) {
-		running.Insert(node->data);
-		node->data->Start();
-		return true;
-	}
-	return false;
+	return node ? node->data : 0;
 }
 
-bool dsys::EndPart(const char *pname) {
+Part *dsys::GetRunning(const char *pname) {
 	_KeyPart key;
 	key.SetName(pname);
 	BSTreeNode<Part*> *node = running.Find(&key);
-	if(node) {
-		node->data->Stop();
-		running.Remove(node->data);
-		return true;
-	}
-	return false;
+	return node ? node->data : 0;
 }
 
-bool dsys::RenamePart(const char *pname, const char *new_name) {
-	_KeyPart key;
-	key.SetName(pname);
-	BSTreeNode<Part*> *node = parts.Find(&key);
-	if(node) {
-		node = parts.Remove(&key);
-		node->data->SetName(new_name);
-		parts.Insert(node);
-		return true;
-	}
-	return false;
-}
-
-bool dsys::SetRenderTarget(const char *pname, const char *treg) {
-	int tnum;
-	if(!strcmp(treg, "fb")) {
-		tnum = (int)RT_FB;
-	} else {
-		if(	treg[0] != 't' || !isdigit(treg[1]) || 
-			(tnum = atoi(treg+1)) < 0 || tnum > 3) {
-			return false;
-		}
-	}
-	
-	_KeyPart key;
-	key.SetName(pname);
-	BSTreeNode<Part*> *node = parts.Find(&key);
-	if(node) {
-		node->data->SetTarget((RenderTarget)tnum);
-		return true;
-	}
-	return false;
-}
-
-bool dsys::SetClear(const char *pname, const char *enable) {
-	bool enable_val;
-	if(enable) {
-		if(!strcmp(enable, "true")) {
-			enable_val = true;
-		} else if(!strcmp(enable, "false")) {
-			enable_val = false;
-		} else {
-			return false;
-		}
-	} else {
-		return false;
-	}
-		
-	_KeyPart key;
-	key.SetName(pname);
-	BSTreeNode<Part*> *node = parts.Find(&key);
-	if(node) {
-		node->data->SetClear(enable_val);
-		return true;
-	}
-	return false;
-}
 
 bool dsys::StartDemo() {
-	if(!(ds = OpenScript(script_fname))) {
+	if(!(ds = open_script(script_fname))) {
 		return false;
 	}
 	demo_running = true;
 	timer_reset(&timer);
+	timer_start(&timer);
 	return true;
 }
 
 void dsys::EndDemo() {
-	CloseScript(ds);
-	demo_running = false;
+	if(demo_running) {
+		close_script(ds);
+		demo_running = false;
+	}
 }
 
 
@@ -216,84 +169,17 @@ int dsys::UpdateGraphics() {
 }
 
 static int ExecuteScript(DemoScript *ds, unsigned long time) {
-	DemoCommand cmd;
+	DemoCommand command;
 	
-	int res = GetNextCommand(ds, &cmd, time);
+	int res = get_next_command(ds, &command, time);
 	if(res == EOF || res == 1) {
 		return res;
 	}
 
-	bool op_res = true;
-
-	switch(cmd.type) {
-	case CMD_START_PART:
-		cerr << "start_part(" << cmd.args << ")";
-		op_res = StartPart(cmd.args);
-		break;
-
-	case CMD_END_PART:
-		cerr << "end_part(" << cmd.args << ")";
-		op_res = EndPart(cmd.args);
-		break;
-
-	case CMD_END:
-		cerr << "end.\n";
-		return EOF;
-
-	case CMD_RENAME_PART:
-		{
-			if(!cmd.args) return 1;
-			char *prev_name = strtok(cmd.args, " \t");
-			if(!prev_name) return 1;
-			
-			char *nname = strtok(0, " \t");
-			if(!nname) return 1;
-			
-			cerr << "rename_part(" << prev_name << ", " << nname << ")";
-			op_res = RenamePart(prev_name, nname);
-		}
-		break;
-
-	case CMD_SET_RTARGET:
-		{
-			if(!cmd.args) return 1;
-			char *pname = strtok(cmd.args, " \t");
-			if(!pname) return 1;
-
-			char *treg = strtok(0, " \t");
-			if(	!treg || (strcmp(treg, "fb") && 
-				(treg[0] != 't' || !isdigit(treg[1])))) return 1;
-
-			cerr << "set_rtarget(" << pname << ", " << treg << ")";
-			op_res = SetRenderTarget(pname, treg);
-		}
-		break;
-
-	case CMD_SET_CLEAR:
-		{
-			if(!cmd.args) return 1;
-			char *pname = strtok(cmd.args, " \t");
-			if(!pname) return 1;
-
-			char *enable = strtok(0, " \t");
-			if(!enable || (strcmp(enable, "true") && strcmp(enable, "false"))) {
-				return 1;
-			}
-			cerr << "set_clear(" << pname << ", " << enable << ")";
-			op_res = SetClear(pname, enable);
-		}
-		break;
-
-	default:
-		break;
+	if(!cmd::Command(command.type, command.argv[0], command.argv + 1)) {
+		error("error in demoscript command execution!");;
 	}
 
-	if(op_res) {
-		cerr << "\n";
-	} else {
-		cerr << " ERROR\n";
-	}
-
-	return 0;
+	return demo_running ? 0 : -1;
 }
 

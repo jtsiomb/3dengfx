@@ -1,22 +1,23 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
+This file is part of the 3dengfx demo system.
 
-This file is part of "The Lab demosystem".
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
-"The Lab demosystem" is free software; you can redistribute it and/or modify
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-"The Lab demosystem" is distributed in the hope that it will be useful,
+This program demo is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with "The Lab demosystem"; if not, write to the Free Software
+along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 
 #include "3dengfx_config.h"
 
@@ -24,11 +25,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#include <assert.h>
 #include "script.h"
+
+#define NEED_COMMAND_STRINGS
+#include "cmd.h"
 
 #define BUF_LEN		1024
 
-DemoScript *OpenScript(const char *fname) {
+static char *cmd_symb[] = {COMMANDS, 0};
+
+DemoScript *open_script(const char *fname) {
 	DemoScript *script = malloc(sizeof(DemoScript));
 	
 	if(!(script->file = fopen(fname, "r"))) {
@@ -46,31 +53,24 @@ DemoScript *OpenScript(const char *fname) {
 	return script;
 }
 
-void CloseScript(DemoScript *ds) {
+void close_script(DemoScript *ds) {
 	fclose(ds->file);
 	free(ds->fname);
 	free(ds);
 }
 
-static char *cmd_symb[VALID_CMD_COUNT] = {
-	"start_part",
-	"end_part",
-	"end.",
-	"rename_part",
-	"set_rtarget",
-	"set_clear"
-};
 
-static char *SkipSpaces(char *ptr) {
+static char *skip_spaces(char *ptr) {
 	while(*ptr && *ptr != '\n' && isspace(*ptr)) ptr++;
 	return ptr;
 }
 
-int GetNextCommand(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
+int get_next_command(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
 	char *ptr;
 	char *cmd_tok;
 	int i;
 	
+	/* get next line if one is available */
 	if(ds->line_buffer[0] == 0) {
 		if(!fgets(ds->line_buffer, BUF_LEN, ds->file)) {
 			return EOF;
@@ -78,32 +78,45 @@ int GetNextCommand(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
 		ds->line++;
 	}
 
-	ptr = SkipSpaces(ds->line_buffer);
+	ptr = skip_spaces(ds->line_buffer);
 
+	/* skip comments and empty lines */
 	if(*ptr == '#' || *ptr == '\n') {
 		ds->line_buffer[0] = 0;
-		return GetNextCommand(ds, cmd, time);
+		return get_next_command(ds, cmd, time);
 	}
 
+	/* retrieve command time */
 	cmd->time = atoi(ptr);
-
-	if(cmd->time > time) {
-		return 1;
-	}
 	
-	while(*ptr && *ptr != '\n' && (isdigit(*ptr) || isspace(*ptr))) ptr++;
+	/* skip timestamp and following whitespace */
+	while(*ptr && *ptr != '\n' && (isdigit(*ptr) || isspace(*ptr) || (isdigit(*(ptr-1)) && *ptr == 's'))) {
+		if(*ptr == 's') cmd->time *= 1000;
+		ptr++;
+	}
 	if(!*ptr || *ptr == '\n') {
 		fprintf(stderr, "Skipping invalid line %ld: %s\n", ds->line, ds->line_buffer);
 		ds->line_buffer[0] = 0;
-		return GetNextCommand(ds, cmd, time);
+		return get_next_command(ds, cmd, time);
+	}
+	
+	if(cmd->time > time) {
+		return 1;	/* time is in the future */
 	}
 
+	/* seperate command name substring (cmd_tok), ptr keeps the rest */
 	cmd_tok = ptr;
 	while(*ptr && !isspace(*ptr)) ptr++;
 	*ptr++ = 0;
 
+	/* make the command name upper-case */
+	for(i=0; cmd_tok[i]; i++) {
+		cmd_tok[i] = toupper(cmd_tok[i]);
+	}
+
+	/* match the command string with the available commands */
 	cmd->type = (CommandType)UINT_MAX;
-	for(i=0; i<VALID_CMD_COUNT; i++) {
+	for(i=0; cmd_symb[i]; i++) {
 		if(!strcmp(cmd_tok, cmd_symb[i])) {
 			cmd->type = i;
 			break;
@@ -113,10 +126,33 @@ int GetNextCommand(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
 	if(cmd->type == (CommandType)UINT_MAX) {
 		fprintf(stderr, "Skipping invalid line %ld: Unrecognized command %s\n", ds->line, cmd_tok);
 		ds->line_buffer[0] = 0;
-		return GetNextCommand(ds, cmd, time);
+		return get_next_command(ds, cmd, time);
 	}
 
-	ptr = SkipSpaces(ptr);
+	/* tokenize the rest of the arguments and put them into argv */
+	cmd_tok = ptr = skip_spaces(ptr);
+	cmd->argc = *ptr ? 1 : 0;
+
+	while(*ptr && *ptr != '\n') {
+		if(isspace(*ptr)) {
+			ptr = skip_spaces(ptr);
+			if(*ptr && *ptr != '\n') cmd->argc++;
+		} else {
+			ptr++;
+		}
+	}
+	
+	cmd->argv = malloc((cmd->argc + 1) * sizeof(char*));
+	for(i=0; i<cmd->argc; i++) {
+		ptr = strtok(i ? 0 : cmd_tok, " \t\n");
+		assert(ptr);
+
+		cmd->argv[i] = malloc(strlen(ptr) + 1);
+		strcpy((char*)cmd->argv[i], ptr);
+	}
+	cmd->argv[i] = 0;
+	
+	/*
 	if(!*ptr || *ptr == '\n') {
 		cmd->args = 0;
 	} else {
@@ -127,6 +163,7 @@ int GetNextCommand(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
 			cmd->args[len - 1] = 0;
 		}
 	}
+	*/
 	ds->line_buffer[0] = 0;
 	
 	return 0;

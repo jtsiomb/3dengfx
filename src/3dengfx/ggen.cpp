@@ -568,7 +568,7 @@ void CreateTeapot(TriMesh *mesh, scalar_t size, int subdiv)
 
 	// rearrange vertices to correct axes
 	Vector3 *vertices = new Vector3[teapot_num_vertices];
-	for (unsigned long i = 0; i < teapot_num_vertices; i++)
+	for(int i = 0; i < teapot_num_vertices; i++)
 	{
 		vertices[i].x = teapot_vertices[i * 3 + 0] * size;
 		vertices[i].z = teapot_vertices[i * 3 + 1] * size;

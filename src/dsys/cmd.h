@@ -18,47 +18,21 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _PART_HPP_
-#define _PART_HPP_
+#ifdef CMD
+#undef CMD
+#endif	/* defined(CMD) */
 
-#include "common/timer.h"
-#include "dsys.hpp"
+#ifdef NEED_COMMAND_STRINGS
+#define CMD(command)	#command
+#else
+#define CMD(command)	CMD_##command
+#endif	/* weird hack */
 
-namespace dsys {
-
-	class Part {
-	protected:
-		char *name;
-		ntimer timer;
-		unsigned long time;
-		dsys::RenderTarget target;
-		bool clear;
-
-		virtual void PreDraw();
-		virtual void DrawPart() = 0;
-		virtual void PostDraw();
-
-	public:
-
-		Part(const char *name = 0);
-		virtual ~Part();
-
-		void SetName(const char *name);
-		const char *GetName() const;
-		virtual void SetClear(bool enable);
-
-		virtual void Start();
-		virtual void Stop();
-
-		virtual void SetTarget(RenderTarget targ);
-
-		virtual void UpdateGraphics();
-
-		/* the < operator compares the names,
-		 * intended for use by the binary tree.
-		 */
-		bool operator <(const Part &part) const;
-	};
-}
-
-#endif	// _PART_HPP_
+/* Here is the place to add/remove commands accepted by the demosystem */
+#define COMMANDS	\
+	CMD(START_PART),\
+	CMD(END_PART),\
+	CMD(RENAME_PART),\
+	CMD(SET_RTARGET),\
+	CMD(SET_CLEAR),\
+	CMD(END)

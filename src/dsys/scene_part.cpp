@@ -18,47 +18,36 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _PART_HPP_
-#define _PART_HPP_
+/* Scene derived class for ready 3d scenes
+ *
+ * Author: John Tsiombikas 2005
+ */
 
-#include "common/timer.h"
-#include "dsys.hpp"
+#include "scene_part.hpp"
+#include "3dengfx/sceneloader.hpp"
+#include "common/err_msg.h"
 
-namespace dsys {
+using namespace dsys;
 
-	class Part {
-	protected:
-		char *name;
-		ntimer timer;
-		unsigned long time;
-		dsys::RenderTarget target;
-		bool clear;
-
-		virtual void PreDraw();
-		virtual void DrawPart() = 0;
-		virtual void PostDraw();
-
-	public:
-
-		Part(const char *name = 0);
-		virtual ~Part();
-
-		void SetName(const char *name);
-		const char *GetName() const;
-		virtual void SetClear(bool enable);
-
-		virtual void Start();
-		virtual void Stop();
-
-		virtual void SetTarget(RenderTarget targ);
-
-		virtual void UpdateGraphics();
-
-		/* the < operator compares the names,
-		 * intended for use by the binary tree.
-		 */
-		bool operator <(const Part &part) const;
-	};
+ScenePart::ScenePart(const char *name, Scene *scene) : Part(name) {
+	this->scene = scene;
 }
 
-#endif	// _PART_HPP_
+ScenePart::ScenePart(const char *name, const char *scene_file) : Part(name) {
+	if(!(scene = LoadScene(scene_file))) {
+		error("ScenePart: %s, failed loading scene: %s", name, scene_file);
+		scene = 0;
+	}
+}
+
+ScenePart::~ScenePart() {
+	delete scene;
+}
+
+void ScenePart::DrawPart() {
+	scene->Render(time);
+}
+
+void ScenePart::SetScene(Scene *scene) {
+	this->scene = scene;
+}

@@ -1,20 +1,20 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
+This file is part of the 3dengfx demo system.
 
-This file is part of "The Lab demosystem".
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
-"The Lab demosystem" is free software; you can redistribute it and/or modify
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-"The Lab demosystem" is distributed in the hope that it will be useful,
+This program demo is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with "The Lab demosystem"; if not, write to the Free Software
+along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
@@ -59,20 +59,6 @@ void Part::PreDraw() {
 
 void Part::PostDraw() {
 	if(target != RT_FB) {
-		/*
-		SetTexture(0, dsys::tex[(int)target]);
-		while(glGetError() != GL_NO_ERROR);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, rtex_size_x, rtex_size_y);
-		
-		GLenum error;
-		if((error = glGetError()) != GL_NO_ERROR) {
-			std::cerr << "Error @ PostDraw() of part " << name << ": ";
-			std::cerr << GetGLErrorString(error) << "\n";
-		}
-
-		const GraphicsInitParameters *gip = GetGraphicsInitParameters();
-		SetViewport(0, 0, gip->x, gip->y);
-		*/
 		::SetRenderTarget(0);
 	}
 
@@ -100,10 +86,12 @@ void Part::SetClear(bool enable) {
 }
 
 void Part::Start() {
-	timer_reset(&timer);
+	timer_start(&timer);
 }
 
-void Part::Stop() {}
+void Part::Stop() {
+	timer_stop(&timer);
+}
 
 void Part::SetTarget(RenderTarget targ) {
 	target = targ;

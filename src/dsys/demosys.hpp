@@ -23,5 +23,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "dsys.hpp"
 #include "fx.hpp"
 #include "part.hpp"
+#include "scene_part.hpp"
 
 #endif	// _DEMOSYS_HPP_

@@ -1,30 +1,28 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
+This file is part of the 3dengfx demo system.
 
-This file is part of the eternal demo.
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
-The eternal library is free software; you can redistribute it and/or modify
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-The eternal demo is distributed in the hope that it will be useful,
+This program demo is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the eternal demo; if not, write to the Free Software
+along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 #ifndef _SCRIPT_H_
 #define _SCRIPT_H_
 
 #include <stdio.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif	/* __cplusplus */
+#include "cmd.h"
 
 typedef struct DemoScript {
 	char *fname;
@@ -34,30 +32,28 @@ typedef struct DemoScript {
 } DemoScript;
 
 typedef enum CommandType {
-	CMD_START_PART,
-	CMD_END_PART,
-	CMD_END,
-	CMD_RENAME_PART,
-	CMD_SET_RTARGET,
-	CMD_SET_CLEAR
+	COMMANDS
 } CommandType;
-
-#define VALID_CMD_COUNT	6
 
 typedef struct DemoCommand {
 	unsigned long time;
 	CommandType type;
-	char *args;
+	const char **argv;
+	int argc;
 } DemoCommand;
 
+#ifdef __cplusplus
+extern "C" {
+#endif	/* __cplusplus */
 
-DemoScript *OpenScript(const char *fname);
-void CloseScript(DemoScript *ds);
+DemoScript *open_script(const char *fname);
+void close_script(DemoScript *ds);
 
 /* returns EOF on eof, 0 for successfull retrieval of command an 1 if
  * the command on the next line is to be executed at the future
  */
-int GetNextCommand(DemoScript *ds, DemoCommand *cmd, unsigned long time);
+int get_next_command(DemoScript *ds, DemoCommand *cmd, unsigned long time);
+
 #ifdef __cplusplus
 }
 #endif	/* __cplusplus */

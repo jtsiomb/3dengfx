@@ -43,7 +43,7 @@ include $(obj:.o=.d)
 
 .PHONY: clean
 clean:
-	$(RM) $(obj)
+	$(RM) $(obj) lib3dengfx.so.0.1.0 lib3dengfx.a
 
 .PHONY: cleandep
 cleandep:

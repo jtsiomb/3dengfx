@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 enum timer_state {TSTATE_RUNNING, TSTATE_PAUSED, TSTATE_RESET};
 
 typedef struct ntimer {
-	unsigned long stop, start;
+	unsigned long stop, start, stopped_interval;
 	enum timer_state state;
 } ntimer;
 

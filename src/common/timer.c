@@ -51,25 +51,31 @@ static unsigned long sys_get_msec(void) {
 
 void timer_start(ntimer *timer) {
 	timer->state = TSTATE_RUNNING;
-	timer->start += timer->stop - sys_get_msec();
+	timer->stopped_interval += timer_getmsec(timer) - timer->stop;
 	timer->stop = 0;
 }
 
 void timer_stop(ntimer *timer) {
+	timer->stop = timer_getmsec(timer);
 	timer->state = TSTATE_PAUSED;
-	timer->stop = sys_get_msec();
 }
 
 void timer_reset(ntimer *timer) {
 	timer->state = TSTATE_RESET;
 	timer->start = sys_get_msec();
-	timer->stop = 0;	
+	timer->stop = 0;
+	timer->stopped_interval = 0;
 }
 
 unsigned long timer_getmsec(const ntimer *timer) {
-	return sys_get_msec() - timer->start;
+	if(timer->state == TSTATE_RUNNING) {
+		return sys_get_msec() - timer->start - timer->stopped_interval;
+	} else {
+		return timer->stop;
+	}
+	return 0;	/* can't happen */
 }
 
 unsigned long timer_getsec(const ntimer *timer) {
-	return (sys_get_msec() - timer->start) / 1000;
+	return timer_getmsec(timer) / 1000;
 }

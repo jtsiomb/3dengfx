@@ -47,7 +47,7 @@ void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int sub
 
 			scalar_t u = (scalar_t)i/(scalar_t)quads_row;
 			scalar_t v = (scalar_t)j/(scalar_t)quads_row;
-			varray[j * vrow + i] = Vertex(Vector3(u - 0.5f, 1.0f - v - 0.5f, 0), u, v, Color(1.0f));
+			varray[j * vrow + i] = Vertex(Vector3(u - 0.5f, 1.0f - v - 0.5f, 0), u, 1.0 - v, Color(1.0f));
 			varray[j * vrow + i].pos.x *= size.x;
 			varray[j * vrow + i].pos.y *= size.y;
 		}
@@ -101,7 +101,7 @@ void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv) {
 	unsigned long quad_count = edges_pi * edges_2pi;
 	unsigned long tcount = quad_count * 2;
 	
-    	Vertex *varray = new Vertex[vcount];
+	Vertex *varray = new Vertex[vcount];
 	Triangle *tarray = new Triangle[tcount];
 
 	for(unsigned long j = 0; j < vcount_pi; j++) {
@@ -120,7 +120,7 @@ void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv) {
 			up_vec.Transform(rot_mat);
 
 			scalar_t u = (scalar_t)i / (scalar_t)(vcount_2pi - 1);
-			scalar_t v = (scalar_t)j / (scalar_t)(vcount_pi - 1);
+			scalar_t v = 1.0 - (scalar_t)j / (scalar_t)(vcount_pi - 1);
 			varray[j * vcount_2pi + i] = Vertex(up_vec * radius, u, v, Color(1.0f));
 			varray[j * vcount_2pi + i].normal = up_vec; 
 		}
@@ -206,7 +206,7 @@ void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int su
 
 			unsigned long index = i + vcount_2pi * j;
 
-			varray[index] = Vertex(pos, t, circle[j].tex[0].v, Color(1.0f));
+			varray[index] = Vertex(pos, t, 1.0 - circle[j].tex[0].v, Color(1.0f));
 			varray[index].normal = nor;
 		}
 	} // End vertex loop
@@ -330,7 +330,7 @@ void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv)
 			normal.Normalize();
 
 			// store vertex
-			varray[i + j * vrow] = Vertex(pos, tu, tv, Color(1.0f));
+			varray[i + j * vrow] = Vertex(pos, tu, 1.0 - tv, Color(1.0f));
 			varray[i + j * vrow].normal = normal;
 		}
 	} // end vertex loop

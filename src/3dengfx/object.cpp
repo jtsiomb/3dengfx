@@ -322,6 +322,11 @@ void Object::RenderHack(unsigned long time) {
 			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 			glEnable(GL_TEXTURE_GEN_S);
 			glEnable(GL_TEXTURE_GEN_T);
+
+			// TODO: fix this to produce the correct orientation
+			/*glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glRotatef(180.0, 0.0, 1.0, 0.0);*/
 		}
 		//tex_id = mat.tex[TEXTYPE_ENVMAP]->tex_id;
 		tex_unit++;
@@ -354,6 +359,9 @@ void Object::RenderHack(unsigned long time) {
 		glDisable(GL_TEXTURE_GEN_S);
 		glDisable(GL_TEXTURE_GEN_T);
 		glDisable(GL_TEXTURE_GEN_R);
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
 		SetMatrix(XFORM_TEXTURE, Matrix4x4::identity_matrix, i);
 		SetTextureAddressing(tex_unit, TEXADDR_WRAP, TEXADDR_WRAP);
 	}

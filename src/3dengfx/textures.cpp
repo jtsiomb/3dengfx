@@ -24,6 +24,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "opengl.h"
 #include "textures.hpp"
 
+static void InvertImage(unsigned long *img, int x, int y) {
+	unsigned long *s2 = img + y * x;
+	unsigned long *tmp = new unsigned long[x];
+	
+	int swaps = y / 2;
+	int sl_bytes = x * sizeof(unsigned long);
+	for(int i=0; i<swaps; i++) {
+		memcpy(tmp, img, sl_bytes);
+		memcpy(img, s2, sl_bytes);
+		memcpy(s2, tmp, sl_bytes);
+		img += x;
+		s2 -= x;
+	}
+
+	delete [] tmp;
+}
+
 static PixelBuffer undef_pbuf;
 
 static void GenUndefImage(int x, int y) {
@@ -118,10 +135,14 @@ void Texture::Lock(CubeMapFace cube_map_face) {
 	} else {
 		glGetTexImage(type, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	}
+
+	InvertImage(buffer, width, height);
 }
 
 void Texture::Unlock(CubeMapFace cube_map_face) {
 	glBindTexture(type, tex_id);
+
+	InvertImage(buffer, width, height);
 
 	switch(type) {
 	case TEX_1D:
@@ -154,13 +175,17 @@ void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
 	
 	glBindTexture(type, tex_id);
 
+	buffer = new unsigned long[width * height];
+	memcpy(buffer, pbuf.buffer, width * height * sizeof(unsigned long));
+	InvertImage(buffer, width, height);
+
 	switch(type) {
 	case TEX_1D:
 		glTexImage1D(type, 0, 4, width, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 		break;
 
 	case TEX_2D:
-		glTexImage2D(type, 0, 4, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, pbuf.buffer);
+		glTexImage2D(type, 0, 4, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, buffer);
 		break;
 
 	case TEX_CUBE:
@@ -170,6 +195,8 @@ void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
 	default:
 		break;
 	}
+
+	delete [] buffer;
 }
 
 TextureDim Texture::GetType() const {

@@ -1,3 +1,3 @@
 obj += src/common/image.o src/common/image_png.o src/common/image_jpg.o src/common/image_tga.o \
 	src/common/logger.o src/common/config_parser.o src/common/timer.o src/common/fps_counter.o \
-	src/common/err_msg.o
+	src/common/err_msg.o src/common/ImageManipulation.o

@@ -547,6 +547,7 @@ void CreateTeapot(TriMesh *mesh, int subdiv)
 		patches[i] = teapot_patches[i] - 1;
 	}
 
+		
 	// rearrange patches to clockwise order
 	for(int p=0; p<teapot_num_patches; p++)
 	{
@@ -555,7 +556,7 @@ void CreateTeapot(TriMesh *mesh, int subdiv)
 		{
 			for(int i=0; i<4; i++)
 			{
-				new_order[i * 4 + (3 - j)] = patches[p * 16 + j * 4 + i];
+				new_order[j * 4 + (3 - i)] = patches[p * 16 + j * 4 + i];
 			}
 		}
 
@@ -564,9 +565,20 @@ void CreateTeapot(TriMesh *mesh, int subdiv)
 			patches[16 * p + k] = new_order[k];
 		}
 	}
-	
-	CreateBezierMesh(mesh, (Vector3*)teapot_vertices, patches, teapot_num_patches, subdiv);
 
+	// rearrange vertices to correct axes
+	Vector3 *vertices = new Vector3[teapot_num_vertices];
+	for (unsigned long i = 0; i < teapot_num_vertices; i++)
+	{
+		vertices[i].x = teapot_vertices[i * 3 + 0];
+		vertices[i].z = teapot_vertices[i * 3 + 1];
+		vertices[i].y = teapot_vertices[i * 3 + 2];
+	}
+	
+	CreateBezierMesh(mesh, vertices, patches, teapot_num_patches, subdiv);
+
+	// cleanup
 	delete [] patches;
+	delete [] vertices;
 }
 

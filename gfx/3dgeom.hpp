@@ -188,7 +188,6 @@ public:
 };
 
 
-//////////// Transformable Node Base class /////////////
 class PRS {
 public:
 	Vector3 position;
@@ -216,6 +215,7 @@ public:
 enum ControllerType {CTRL_TRANSLATION, CTRL_ROTATION, CTRL_SCALING};
 #define XFORM_LOCAL_PRS		0xffffffff
 
+//////////// Transformable Node Base class /////////////
 class XFormNode {
 protected:
 	PRS local_prs;

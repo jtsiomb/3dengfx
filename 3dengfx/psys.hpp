@@ -47,6 +47,9 @@ public:
 };
 
 
+/* particle abstract base class.
+ * Derived from XFormNode for controller functionality
+ * */
 class Particle : public XFormNode {
 private:
 	Vector3 velocity;
@@ -66,12 +69,20 @@ public:
 	virtual void Draw() const = 0;
 };
 
+/* draws the particle as a textured quad */
 class BillboardParticle : public Particle {
 public:
 	virtual void Draw() const;
 };
 
+/* TODO: draws a 3D object in the position of the particle
+ * note that rotational and such controllers also apply for each
+ * of the particles seperately
+ */
 class MeshParticle : public Particle {
 };
+
+
+/* particle system */
 
 #endif	// _PSYS_HPP_

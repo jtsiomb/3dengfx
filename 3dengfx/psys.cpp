@@ -53,6 +53,8 @@ Particle::Particle(const Vector3 &pos, const Vector3 &vel, scalar_t friction, un
 	birth_time = global_time;
 }
 
+Particle::~Particle();
+
 bool Particle::Alive() const {
 	return global_time - birth_time < lifespan;
 }
@@ -60,7 +62,19 @@ bool Particle::Alive() const {
 void Particle::Update(const Vector3 &ext_force) {
 	unsigned long time = global_time - birth_time;
 	if(time > lifespan) return;
-	
 	scalar_t t = (scalar_t)time / (scalar_t)lifespan;
 
+	velocity = (velocity + ext_force) * friction;
+	Translate(velocity);	// update position
+}
+
+
+void BillboardParticle::Draw() const {
+	Vector3 pos = GetPRS().position;
+	
+	glPointSize(2.0f);
+	glBegin(GL_POINTS);
+	glColor3f(1.0, 0.4, 0.2);
+	glVertex3f(pos.x, pos.y, pos.z);
+	glEnd();
 }

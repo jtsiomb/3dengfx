@@ -1,5 +1,5 @@
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#ifndef _3DENGFX_CONFIG_H_
+#define _3DENGFX_CONFIG_H_
 
 /* -- CAUTION --
  * this header is included in both C (89) and C++ source files
@@ -23,4 +23,4 @@
  */
 #define USING_CG_TOOLKIT
 
-#endif	/* _CONFIG_H_ */
+#endif	/* _3DENGFX_CONFIG_H_ */

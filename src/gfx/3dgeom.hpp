@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with the graphics core library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* fundamendal data structures for 3D graphics
+ *
+ * Author: John Tsiombikas 2004
+ */
+
 #ifndef _3DGEOM_HPP_
 #define _3DGEOM_HPP_
 
@@ -30,9 +36,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 typedef unsigned short Index;
 
 struct TexCoord {
-	scalar_t u, v;		// or s,t if you prefer... I like u,v more though.
+	scalar_t u, v, w;	// or s,t,v if you prefer... I like u,v,w more though.
 
-	TexCoord(scalar_t u = 0.0f, scalar_t v = 0.0f);
+	TexCoord(scalar_t u = 0.0f, scalar_t v = 0.0f, scalar_t w = 0.0f);
 };
 
 class Triangle;	// fwd declaration

@@ -18,6 +18,11 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* main 3dengfx state control, and low level OpenGL interaction
+ *
+ * Author: John Tsiombikas 2004
+ */
+
 #include "3dengfx_config.h"
 
 #include <iostream>
@@ -108,11 +113,11 @@ static int stencil_ref;
 static bool mipmapping = true;
 //static bool wire = false;
 
-static TextureDim ttype[8];
+static TextureDim ttype[8];	// the type of each texture bound to each texunit (1D/2D/3D/CUBE)
 
 _CGcontext *cgc;
 
-Light *bump_light;
+const Light *bump_light;
 
 
 GraphicsInitParameters LoadGraphicsContextConfig(const char *fname) {
@@ -591,7 +596,9 @@ void Draw(const VertexArray &varray) {
 		for(int i=0; i<MAX_TEXTURES; i++) {
 			SelectTextureUnit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
+
+			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
+			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
 		}
 	} else {
 		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->pos);
@@ -601,7 +608,9 @@ void Draw(const VertexArray &varray) {
 		for(int i=0; i<MAX_TEXTURES; i++) {
 			SelectTextureUnit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->tex[coord_index[i]]);
+
+			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
+			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->tex[coord_index[i]]);
 		}
 	}
 	
@@ -641,7 +650,9 @@ void Draw(const VertexArray &varray, const IndexArray &iarray) {
 		for(int i=0; i<MAX_TEXTURES; i++) {
 			SelectTextureUnit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
+
+			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
+			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
 		}
 	} else {
 		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->pos);
@@ -651,7 +662,9 @@ void Draw(const VertexArray &varray, const IndexArray &iarray) {
 		for(int i=0; i<MAX_TEXTURES; i++) {
 			SelectTextureUnit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->tex[coord_index[i]]);
+
+			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
+			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->tex[coord_index[i]]);
 		}
 	}
 
@@ -988,7 +1001,7 @@ void SetShadingMode(ShadeMode mode) {
 	glShadeModel(mode);
 }
 
-void SetBumpLight(Light *light) {
+void SetBumpLight(const Light *light) {
 	bump_light = light;
 }
 

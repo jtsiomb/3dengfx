@@ -133,4 +133,7 @@ void PointLight::SetGLLight(int n, unsigned long time) const {
 	glEnable(light_num);
 	
 	glPopMatrix();
+
+	extern Light *bump_light;
+	if(!bump_light) SetBumpLight(this);
 }

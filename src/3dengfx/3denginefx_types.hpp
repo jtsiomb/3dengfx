@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* enumerations and data structures for the low-level 3dengfx state
+ *
+ * Author: John Tsiombikas 2004
+ */
+
 #ifndef _3DENGINEFX_TYPES_HPP_
 #define _3DENGINEFX_TYPES_HPP_
 

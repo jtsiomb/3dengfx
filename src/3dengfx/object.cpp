@@ -18,6 +18,11 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* higher level 3d object entity
+ *
+ * Author: John Tsiombikas 2004
+ */
+
 #include "3dengfx_config.h"
 
 #include "opengl.h"
@@ -241,33 +246,30 @@ void Object::Render(unsigned long time) {
 	mat.SetGLMaterial();
 	
 	//Render8TexUnits();
-	RenderHack();
+	RenderHack(time);
 }
 
-void Object::RenderHack() {
-	::SetMaterial(mat);
+void Object::RenderHack(unsigned long time) {
+	//::SetMaterial(mat);
 	int tex_unit = 0;
 
 	if(mat.tex[TEXTYPE_BUMPMAP]) {
-		/* TODO: setup a texture coordinate triplet array with the light vector in
-		 * tangent space for each vertex.
-		 */
+		SetupBumpLight(time);	// sets the light vector into texcoord[1]
 
-		/*	
 		SetTexture(tex_unit, mat.tex[TEXTYPE_BUMPMAP]);
 		EnableTextureUnit(tex_unit);
 		SetTextureCoordIndex(tex_unit, 0);
 		SetTextureUnitColor(tex_unit, TOP_REPLACE, TARG_TEXTURE, TARG_TEXTURE);
 		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV);
 		tex_unit++;
-
+		
+		SelectTextureUnit(tex_unit);
 		SetTexture(tex_unit, GetNormalCube());
 		EnableTextureUnit(tex_unit);
-		SetTextureCoordIndex(tex_unit, 2);	// tex coord with the light vector (UVW)
-		SetTextureUnitColor(tex_unit, TOP_DOT3, TARG_PREV, TARG_TEXTURE); // light dot normal(prev)
-		SetTextureUnitColor(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV); // keep the alpha
+		SetTextureCoordIndex(tex_unit, 1);	// tex coord with the light vector (UVW)
+		SetTextureUnitColor(tex_unit, TOP_DOT3, TARG_TEXTURE, TARG_PREV);
+		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV);
 		tex_unit++;
-		*/
 	}
 	
 	if(mat.tex[TEXTYPE_DIFFUSE]) {
@@ -337,4 +339,79 @@ void Object::RenderHack() {
 		SetMatrix(XFORM_TEXTURE, Matrix4x4::identity_matrix, i);
 		SetTextureAddressing(tex_unit, TEXADDR_WRAP, TEXADDR_WRAP);
 	}
+}
+
+
+void Object::SetupBumpLight(unsigned long time) {
+	extern Light *bump_light;
+	Vector3 lpos = bump_light->GetPRS(time).position;
+
+	Matrix4x4 inv_world = world_mat.Inverse();
+	lpos.Transform(inv_world);
+
+	VertexArray *va = mesh.GetModVertexArray();
+	int vcount = va->GetCount();
+	Vertex *varray = va->GetModData();
+	int tcount = mesh.GetTriangleArray()->GetCount();
+	const Triangle *tptr = mesh.GetTriangleArray()->GetData();
+
+	
+	Vector3 *utan = new Vector3[vcount];
+	memset(utan, 0, vcount * sizeof(Vector3));
+
+	Vector3 *vtan = new Vector3[vcount];
+	memset(vtan, 0, vcount * sizeof(Vector3));
+
+	for(int i=0; i<tcount; i++) {
+		Vertex *v1 = &varray[tptr->vertices[0]];
+		Vertex *v2 = &varray[tptr->vertices[1]];
+		Vertex *v3 = &varray[tptr->vertices[2]];
+
+		Vector3 vec1 = v2->pos - v1->pos;
+		Vector3 vec2 = v3->pos - v1->pos;
+
+		TexCoord tc1(v2->tex[0].u - v1->tex[0].u, v2->tex[0].v - v1->tex[0].v);
+		TexCoord tc2(v3->tex[0].u - v1->tex[0].u, v3->tex[0].v - v1->tex[0].v);
+	
+		scalar_t r = 1.0 / (tc1.u * tc2.v - tc2.u * tc1.v);
+		Vector3 udir(	(tc2.v * vec1.x - tc1.v * vec2.x) * r,
+						(tc2.v * vec1.y - tc1.v * vec2.y) * r,
+						(tc2.v * vec1.z - tc1.v * vec2.z) * r);
+
+		Vector3 vdir(	(tc1.u * vec2.x - tc2.u * vec1.x) * r,
+						(tc1.u * vec2.y - tc2.u * vec1.y) * r,
+						(tc1.u * vec2.z - tc2.u * vec1.z) * r);
+
+		utan[tptr->vertices[0]] += udir;
+		utan[tptr->vertices[1]] += udir;
+		utan[tptr->vertices[2]] += udir;
+		
+		vtan[tptr->vertices[0]] += vdir;
+		vtan[tptr->vertices[1]] += vdir;
+		vtan[tptr->vertices[2]] += vdir;
+		
+		tptr++;		
+	}
+
+	Vertex *vptr = varray;
+	for(int i=0; i<vcount; i++) {
+		Vector3 lvec = lpos - vptr->pos;
+
+		Vector3 normal = -vptr->normal;
+		Vector3 tan = utan[i];
+		tan = (tan - normal * DotProduct(normal, tan)).Normalized();
+		Vector3 bitan = CrossProduct(tan, normal);
+
+		Base tbn(tan, bitan, normal);
+		lvec.Transform(tbn.CreateRotationMatrix());
+		//lvec.Normalize();
+		
+		vptr->tex[1].u = -lvec.z;
+		vptr->tex[1].v = lvec.y;
+		vptr->tex[1].w = lvec.x;
+		vptr++;
+	}
+	
+	delete [] utan;
+	delete [] vtan;
 }

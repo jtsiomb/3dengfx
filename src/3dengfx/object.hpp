@@ -37,7 +37,9 @@ private:
 	//void Render4TexUnits();
 	
 	void Render8TexUnits();
-	void RenderHack();
+	void RenderHack(unsigned long time);
+	
+	void SetupBumpLight(unsigned long time);
 	
 public:
 	std::string name;

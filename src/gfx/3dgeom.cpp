@@ -18,6 +18,11 @@ along with the graphics core library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* fundamendal data structures for 3D graphics
+ *
+ * Author: John Tsiombikas 2004
+ */
+
 #include "3dengfx_config.h"
 
 #include <iostream>
@@ -36,9 +41,10 @@ using namespace glext;
 static Keyframe *FindNearestKeyframe(Keyframe *start, Keyframe *end, unsigned long time);
 
 
-TexCoord::TexCoord(scalar_t u, scalar_t v) {
+TexCoord::TexCoord(scalar_t u, scalar_t v, scalar_t w) {
 	this->u = u;
 	this->v = v;
+	this->w = w;
 }
 
 // Vertex class implementation

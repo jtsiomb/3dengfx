@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* main 3dengfx state control, and low level OpenGL interaction
+ *
+ * Author: John Tsiombikas 2004
+ */
+
 #ifndef _3DENGINEFX_HPP_
 #define _3DENGINEFX_HPP_
 
@@ -111,7 +117,7 @@ void SetAmbientLight(const Color &ambient_color);
 void SetShadingMode(ShadeMode mode);
 void SetSpecular(bool enable);
 
-void SetBumpLight(Light *light);
+void SetBumpLight(const Light *light);
 
 // Transformation Matrices
 void SetMatrix(TransformType xform_type, const Matrix4x4 &mat, int num = 0);

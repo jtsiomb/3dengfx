@@ -67,9 +67,9 @@ void TargetCamera::Activate(unsigned long msec) const {
 	Vector3 u = CrossProduct(up, n).Normalized();
 	Vector3 v = CrossProduct(n, u);
 
-	float tx = -DotProduct(u, pos);
-	float ty = -DotProduct(v, pos);
-	float tz = -DotProduct(n, pos);
+	scalar_t tx = -DotProduct(u, pos);
+	scalar_t ty = -DotProduct(v, pos);
+	scalar_t tz = -DotProduct(n, pos);
 
 	view_matrix = Matrix4x4(u.x, u.y, u.z, tx,
 							v.x, v.y, v.z, ty,

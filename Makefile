@@ -1,45 +1,34 @@
-libnames := common 3dengfx gfx nlibase dsys n3dmath2
-obj := $(foreach lib,$(libnames),$(lib)/$(lib)_pack.o)
+obj :=
+
+opt := -g
+inc_flags := -I. -I3dengfx -Igfx -In3dmath2 -Idsys -Icommon -Inlibase
+
+CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC $(inc_flags) `sdl-config --cflags`
+CFLAGS := $(opt) -std=c89 -pedantic -Wall -fPIC $(inc_flags) `sdl-config --cflags`
+
+include 3dengfx/Makefile-part
+include gfx/Makefile-part
+include n3dmath2/Makefile-part
+include dsys/Makefile-part
+include common/Makefile-part
+include nlibase/Makefile-part
 
 lib3dengfx.so.0.1.0: $(obj)
 	$(CXX) -shared -Wl,-soname,lib3dengfx.so.0 -o $@ $(obj)
 
-%.o:
-	cd $(@D); make
+lib3dengfx.a: $(obj)
+	$(AR) rcs $@ $(obj)
 
-.PHONY: install
-install:
-	rm -rf /usr/local/include/3dengfx
-	rm -f /usr/local/lib/lib3dengfx*
-	mkdir /usr/local/include/3dengfx
-	mkdir /usr/local/include/3dengfx/3dengfx
-	mkdir /usr/local/include/3dengfx/3dengfx/3dwt
-	mkdir /usr/local/include/3dengfx/gfx
-	mkdir /usr/local/include/3dengfx/common
-	mkdir /usr/local/include/3dengfx/dsys
-	mkdir /usr/local/include/3dengfx/nlibase
-	mkdir /usr/local/include/3dengfx/n3dmath2
-	cp 3dengfx/*.hpp 3dengfx/*.h /usr/local/include/3dengfx/3dengfx/
-	cp 3dengfx/3dwt/*.hpp /usr/local/include/3dengfx/3dengfx/3dwt/
-	cp gfx/*.hpp gfx/*.inl /usr/local/include/3dengfx/gfx/
-	cp common/*.hpp common/*.h common/*.inl /usr/local/include/3dengfx/common/
-	cp dsys/*.hpp dsys/*.h /usr/local/include/3dengfx/dsys/
-	cp nlibase/*.h /usr/local/include/3dengfx/nlibase/
-	cp n3dmath2/*.hpp n3dmath2/*.inl /usr/local/include/3dengfx/n3dmath2/
-	cp config.h /usr/local/include/3dengfx/
-	cp lib3dengfx.so.0.1.0 /usr/local/lib
-	cd /usr/local/lib; ln -s lib3dengfx.so.0.1.0 lib3dengfx.so
-	chmod +x 3dengfx-config
-	cp 3dengfx-config /usr/local/bin
-	ldconfig
-	
+include $(obj:.o=.d)
+
+%.d: %.cpp
+	@set -e; rm -f $@; $(CXX) -MM $(CXXFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
+
+%.d: %.c
+	@set -e; rm -f $@; $(CC) -MM $(CFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
 
 .PHONY: clean
 clean:
-	@echo Cleaning everything...
-	cd 3dengfx; make clean
-	cd gfx; make clean
-	cd dsys; make clean
-	cd n3dmath2; make clean
-	cd nlibase; make clean
-	cd common; make clean
+	$(RM) $(obj)

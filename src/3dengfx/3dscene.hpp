@@ -53,6 +53,8 @@ private:
 	bool auto_clear;
 	Color bg_color;
 	mutable bool first_render;
+	mutable unsigned long poly_count;
+	unsigned long scene_poly_count;
 	
 	void PlaceCubeCamera(const Vector3 &pos);
 	bool RenderAllCubeMaps(unsigned long msec = XFORM_LOCAL_PRS) const;
@@ -61,6 +63,10 @@ public:
 
 	Scene();
 	~Scene();
+
+	void SetPolyCount(unsigned long pcount);
+	unsigned long GetPolyCount() const;
+	unsigned long GetFramePolyCount() const;
 
 	void AddCamera(Camera *cam);
 	void AddLight(Light *light);

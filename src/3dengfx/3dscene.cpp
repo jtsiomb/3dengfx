@@ -42,6 +42,8 @@ Scene::Scene() {
 
 	auto_clear = true;
 	bg_color = 0;
+	scene_poly_count = 0;
+	poly_count = 0;
 
 	// setup the cube-map cameras
 	for(int i=0; i<6; i++) {
@@ -83,6 +85,18 @@ Scene::~Scene() {
 		}
 	}
 
+}
+
+void Scene::SetPolyCount(unsigned long pcount) {
+	scene_poly_count = pcount;
+}
+
+unsigned long Scene::GetPolyCount() const {
+	return scene_poly_count;
+}
+
+unsigned long Scene::GetFramePolyCount() const {
+	return poly_count;
 }
 
 void Scene::AddCamera(Camera *cam) {
@@ -244,6 +258,7 @@ void Scene::Render(unsigned long msec) const {
 
 	bool rendered_cubemaps = false;
 	if(!level) {
+		poly_count = 0;
 		rendered_cubemaps = RenderAllCubeMaps();
 		first_render = false;
 	}
@@ -278,6 +293,7 @@ void Scene::Render(unsigned long msec) const {
 
 		if(!rp.hidden) {
 			obj->Render(msec);
+			poly_count += obj->GetTriMeshPtr()->GetTriangleArray()->GetCount();
 		}
 	}
 

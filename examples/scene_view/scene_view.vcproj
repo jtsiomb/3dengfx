@@ -116,6 +116,21 @@
 		</Filter>
 		<File
 			RelativePath="..\..\release\3dengfx.lib">
+			<FileConfiguration
+				Name="Debug|Win32"
+				ExcludedFromBuild="TRUE">
+				<Tool
+					Name="VCCustomBuildTool"/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath="..\..\Debug\3dengfx.lib">
+			<FileConfiguration
+				Name="Release|Win32"
+				ExcludedFromBuild="TRUE">
+				<Tool
+					Name="VCCustomBuildTool"/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\..\..\Program Files\Microsoft Visual Studio .NET\Vc7\PlatformSDK\lib\OpenGL32.Lib">

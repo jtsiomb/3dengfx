@@ -31,6 +31,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifdef IMGLIB_USE_JPEG
 
 #include <stdlib.h>
+
+#ifdef WIN32
+#include <windows.h>
+#define HAVE_BOOLEAN
+#endif
+
 #include <jpeglib.h>
 #include "color_bits.h"
 

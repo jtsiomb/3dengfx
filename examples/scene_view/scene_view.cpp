@@ -126,13 +126,13 @@ void UpdateGfx() {
 
 	if(fps_frame_proc(&fps, timer_getmsec(&timer))) {
 		stringstream buf;
-		buf << title_str << " [fps: " << fps_get_frame_rate(&fps) << "]";
+		buf << title_str << " [frame-polygons: " << scene->GetFramePolyCount() << " fps: " << fps_get_frame_rate(&fps) << "]";
 		fxwt::SetWindowTitle(buf.str().c_str());
 	}
 }
 
 void CleanUp() {
 	delete scene;
-	if(cam_light_on) delete cam_light;
+	if(!cam_light_on) delete cam_light;
 	DestroyGraphicsContext();
 }

@@ -124,6 +124,7 @@ Scene *LoadScene(const char *fname) {
 
 static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 	// load meshes
+	unsigned long poly_count = 0;
 	Lib3dsMesh *m = file->meshes;
 	while(m) {
 
@@ -151,6 +152,7 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 		}
 		
 		if(m->faces) {
+			poly_count += m->faces;
 			// -------- object ---------
 			Object *obj = new Object;
 			obj->SetDynamic(false);
@@ -212,6 +214,7 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 		m = m->next;
 	}
 	
+	scene->SetPolyCount(poly_count);
 	return true;
 }
 

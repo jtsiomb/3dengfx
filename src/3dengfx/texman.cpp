@@ -49,7 +49,9 @@ static Texture *normal_cubemap;
 template <class KeyType>
 static unsigned int Hash(const KeyType &key, unsigned long size) {
 	int hash = 0, a = 31415, b = 27183;
-	char *str = strdup(((string)key).c_str());
+	char *str = new char[((string)key).length() + 1];
+	strcpy(str, ((string)key).c_str());
+
 	char *sptr = str;
 	
 	while(*sptr) {
@@ -57,7 +59,7 @@ static unsigned int Hash(const KeyType &key, unsigned long size) {
 		a = a * b % (size - 1);
 	}
 	
-	free(str);
+	delete [] str;
 	
 	return (unsigned int)(hash < 0 ? (hash + size) : hash);
 }
@@ -100,6 +102,7 @@ Texture *FindTexture(const char *fname) {
  * and return it, and if it fails it returns a NULL pointer
  */
 Texture *GetTexture(const char *fname) {
+	if(!fname) return 0;
 	
 	Texture *tex;
 	if((tex = FindTexture(fname))) return tex;

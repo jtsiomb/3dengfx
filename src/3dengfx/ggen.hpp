@@ -44,6 +44,6 @@ void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv);
 void CreateBezierMesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, int patch_count, int subdiv);
 
 // oddities
-void CreateTeapot(TriMesh *mesh, int subdiv);
+void CreateTeapot(TriMesh *mesh, scalar_t size, int subdiv);
 
 #endif	// _GGEN_HPP_

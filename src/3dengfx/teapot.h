@@ -46,8 +46,6 @@ static const unsigned int teapot_patches[] = {
 	270, 270, 270, 270, 300, 305, 306, 279, 297, 303, 304, 275, 294, 301, 302, 271
 };
 
-// TODO: flip the y / z coords
-
 static const int teapot_num_vertices = 306;
 
 static const float teapot_vertices[] = {

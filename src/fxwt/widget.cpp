@@ -1,20 +1,20 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
+This file is part of fxwt, the window system toolkit of 3dengfx.
 
-This file is part of the 3dengfx, realtime visualization system.
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
-3dengfx is free software; you can redistribute it and/or modify
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-3dengfx is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with 3dengfx; if not, write to the Free Software
+along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
@@ -22,323 +22,231 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <list>
 #include "widget.hpp"
+#include "3dengfx/textures.hpp"
+#include "3dengfx/gfxprog.hpp"
 #include "common/err_msg.h"
 #include "dsys/demosys.hpp"
 
 using namespace fxwt;
 using std::list;
 
-static Window *root;
 static int screenx, screeny;
-static int click_x, click_y;
 
-static Widget *keyb_focus;
-static Widget *clicked_widget;
-static bool bn_state_clicked;
+Widget *fxwt::root_win = 0;
 
 void fxwt::WidgetInit() {
+	SetDisplayHandler(WidgetDisplayHandler);
+	SetKeyboardHandler(WidgetKeyboardHandler);
+	SetMotionHandler(WidgetMotionHandler);
+	SetButtonHandler(WidgetButtonHandler);
+
 	const GraphicsInitParameters *gip = GetGraphicsInitParameters();
 	screenx = gip->x;
 	screeny = gip->y;
+	
+	root_win = new Widget;
+	root_win->SetParent(0);
+	root_win->SetSize(Vector2(1, 1), false);
 }
-
+		
 void fxwt::WidgetDisplayHandler() {
-	if(root) root->Draw();
+	root_win->DispHandler();
 }
 
 void fxwt::WidgetKeyboardHandler(int key) {
-	if(keyb_focus) {
-		keyb_focus->KeybHandler(key);
-	}
+	root_win->KeybHandler(key);
 }
-	
-void fxwt::WidgetMotionHandler(int x, int y) {
-	// convert the device coordinates to normalized [0,1) range
-	Vector2 coords((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
 
-	if(bn_state_clicked) {
-		Vector2 widget_local = clicked_widget->LocalCoords(coords);
-		clicked_widget->DragHandler(widget_local.x, widget_local.y);
-	}
+void fxwt::WidgetMotionHandler(int x, int y) {
+	Vector2 pos((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
+	root_win->MotionHandler(pos);
 }
 
 void fxwt::WidgetButtonHandler(int bn, int press, int x, int y) {
-	// convert the device coordinates to normalized [0,1) range
-	Vector2 coords((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
-
-	Widget *w_hit = root->HitTest(coords);
-	Vector2 widget_local = w_hit->LocalCoords(coords);
+	Vector2 pos((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
+	root_win->ButtonHandler(bn, press, pos);
 	
+	static int press_x, press_y;
 	if(press) {
-		bn_state_clicked = true;
-		clicked_widget = w_hit;
-		click_x = x;
-		click_y = y;
-		w_hit->ClickHandler(bn, widget_local.x, widget_local.y);
+		press_x = x;
+		press_y = y;
 	} else {
-		bn_state_clicked = false;
-		clicked_widget = 0;
-		if(x != click_x && y != click_y) {
-			// TODO: do additional drop stuff maybe?
-		}	
-		w_hit->ReleaseHandler(bn, widget_local.x, widget_local.y);
+		if(x == press_x && y == press_y) {
+			root_win->ClickHandler(bn, pos);
+		}
 	}
 }
 
-/* ---------------------------------------------------
- * abstract base class Widget implementation.
- * parent of all widgets.
- * ---------------------------------------------------
- */
-Widget::Widget(int zorder) {
-	this->zorder = zorder;
-	pos = Vector2(0.0, 0.0);
-	size = Vector2(1.0, 1.0);
-	parent = 0;
-	movable = true;
+void fxwt::Redraw() {
+	root_win->DispHandler();
 }
 
-Widget::Widget(const Vector2 &pos, const Vector2 &size, int zorder) {
-	this->zorder = zorder;
-	this->pos = pos;
-	this->size = size;
-	parent = 0;
-	movable = true;
+Widget::Widget() {
+	parent = root_win;
+	pos = Vector2(0, 0);
+	size = Vector2(1, 1);
+	focus = false;
+	sz_relative = true;
+
+	memset(&handlers, 0, sizeof handlers);
 }
 
 Widget::~Widget() {}
 
-void Widget::KeybHandler(int key) {
-	if(keyb_handler) keyb_handler(key);
-}
-
-void Widget::ClickHandler(int bn, scalar_t x, scalar_t y) {
-	pclick_coords = Vector2(x, y);
-	if(click_handler) click_handler(bn, x, y);
-}
-
-void Widget::ReleaseHandler(int bn, scalar_t x, scalar_t y) {
-	if(release_handler) release_handler(bn, x, y);
-}
-
-void Widget::DragHandler(scalar_t x, scalar_t y) {
-	if(movable) {
-		pos += Vector2(x, y) - pclick_coords;
-	}
+void Widget::DispHandler() {
+	if(handlers.display) handlers.display();
 	
-	if(drag_handler) drag_handler(x, y);
+	for(size_t i=0; i<children.size(); i++) {
+		children[i]->DispHandler();
+	}
 }
 
-void Widget::DropHandler(scalar_t x, scalar_t y) {
-	if(drop_handler) drop_handler(x, y);
+
+void Widget::KeybHandler(int key) {
+	if(handlers.keyboard) handlers.keyboard(key);
+	
+	for(size_t i=0; i<children.size(); i++) {
+		if(children[i]->HasFocus()) {
+			children[i]->KeybHandler(key);
+		}
+	}
 }
 
+void Widget::MotionHandler(const Vector2 &pos) {
+	if(handlers.motion) handlers.motion(pos);
+
+	for(size_t i=0; i<children.size(); i++) {
+		if(children[i]->HitTest(pos)) {
+			if(!children[i]->HasFocus()) children[i]->FocusHandler(true);
+			children[i]->MotionHandler(pos);
+		}
+	}
+}
+
+void Widget::ButtonHandler(int bn, bool press, const Vector2 &pos) {
+	if(handlers.button) handlers.button(bn, press, pos);
+	
+	for(size_t i=0; i<children.size(); i++) {
+		if(children[i]->HitTest(pos)) {
+			children[i]->ButtonHandler(bn, press, pos);
+		}
+	}
+}
+
+void Widget::FocusHandler(bool has_focus) {
+	focus = has_focus;
+}
+
+void Widget::ClickHandler(int bn, const Vector2 &pos) {
+	if(handlers.click) handlers.click(bn, pos);
+
+	for(size_t i=0; i<children.size(); i++) {
+		if(children[i]->HitTest(pos)) {
+			children[i]->ClickHandler(bn, pos);
+		}
+	}
+}
+
+void Widget::SetParent(Widget *w) {
+	parent = w;
+}
+
+void Widget::AddWidget(Widget *w) {
+	w->SetParent(this);
+	children.push_back(w);
+}
+
+Vector2 Widget::ToLocalPos(const Vector2 &p) const {
+	return p + pos + (parent ? parent->GetPosition() : Vector2(0, 0));
+}
+
+Vector2 Widget::ToGlobalPos(const Vector2 &p) const {
+	return p * GetSize() + pos + (parent ? parent->GetPosition() : Vector2(0, 0));
+}
 
 void Widget::SetPosition(const Vector2 &pos) {
 	this->pos = pos;
 }
 
 Vector2 Widget::GetPosition() const {
-	return pos;
+	return ToGlobalPos(Vector2(0, 0));
 }
 
-void Widget::SetSize(const Vector2 &sz) {
+void Widget::SetSize(const Vector2 &sz, bool relative) {
 	size = sz;
+	sz_relative = relative;
 }
 
 Vector2 Widget::GetSize() const {
+	if(sz_relative) {
+		return size * (parent ? parent->GetSize() : Vector2(1, 1));
+	}
 	return size;
 }
 
-Widget *Widget::HitTest(const Vector2 &point) const {
-	return (point.x >= pos.x && point.x < pos.x &&
-			point.y >= pos.y && point.y < pos.y) ? const_cast<Widget*>(this) : 0;
+bool Widget::HasFocus() const {
+	return focus;
 }
 
-Vector2 Widget::LocalCoords(const Vector2 &global) const {
-	return global - pos;
+bool Widget::HitTest(const Vector2 &global_pt) const {
+	Vector2 pt = ToLocalPos(global_pt);
+	Vector2 sz = GetSize();
+	return pt.x >= 0.0 && pt.y >= 0.0 && pt.x < sz.x && pt.y < sz.y;
 }
 
-Vector2 Widget::GlobalCoords(const Vector2 &local) const {
-	return local + pos;
+void Widget::SetDisplayHandler(void (*disp_handler)()) {
+	handlers.display = disp_handler;
+}
+
+void Widget::SetKeyHandler(void (*keyb_handler)(int)) {
+	handlers.keyboard = keyb_handler;
+}
+
+void Widget::SetMotionHandler(void (*motion_handler)(const Vector2&)) {
+	handlers.motion = motion_handler;
+}
+
+void Widget::SetButtonHandler(void (*bn_handler)(int, bool, const Vector2&)) {
+	handlers.button = bn_handler;
+}
+
+void Widget::SetFocusHandler(void (*focus_handler)(bool)) {
+	handlers.focus = focus_handler;
+}
+
+void Widget::SetClickHandler(void (*click_handler)(int, const Vector2&)) {
+	handlers.click = click_handler;
 }
 
 
-void Widget::SetKeyHandler(void (*handler)(int)) {
-	keyb_handler = handler;
-}
+// ------ drawable -------
 
-void Widget::SetClickHandler(void (*handler)(int, scalar_t, scalar_t)) {
-	click_handler = handler;
-}
-
-void Widget::SetReleaseHandler(void (*handler)(int, scalar_t, scalar_t)) {
-	release_handler = handler;
-}
-
-void Widget::SetDragHandler(void (*handler)(scalar_t, scalar_t)) {
-	drag_handler = handler;
-}
-		
-
-bool fxwt::operator <(const Widget &w1, const Widget &w2) {
-	return w1.zorder < w2.zorder;
-}
-
-
-/* ---------------------------------------------------
- * class Container implementation.
- * ---------------------------------------------------
- */
-
-Container::~Container() {}
-
-void Container::AddWidget(Widget *w) {
-	if(w->parent) {
-		warning("fxwt: adding a widget that already has a parent");
-	}
-	
-	/* A bit of a hack here, any widget that derives from Container
-	 * must initialize this widget_ptr to 'this', so this pointer
-	 * actually points to the parent of everything inside the container.
-	 */
-	w->parent = widget_ptr;
-	
-	widgets.Insert(w);
-}
-
-Widget *Container::HitTestContents(const Vector2 &point) const {
-	return 0;
-}
-
-/* ---------------------------------------------------
- * class TextureRect implementation.
- * ---------------------------------------------------
- */
-
-TextureRect::TextureRect(Texture *tex, const TexCoord &tc1, const TexCoord &tc2) {
+DrawableWidget::DrawableWidget(const Color &col, Texture *tex, GfxProg *sdr) {
+	color = col;
 	this->tex = tex;
-	tex_coord[0] = tc1;
-	tex_coord[1] = tc2;
-	alpha = 1.0;
-	alpha_tex = 0;
+	shader = sdr;
 }
 
-TextureRect::~TextureRect() {}
+DrawableWidget::~DrawableWidget() {}
 
-void TextureRect::SetTexture(Texture *tex) {
-	this->tex = tex;
+void DrawableWidget::DispHandler() {
+	Draw();
+	Widget::DispHandler();
 }
 
-const Texture *TextureRect::GetTexture() const {
-	return tex;
-}
-
-void TextureRect::SetAlphaTexture(Texture *tex) {
-	alpha_tex = tex;
-}
-
-const Texture *TextureRect::GetAlphaTexture() const {
-	return alpha_tex;
-}
-
-void TextureRect::SetTexCoords(const TexCoord &tc1, const TexCoord &tc2) {
-	tex_coord[0] = TexCoord(tc1.u, tc1.v);
-	tex_coord[1] = TexCoord(tc2.u, tc2.v);
-}
-
-TexCoord TextureRect::GetTexCoord(int which) const {
-	return tex_coord[which];
-}
-
-void TextureRect::SetColor(const Color &col) {
+void DrawableWidget::SetColor(const Color &col) {
 	color = col;
 }
 
-Color TextureRect::GetColor() const {
-	return color;
+void DrawableWidget::SetTexture(Texture *tex) {
+	this->tex = tex;
 }
 
-void TextureRect::SetAlpha(scalar_t a) {
-	alpha = a;
+void DrawableWidget::SetShader(GfxProg *sdr) {
+	shader = sdr;
 }
 
-scalar_t TextureRect::GetAlpha() const {
-	return alpha;
-}
-
-void TextureRect::Draw() const {
-	Vector2 ppos = parent ? parent->GetPosition() : Vector2(0, 0);
-	
-	Color draw_color = color;
-	draw_color.a = alpha;
-	
-	//dsys::Overlay(tex, ppos + pos, ppos + pos + size, draw_color);
-	dsys::Overlay(tex, Vector2(ppos.x + pos.x, ppos.y + pos.y + size.y), Vector2(ppos.x + pos.x + size.x, ppos.y + pos.y), draw_color);
-}
-
-
-/* ---------------------------------------------------
- * class Window implementation.
- * ---------------------------------------------------
- */
-
-Window::Window(int zorder) : TextureRect(0) {
-	titlebar = overlay = 0;
-	this->zorder = zorder;
-	widget_ptr = this;
-}
-
-Window::Window(const Vector2 &pos, const Vector2 &size, int priority) : TextureRect(0) {
-	titlebar = overlay = 0;
-	this->pos = pos;
-	this->size = size;
-	this->zorder = zorder;
-	widget_ptr = this;
-}
-
-Window::~Window() {
-	if(titlebar) delete titlebar;
-	if(overlay) delete overlay;
-}
-
-void Window::SetTitleBar(Texture *tex, scalar_t size) {
-	if(!titlebar) titlebar = new TextureRect;
-	titlebar->SetTexture(tex);
-	titlebar->SetPosition(Vector2(0.0, -size));
-	titlebar->SetSize(Vector2(1.0, size));
-	titlebar->parent = this;
-}
-
-void Window::SetOverlay(const TextureRect &trect) {
-	if(overlay) delete overlay;
-
-	overlay = new TextureRect(trect);
-}
-
-void Window::Draw() const {
-	TextureRect::Draw();
-
-	/* TODO: revise this one to use the widget tree that 
-	 * replaced the priority queue
-	 */
-	/*
-	priority_queue<Widget*> children = pqueue;
-	if(overlay) {
-		children.push(overlay);
-	}
-
-	while(!children.empty()) {
-		Widget *widget = children.top();
-		children.pop();
-		widget->Draw();
-	}
-
-	if(titlebar) {
-		Vector2 tbsz = titlebar->GetSize();
-		tbsz.x = GetSize().x;
-		titlebar->SetSize(tbsz);
-		titlebar->Draw();
-	}
-	*/
+void DrawableWidget::Draw() const {
+	Vector2 pos = GetPosition();
+	dsys::Overlay(tex, pos, pos + GetSize(), color, shader);
 }

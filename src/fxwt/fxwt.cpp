@@ -51,14 +51,7 @@ static GdkGLDrawable *gl_drawable;
 
 void fxwt::Init() {
 	fxwt::TextInit();
-
-	/*
 	fxwt::WidgetInit();
-	SetDisplayHandler(WidgetDisplayHandler);
-	SetKeyboardHandler(WidgetKeyboardHandler);
-	SetMotionHandler(WidgetMotionHandler);
-	SetButtonHandler(WidgetButtonHandler);
-	*/
 }
 
 void fxwt::SetDisplayHandler(void (*handler)()) {

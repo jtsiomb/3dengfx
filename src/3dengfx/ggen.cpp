@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  * author: John Tsiombikas 2004
  * modified: 
- * 		Mihalis Georgoulopoulos 2004
+ * 		Mihalis Georgoulopoulos 2004, 2005
  * 		John Tsiombikas 2005
  */
 
@@ -537,7 +537,7 @@ void CreateBezierMesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, i
  * Creates a teapot TriMesh, using the original
  * data file from Newell
  */
-void CreateTeapot(TriMesh *mesh, int subdiv)
+void CreateTeapot(TriMesh *mesh, scalar_t size, int subdiv)
 {
 	unsigned int *patches = new unsigned int[teapot_num_patches * 16];
 	
@@ -570,9 +570,9 @@ void CreateTeapot(TriMesh *mesh, int subdiv)
 	Vector3 *vertices = new Vector3[teapot_num_vertices];
 	for (unsigned long i = 0; i < teapot_num_vertices; i++)
 	{
-		vertices[i].x = teapot_vertices[i * 3 + 0];
-		vertices[i].z = teapot_vertices[i * 3 + 1];
-		vertices[i].y = teapot_vertices[i * 3 + 2];
+		vertices[i].x = teapot_vertices[i * 3 + 0] * size;
+		vertices[i].z = teapot_vertices[i * 3 + 1] * size;
+		vertices[i].y = teapot_vertices[i * 3 + 2] * size;
 	}
 	
 	CreateBezierMesh(mesh, vertices, patches, teapot_num_patches, subdiv);

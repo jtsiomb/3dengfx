@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the n3dmath2 library.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 The n3dmath2 library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -42,10 +42,12 @@ public:
 	
 	friend inline Vector2 operator +(const Vector2 &v1, const Vector2 &v2);
 	friend inline Vector2 operator -(const Vector2 &v1, const Vector2 &v2);	
+	friend inline Vector2 operator *(const Vector2 &v1, const Vector2 &v2);
 	friend inline bool operator ==(const Vector2 &v1, const Vector2 &v2);
 	
 	friend inline void operator +=(Vector2 &v1, const Vector2 &v2);
 	friend inline void operator -=(Vector2 &v1, const Vector2 &v2);
+	friend inline void operator *=(Vector2 &v1, const Vector2 &v2);
 	
 	// binary vector (op) scalar and scalar (op) vector operations
 	friend inline Vector2 operator +(const Vector2 &vec, scalar_t scalar);
@@ -95,10 +97,12 @@ public:
 	
 	friend inline Vector3 operator +(const Vector3 &v1, const Vector3 &v2);
 	friend inline Vector3 operator -(const Vector3 &v1, const Vector3 &v2);	
+	friend inline Vector3 operator *(const Vector3 &v1, const Vector3 &v2);	
 	friend inline bool operator ==(const Vector3 &v1, const Vector3 &v2);
 	
 	friend inline void operator +=(Vector3 &v1, const Vector3 &v2);
 	friend inline void operator -=(Vector3 &v1, const Vector3 &v2);
+	friend inline void operator *=(Vector3 &v1, const Vector3 &v2);
 	
 	// binary vector (op) scalar and scalar (op) vector operations
 	friend inline Vector3 operator +(const Vector3 &vec, scalar_t scalar);
@@ -152,10 +156,12 @@ public:
 	
 	friend inline Vector4 operator +(const Vector4 &v1, const Vector4 &v2);
 	friend inline Vector4 operator -(const Vector4 &v1, const Vector4 &v2);	
+	friend inline Vector4 operator *(const Vector4 &v1, const Vector4 &v2);	
 	friend inline bool operator ==(const Vector4 &v1, const Vector4 &v2);
 	
 	friend inline void operator +=(Vector4 &v1, const Vector4 &v2);
 	friend inline void operator -=(Vector4 &v1, const Vector4 &v2);
+	friend inline void operator *=(Vector4 &v1, const Vector4 &v2);
 	
 	// binary vector (op) scalar and scalar (op) vector operations
 	friend inline Vector4 operator +(const Vector4 &vec, scalar_t scalar);

@@ -1,33 +1,36 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
+This file is part of fxwt, the window system toolkit of 3dengfx.
 
-This file is part of the 3dengfx, realtime visualization system.
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
-3dengfx is free software; you can redistribute it and/or modify
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-3dengfx is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with 3dengfx; if not, write to the Free Software
+along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 #ifndef _WIDGET_HPP_
 #define _WIDGET_HPP_
 
+#include <vector>
 #include <string>
-#include <queue>
 #include "n3dmath2/n3dmath2.hpp"
 #include "3dengfx/3dengfx.hpp"
 #include "gfx/3dgeom.hpp"
-#include "common/bstree.hpp"
 
 namespace fxwt {
+
+	class Widget;
+	extern Widget *root_win;	// TODO: make this Window
 
 	void WidgetInit();
 		
@@ -35,122 +38,91 @@ namespace fxwt {
 	void WidgetKeyboardHandler(int key);
 	void WidgetMotionHandler(int x, int y);
 	void WidgetButtonHandler(int bn, int press, int x, int y);
-	
+
+	void Redraw();
+
+	struct EventHandlers {
+		void (*display)();
+		void (*keyboard)(int);
+		void (*motion)(const Vector2&);
+		void (*button)(int, bool, const Vector2&);
+
+		void (*focus)(bool has_focus);
+		void (*click)(int, const Vector2&);
+		// TODO: add drag and drop high level events and scroll events?
+	};
+
 	class Widget {
 	private:
-		Vector2 pclick_coords;
-		
-		void (*keyb_handler)(int);
-		void (*click_handler)(int, scalar_t, scalar_t);
-		void (*release_handler)(int, scalar_t, scalar_t);
-		void (*drag_handler)(scalar_t, scalar_t);
-		void (*drop_handler)(scalar_t, scalar_t);
+		Widget *parent;
+		std::vector<Widget*> children;
+		EventHandlers handlers;
 
-		virtual void KeybHandler(int key);
-		virtual void ClickHandler(int bn, scalar_t x, scalar_t y);
-		virtual void ReleaseHandler(int bn, scalar_t x, scalar_t y);
-		virtual void DragHandler(scalar_t x, scalar_t y);
-		virtual void DropHandler(scalar_t x, scalar_t y);
+		Vector2 pos, size;
+		bool focus, sz_relative;
 
 	protected:
-		Vector2 pos, size;
-		int zorder;
-		bool movable;
+		virtual void DispHandler();
+		virtual void KeybHandler(int key);
+		virtual void MotionHandler(const Vector2 &pos);
+		virtual void ButtonHandler(int bn, bool press, const Vector2 &pos);
+		virtual void FocusHandler(bool has_focus);
+		virtual void ClickHandler(int bn, const Vector2 &pos);
 
 	public:
-		std::string name;
-		Widget *parent;
-
-		Widget(int zorder = 0);
-		Widget(const Vector2 &pos, const Vector2 &size, int zorder);
+		Widget();
 		virtual ~Widget();
 
-		virtual void SetPosition(const Vector2 &pos);
-		virtual Vector2 GetPosition() const;
+		void SetParent(Widget *w);
 
-		virtual void SetSize(const Vector2 &sz);
-		virtual Vector2 GetSize() const;
+		void AddWidget(Widget *w);
+		// TODO: also remove by some name ?
 
-		virtual Widget *HitTest(const Vector2 &point) const;
-		
-		virtual Vector2 LocalCoords(const Vector2 &global) const;
-		virtual Vector2 GlobalCoords(const Vector2 &local) const;
-		
-		virtual void Draw() const = 0;
+		Vector2 ToLocalPos(const Vector2 &p) const;
+		Vector2 ToGlobalPos(const Vector2 &p) const;
 
+		void SetPosition(const Vector2 &pos);
+		Vector2 GetPosition() const;
+		void SetSize(const Vector2 &pos, bool relative = true);
+		Vector2 GetSize() const;
 
-		virtual void SetKeyHandler(void (*handler)(int));
-		virtual void SetClickHandler(void (*handler)(int, scalar_t, scalar_t));
-		virtual void SetReleaseHandler(void (*handler)(int, scalar_t, scalar_t));
-		virtual void SetDragHandler(void (*handler)(scalar_t, scalar_t));
-		
+		bool HasFocus() const;
 
-		friend bool operator <(const Widget &w1, const Widget &w2);
-		friend void WidgetKeyboardHandler(int key);
-		friend void WidgetMotionHandler(int x, int y);
-		friend void WidgetButtonHandler(int bn, int press, int x, int y);
+		virtual bool HitTest(const Vector2 &global_pt) const;
+
+		void SetDisplayHandler(void (*disp_handler)());
+		void SetKeyHandler(void (*keyb_handler)(int));
+		void SetMotionHandler(void (*motion_handler)(const Vector2&));
+		void SetButtonHandler(void (*bn_handler)(int, bool, const Vector2&));
+		void SetFocusHandler(void (*focus_handler)(bool));
+		void SetClickHandler(void (*click_handler)(int, const Vector2&));
+
+		friend void fxwt::WidgetDisplayHandler();
+		friend void fxwt::WidgetKeyboardHandler(int key);
+		friend void fxwt::WidgetMotionHandler(int x, int y);
+		friend void fxwt::WidgetButtonHandler(int bn, int press, int x, int y);
+
+		friend void fxwt::Redraw();
 	};
 
-	// operator < for the z ordering
-	bool operator <(const Widget &w1, const Widget &w2);
-
-	class Container {
-	protected:
-		BSTree<Widget*> widgets;
-		Widget *widget_ptr;
-		
-	public:
-		virtual ~Container();
-
-		virtual void AddWidget(Widget *w);
-
-		virtual Widget *HitTestContents(const Vector2 &point) const;
-	};
-	
-
-	class TextureRect : public Widget {
-	protected:
-		Texture *tex, *alpha_tex;
-		TexCoord tex_coord[2];
+	class DrawableWidget : public Widget {
+	private:
 		Color color;
+		Texture *tex;
+		GfxProg *shader;
 
-	public:
-		scalar_t alpha;
-		
-		TextureRect(Texture *tex = 0, const TexCoord &tc1 = TexCoord(0,0), const TexCoord &tc2 = TexCoord(1,1));
-		virtual ~TextureRect();
-		
-		virtual void SetTexture(Texture *tex);
-		virtual const Texture *GetTexture() const;
-
-		virtual void SetAlphaTexture(Texture *tex);
-		virtual const Texture *GetAlphaTexture() const;
-
-		virtual void SetTexCoords(const TexCoord &tc1, const TexCoord &tc2);
-		virtual TexCoord GetTexCoord(int which) const;
-
-		virtual void SetColor(const Color &col);
-		virtual Color GetColor() const;
-
-		virtual void SetAlpha(scalar_t a);
-		virtual scalar_t GetAlpha() const;
-
-		virtual void Draw() const;
-	};
-
-	class Window : public TextureRect, public Container {
 	protected:
-		TextureRect *titlebar, *overlay;
-	
+		virtual void DispHandler();
+		
 	public:
-		Window(int zorder=0);
-		Window(const Vector2 &pos, const Vector2 &size, int zorder=0);
-		virtual ~Window();
+		DrawableWidget(const Color &col = Color(1,1,1,1), Texture *tex = 0, GfxProg *sdr = 0);
+		virtual ~DrawableWidget();
 
-		virtual void SetTitleBar(Texture *tex = 0, scalar_t size = 0.04);
-		virtual void SetOverlay(const TextureRect &trect);
+		void SetColor(const Color &col);
+		void SetTexture(Texture *tex);
+		void SetShader(GfxProg *sdr);
 
-		virtual void Draw() const;
+		void Draw() const;
 	};
 }
 

@@ -28,8 +28,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/pbuffer.hpp"
 #include "3dengfx/3denginefx_types.hpp"
 #include "n3dmath2/n3dmath2_types.hpp"
+#include "gfx/color.hpp"
 
 enum ImgSamplingMode {SAMPLE_CLAMP, SAMPLE_WRAP, SAMPLE_MIRROR};
+
+void ClearPixelBuffer(PixelBuffer *pb, const Color &col);
 
 bool ResamplePixelBuffer(PixelBuffer *pb, int w, int h);
 bool ApplyKernel(PixelBuffer *pb, int *kernel, int kernel_dim, ImgSamplingMode sampling = SAMPLE_CLAMP);

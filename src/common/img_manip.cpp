@@ -46,6 +46,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 static inline scalar_t Cerp(scalar_t x0, scalar_t x1, scalar_t x2, scalar_t x3, scalar_t t);
 static inline int ClampInteger(int i, int from, int to);
 
+// ------------ simple operations ----------------
+void ClearPixelBuffer(PixelBuffer *pb, const Color &col) {
+	int sz = pb->width * pb->height;
+	Pixel pcol = PackColor32(col);
+	Pixel *ptr = pb->buffer;
+	
+	for(int i=0; i<sz; i++) {
+		*ptr++ = pcol;
+	}
+}
+
+// ------------ resampling ------------------
+
 static bool ResampleLine(scalar_t *dst, int dst_width, int dst_pitch,
 		  scalar_t *src, int src_width, int src_pitch)
 {
@@ -178,16 +191,17 @@ bool ResamplePixelBuffer(PixelBuffer *pb, int w, int h)
 	}
 
 	// resample
-	Resample2D(newa , w,h , a , pb->width , pb->height);
-	Resample2D(newr , w,h , r , pb->width , pb->height);
-	Resample2D(newg , w,h , g , pb->width , pb->height);
-	Resample2D(newb , w,h , b , pb->width , pb->height);
+	Resample2D(newa, w, h, a, pb->width, pb->height);
+	Resample2D(newr, w, h, r, pb->width, pb->height);
+	Resample2D(newg, w, h, g, pb->width, pb->height);
+	Resample2D(newb, w, h, b, pb->width, pb->height);
 
 	// pack
 	unsigned long *temp = (unsigned long*) malloc(w*h*sizeof(unsigned long));
 	PackScalarRGB2DW(temp , newa,newr,newg,newb,w*h);
 	free(pb->buffer);
-	pb->buffer = temp; temp=0;
+	pb->buffer = temp;
+	temp=0;
 	pb->width  = w;
 	pb->height = h;
 
@@ -229,7 +243,7 @@ static inline int ClampInteger(int i, int from, int to)
 
 static ImgSamplingMode samp_mode = SAMPLE_CLAMP;
 
-static inline int TransformIndex(int c,int dim)
+static inline int MapIndex(int c,int dim)
 {
 
 	switch (samp_mode)
@@ -296,8 +310,8 @@ static void JoinChannels(unsigned long *img,
 
 static inline unsigned long FetchPixel(int x, int y, unsigned long *img, int w, int h)
 {
-	x = TransformIndex(x,w);
-	y = TransformIndex(y,h);
+	x = MapIndex(x,w);
+	y = MapIndex(y,h);
 
 	return img[x+w*y];
 }
@@ -352,41 +366,39 @@ static unsigned long* ApplyKernelToChannel(int *kernel, int kernel_dim,
 
 bool ApplyKernel(PixelBuffer *pb, int *kernel, int kernel_dim, ImgSamplingMode sampling)
 {
-	if (!pb)			return false;
-	if (!pb->buffer)	return false;
-	if (pb->width <=0)	return false;
-	if (pb->height<=0)	return false;
-	if (!(kernel_dim/2))return false;
+	if(!pb || !pb->buffer) return false;
+	if(pb->width <= 0 || pb->height <= 0) return false;
+	if(!(kernel_dim/2)) return false;
 	
-	unsigned long l=pb->width * pb->height;
+	unsigned long sz = pb->width * pb->height;
 
 	// set sampling mode
 	samp_mode = sampling;
 
 	// allocate memory
-	unsigned long *tempa = (unsigned long*) malloc(l*sizeof(unsigned long));
-	unsigned long *tempr = (unsigned long*) malloc(l*sizeof(unsigned long));
-	unsigned long *tempg = (unsigned long*) malloc(l*sizeof(unsigned long));
-	unsigned long *tempb = (unsigned long*) malloc(l*sizeof(unsigned long));
+	unsigned long *tempa = (unsigned long*)malloc(sz * sizeof(unsigned long));
+	unsigned long *tempr = (unsigned long*)malloc(sz * sizeof(unsigned long));
+	unsigned long *tempg = (unsigned long*)malloc(sz * sizeof(unsigned long));
+	unsigned long *tempb = (unsigned long*)malloc(sz * sizeof(unsigned long));
 
 	// split channels
-	SplitChannels(pb->buffer,tempa,tempr,tempg,tempb,l);
+	SplitChannels(pb->buffer, tempa, tempr, tempg, tempb, sz);
 
 	// apply kernel
-	unsigned long *a = ApplyKernelToChannel(kernel,kernel_dim,tempa,pb->width,pb->height);
+	unsigned long *a = ApplyKernelToChannel(kernel, kernel_dim, tempa, pb->width, pb->height);
 	free(tempa);
 
-	unsigned long *r = ApplyKernelToChannel(kernel,kernel_dim,tempr,pb->width,pb->height);
+	unsigned long *r = ApplyKernelToChannel(kernel, kernel_dim, tempr, pb->width, pb->height);
 	free(tempr);
 
-	unsigned long *g = ApplyKernelToChannel(kernel,kernel_dim,tempg,pb->width,pb->height);
+	unsigned long *g = ApplyKernelToChannel(kernel, kernel_dim, tempg, pb->width, pb->height);
 	free(tempg);
 
-	unsigned long *b = ApplyKernelToChannel(kernel,kernel_dim,tempb,pb->width,pb->height);
+	unsigned long *b = ApplyKernelToChannel(kernel, kernel_dim, tempb, pb->width, pb->height);
 	free(tempb);
 
 	// join channels
-	JoinChannels(pb->buffer,a,r,g,b,l);
+	JoinChannels(pb->buffer, a, r, g, b, sz);
 
 	free(a);
 	free(r);
@@ -414,7 +426,7 @@ int* LoadKernel(const char* filename, int *dim)
 
 	int i;
 	
-	for (i=0;i<size;i++)
+	for(i=0; i<size; i++)
 		s[i] = getc(input);
 
 	s[i] = 0;
@@ -449,8 +461,8 @@ int* LoadKernel(const char* filename, int *dim)
 
 	int i2=0;
 
-	while (s[index] == ' ') index++;
-	while (s[index] != ' ')
+	while(s[index] == ' ') index++;
+	while(s[index] != ' ')
 	{
 		temp[i2] = s[index];
 		index++; i2++;
@@ -464,9 +476,9 @@ int* LoadKernel(const char* filename, int *dim)
 	}
 	num = atoi(temp);
 
-	int *kernel = (int*) malloc(num*num*sizeof(int));
+	int *kernel = (int*)malloc(num * num * sizeof(int));
 
-	for (int n=0;n<num*num;n++)
+	for (int n=0; n<num*num; n++)
 	{
 		i2 = 0;
 
@@ -523,11 +535,12 @@ bool SobelEdge(PixelBuffer *pb, ImgSamplingMode sampling) {
 	return true;
 }
 
-// static temp colors
-static unsigned long tempc1,tempc2,tempc3,tempc4;
 
-static inline unsigned long BlurPixels(unsigned long p1 , unsigned long p2)
+static inline unsigned long BlurPixels(unsigned long p1, unsigned long p2)
 {
+	// static temp colors
+	static unsigned long tempc1, tempc2, tempc3, tempc4;
+	
 	// blur all channels in a SIMD-like manner
 	tempc1 = tempc2 = p1;
 	tempc3 = tempc4 = p2;
@@ -545,6 +558,7 @@ static inline unsigned long BlurPixels(unsigned long p1 , unsigned long p2)
 	return (tempc1 | tempc2);
 }
 
+
 bool Blur(PixelBuffer *pb,ImgSamplingMode sampling)
 {
 	if (!pb) return false;
@@ -552,23 +566,20 @@ bool Blur(PixelBuffer *pb,ImgSamplingMode sampling)
 
 	samp_mode = sampling;
 
-	unsigned long *temp = (unsigned long*) malloc(pb->width*pb->height*sizeof(unsigned long));
+	unsigned long *temp = (unsigned long*)malloc(pb->width * pb->height * sizeof(unsigned long));
 
-	unsigned long* scanline 	= pb->buffer;
-	unsigned long* dst_scanline 	= temp;
+	unsigned long* scanline = pb->buffer;
+	unsigned long* dst_scanline = temp;
 
 	// blur horizontally
 	for (int j=0;j<pb->height;j++)
 	{
 		for (int i=0;i<pb->width;i++)
 		{
-			dst_scanline[i] = BlurPixels(
-					scanline[TransformIndex(i-1 , pb->width)],
-					scanline[TransformIndex(i+1 , pb->width)]
-						    );
+			dst_scanline[i] = BlurPixels(scanline[MapIndex(i-1 , pb->width)], scanline[MapIndex(i+1 , pb->width)]);
 		}	
-		scanline 	+= pb->width;
-		dst_scanline	+= pb->width;
+		scanline += pb->width;
+		dst_scanline += pb->width;
 	}
 
 	// blur vertically
@@ -576,10 +587,7 @@ bool Blur(PixelBuffer *pb,ImgSamplingMode sampling)
 	{
 		for (int j=0;j<pb->height;j++)
 		{
-			pb->buffer[i+j*pb->width] = BlurPixels(
-						temp[i+TransformIndex(j-1,pb->height)*pb->width],
-						temp[i+TransformIndex(j+1,pb->height)*pb->width]
-							      );
+			pb->buffer[i+j*pb->width] = BlurPixels(temp[i+MapIndex(j-1,pb->height)*pb->width], temp[i+MapIndex(j+1,pb->height)*pb->width]);
 		}
 	}
 

@@ -302,15 +302,23 @@ void TriMesh::operator +=(const TriMesh *m2) {
 
 VertexStatistics TriMesh::GetVertexStats() const {
 	if(!vertex_stats_valid) {
-		const Vertex *vptr = GetVertexArray()->GetData();
+		const Vertex *varray = GetVertexArray()->GetData();
 		int count = GetVertexArray()->GetCount();
+
+		const Vertex *vptr = varray;
+		vstats.centroid = Vector3(0, 0, 0);
+		for(int i=0; i<count; i++) {
+			vstats.centroid += (vptr++)->pos;
+		}
+		vstats.centroid /= count;
 
 		scalar_t min_len_sq = FLT_MAX;
 		scalar_t max_len_sq = 0.0;
 		scalar_t avg_len_sq = 0.0;
 		
+		vptr = varray;
 		for(int i=0; i<count; i++) {
-			scalar_t len_sq = (vptr++)->pos.LengthSq();
+			scalar_t len_sq = ((vptr++)->pos - vstats.centroid).LengthSq();
 			if(len_sq < min_len_sq) min_len_sq = len_sq;
 			if(len_sq > max_len_sq) max_len_sq = len_sq;
 			avg_len_sq += len_sq;
@@ -319,6 +327,7 @@ VertexStatistics TriMesh::GetVertexStats() const {
 		vstats.min_dist = sqrt(min_len_sq);
 		vstats.max_dist = sqrt(max_len_sq);
 		vstats.avg_dist = sqrt(avg_len_sq / (scalar_t)count);
+		vertex_stats_valid = true;
 	}
 	return vstats;
 }

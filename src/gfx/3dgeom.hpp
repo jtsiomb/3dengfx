@@ -167,6 +167,7 @@ typedef GeometryArray<Index> IndexArray;
 
 ////////////// triangle mesh class ////////////
 struct VertexStatistics {
+	Vector3 centroid;
 	scalar_t min_dist;
 	scalar_t max_dist;
 	scalar_t avg_dist;
@@ -180,7 +181,7 @@ private:
 
 	mutable VertexStatistics vstats;
 	
-	bool vertex_stats_valid;
+	mutable bool vertex_stats_valid;
 	bool indices_valid;
 	
 public:

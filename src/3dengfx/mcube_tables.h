@@ -1,4 +1,4 @@
-#ifndef ISOSURF_SOURCE
+#ifndef SCFIELD_SOURCE
 #error "Do not include mcube_tables.h anywhere!"
 #endif	/* ISOSURF_SOURCE */
 

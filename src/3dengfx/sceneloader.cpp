@@ -676,7 +676,7 @@ int ReadObject(FILE *file, const ChunkHeader &ch, void **obj) {
 
 				for(dword i=0; i<VertexCount; i++) {
 					varray[i].tex[0].u = varray[i].tex[1].u = ReadFloat(file);
-					varray[i].tex[0].v = varray[i].tex[1].v = -ReadFloat(file);
+					varray[i].tex[0].v = varray[i].tex[1].v = ReadFloat(file);
 				}
 				break;
 

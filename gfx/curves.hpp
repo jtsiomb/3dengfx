@@ -21,8 +21,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define _CURVES_HPP_
 
 #include <string>
-#include <n3dmath2.hpp>
-#include "linkedlist.hpp"	// FIXME (please make this work with std::list)
+#include "n3dmath2/n3dmath2.hpp"
+#include "common/linkedlist.hpp"	// FIXME (please make this work with std::list)
 
 
 class Curve {

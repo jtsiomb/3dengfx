@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cstring>
 
 #ifdef USING_3DENGFX
-#include "3denginefx_types.hpp"
+#include "3dengfx/3denginefx_types.hpp"
 
 SysCaps GetSystemCapabilities();
 #endif	// USING_3DENGFX

@@ -20,8 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _BASE_CAM_HPP_
 #define _BASE_CAM_HPP_
 
-#include <n3dmath2.hpp>
 #include "3dgeom.hpp"
+#include "n3dmath2/n3dmath2.hpp"
 
 enum ClipPlane {CLIP_NEAR, CLIP_FAR};
 

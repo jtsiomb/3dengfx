@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3dgeom.hpp"
 
 #ifdef USING_3DENGFX
-#include "3denginefx.hpp"
+#include "3dengfx/3denginefx.hpp"
 #endif	// USING_3DENGFX
 
 using std::vector;

@@ -277,3 +277,79 @@ Vector3 CatmullRomSplineCurve::Interpolate(scalar_t t) const {
 
 	return res;
 }
+
+/* BezierSpline implementation - (MG)
+ */
+int BezierSpline::GetSegmentCount() const
+{
+	if (ControlPoints.Size() < 0) return 0;
+	return ControlPoints.Size() / 4;
+}
+
+Vector3 BezierSpline::Interpolate(scalar_t t) const
+{
+	if (!GetSegmentCount()) return Vector3(0, 0, 0);
+
+	if (ArcParametrize)
+	{
+		t = Ease(Parametrize(t));
+	}
+ 
+	t = (t * GetSegmentCount());
+	int seg = (int) t;
+	t -= (scalar_t) floor(t);
+	if (seg >= GetSegmentCount())
+	{
+		seg = GetSegmentCount() - 1;
+		t = 1.0f;
+	}
+
+	seg *= 4;
+	ListNode<Vector3> *iter = const_cast<BezierSpline*>(this)->ControlPoints.Begin();
+	for (int i = 0; i < seg; i++) iter = iter->next;
+	
+	Vector3 Cp[4];
+	for (int i = 0; i < 4; i++)
+	{
+		Cp[i] = iter->data;
+		iter = iter->next;
+	}
+	
+	// interpolate
+	return Bezier(Cp[seg], Cp[seg + 1], Cp[seg + 2], Cp[seg + 3], t);
+}
+
+Vector3 BezierSpline::GetTangent(scalar_t t)
+{	
+	if (!GetSegmentCount()) return Vector3(0, 0, 0);
+
+	if (ArcParametrize)
+	{
+		t = Ease(Parametrize(t));
+	}
+ 
+	t = (t * GetSegmentCount());
+	int seg = (int) t;
+	t -= (scalar_t) floor(t);
+	if (seg >= GetSegmentCount())
+	{
+		seg = GetSegmentCount() - 1;
+		t = 1.0f;
+	}
+
+	seg *= 4;
+	ListNode<Vector3> *iter = const_cast<BezierSpline*>(this)->ControlPoints.Begin();
+	for (int i = 0; i < seg; i++) iter = iter->next;
+	
+	Vector3 Cp[4];
+	for (int i = 0; i < 4; i++)
+	{
+		Cp[i] = iter->data;
+		iter = iter->next;
+	}
+	
+	// interpolate
+	return BezierTangent(Cp[seg], Cp[seg + 1], Cp[seg + 2], Cp[seg + 3], t);
+}
+
+

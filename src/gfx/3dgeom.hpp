@@ -264,6 +264,10 @@ public:
 	virtual PRS GetPRS(unsigned long time = XFORM_LOCAL_PRS) const;
 };
 
+/* utility functions
+ */
+void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2);
+
 #include "3dgeom.inl"
 
 #endif	// _3DGEOM_HPP_

@@ -67,4 +67,12 @@ public:
 	virtual Vector3 Interpolate(scalar_t t) const;
 };
 
+class BezierSpline : public Curve {
+public:
+	virtual int GetSegmentCount() const;
+	virtual Vector3 Interpolate(scalar_t t) const;
+
+	Vector3 GetTangent(scalar_t t);
+};
+
 #endif	// _CURVES_HPP_

@@ -662,3 +662,49 @@ static Keyframe *FindNearestKeyframe(Keyframe *start, Keyframe *end, unsigned lo
 	if(middle->time > time) FindNearestKeyframe(middle + 1, end, time);
 	return middle;
 }
+
+/* JoinTriMesh - (MG)
+ * Gets 2 trimeshes and returns a new one
+ * that contains both meshes
+ */
+void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2)
+{
+	const Vertex *varr1 = m1->GetVertexArray()->GetData();
+	const Vertex *varr2 = m2->GetVertexArray()->GetData();
+	
+	unsigned long vcount1 = m1->GetVertexArray()->GetCount();
+	unsigned long vcount2 = m2->GetVertexArray()->GetCount();
+
+	const Triangle *tarr1 = m1->GetTriangleArray()->GetData();
+	const Triangle *tarr2 = m2->GetTriangleArray()->GetData();
+
+	unsigned long tcount1 = m1->GetTriangleArray()->GetCount();
+	unsigned long tcount2 = m2->GetTriangleArray()->GetCount();
+
+	// allocate memory
+	int vcount = vcount1 + vcount2;
+	int tcount = tcount1 + tcount2;
+	Vertex *varray = new Vertex[vcount];
+	Triangle *tarray = new Triangle[tcount];
+
+	// copy memory
+	memcpy(varray, varr1, vcount1 * sizeof(Vertex));
+	memcpy(varray + vcount1, varr2, vcount2 * sizeof(Vertex));
+	memcpy(tarray, tarr1, tcount1 * sizeof(Triangle));
+	memcpy(tarray + tcount1, tarr2, tcount2 * sizeof(Triangle));
+
+	// Fix indices
+	for (unsigned long i = 0; i < tcount2; i++)
+	{
+		for (int j=0; j<3; j++)
+		{
+			tarray[tcount1 + i].vertices[j] += vcount1;
+		}
+	}
+	
+	ret->SetData(varray, vcount, tarray, tcount);
+	
+	// cleanup
+	delete [] varray;
+	delete [] tarray;
+}

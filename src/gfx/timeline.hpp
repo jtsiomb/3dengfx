@@ -1,5 +1,5 @@
 /*
-This file is part of the 3dengfx, realtime visualization system.
+This file is part of the graphics core library.
 
 Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
@@ -17,23 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#ifndef _3DENGFX_HPP_
-#define _3DENGFX_HPP_
 
-#include "../3dengfx_config.h"
-#include "3denginefx.hpp"
-#include "camera.hpp"
-#include "ggen.hpp"
-#include "light.hpp"
-#include "load_geom.hpp"
-#include "material.hpp"
-#include "object.hpp"
-#include "texman.hpp"
-#include "textures.hpp"
-#include "sceneloader.hpp"
-#include "gfxprog.hpp"
-#include "psys.hpp"
-#include "fxwt/fxwt.hpp"
-#include "common/timer.h"
+#ifndef _TIMELINE_HPP_
+#define _TIMELINE_HPP_
 
-#endif	// _3DENGFX_HPP_
+enum TimelineMode {TIME_WRAP, TIME_CLAMP, TIME_FREE, TIME_BOUNCE};
+
+unsigned long GetTimelineTime(unsigned long time, unsigned long start, unsigned long end, TimelineMode mode);
+
+#endif	// _TIMELINE_HPP_

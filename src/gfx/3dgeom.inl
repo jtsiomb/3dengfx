@@ -1,22 +1,30 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the graphics core library.
 
-The core graphics library is free software; you can redistribute it and/or modify
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
+
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-The core graphics library is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the core graphics library; if not, write to the Free Software
+along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* fundamendal data structures for 3D graphics (inline definitions and templates)
+ *
+ * Author: John Tsiombikas 2004
+ * Modified: 
+ * 		Mihalis Georgoulopoulos 2004
+ * 		John Tsiombikas 2005
+ */
 
 #include <iostream>
 #include <cstring>
@@ -228,15 +236,4 @@ inline const TriangleArray *TriMesh::GetTriangleArray() const {
 inline TriangleArray *TriMesh::GetModTriangleArray() {
 	indices_valid = false;
 	return &tarray;
-}
-
-
-///////////////// Keyframes ////////////////
-
-inline bool Keyframe::operator ==(const Keyframe &key) const {
-	return time == key.time ? true : false;
-}
-
-inline bool Keyframe::operator <(const Keyframe &key) const {
-	return time < key.time ? true : false;
 }

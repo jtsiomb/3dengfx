@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the n3dmath2 library.
+
+Copyright (c) 2003 - 2005 John Tsiombikas <nuclear@siggraph.org>
 
 The n3dmath2 library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with the n3dmath2 library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* quaterinion math
+ *
+ * Author: John Tsiombikas 2003
+ * Modified: John Tsiombikas 2004, 2005
+ */
 
 #ifndef _N3DMATH2_QUA_HPP_
 #define _N3DMATH2_QUA_HPP_
@@ -57,6 +63,11 @@ public:
 
 	void SetRotation(const Vector3 &axis, scalar_t angle);
 	void Rotate(const Vector3 &axis, scalar_t angle);
+	/* note: this is a totally different operation from the above
+	 * this treats the quaternion as signifying direction and rotates
+	 * it by a rotation quaternion by rot * q * rot'
+	 */
+	void Rotate(const Quaternion &q);
 
 	Matrix3x3 GetRotationMatrix() const;
 	

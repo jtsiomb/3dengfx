@@ -1,34 +1,45 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
 
-3dengfx is free software; you can redistribute it and/or modify
+Copyright (c) 2002 - 2005 John Tsiombikas <nuclear@siggraph.org>
+
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-3dengfx is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with 3dengfx; if not, write to the Free Software
+along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* Scene loader from 3ds files.
+ * This file was initially part of my older 3d engine (circa 2002-2003).
+ * Ported in a hurry to 3dengfx the week before react2004.
+ *
+ * author: John Tsiombikas 2002
+ * modified: John Tsiombikas 2003, 2004, 2005
+ */
 
 #include "3dengfx_config.h"
 
 #include <cstdio>
 #include <string>
+#include <vector>
 #include <cassert>
 #include <cctype>
 #include "3dengfx.hpp"
 #include "sceneloader.hpp"
 #include "3dschunks.h"
+#include "gfx/timeline.hpp"
 
 using std::string;
+using std::vector;
 
 typedef unsigned char byte;
 typedef unsigned short word;
@@ -79,7 +90,9 @@ struct Animation {
 	string name;
 	int id, father;
 	Vector3 pivot;
-	// TODO: add the actual animation track
+	TimelineMode tmode;
+
+	vector<Keyframe> keys;
 };
 
 const dword HeaderSize = 6;
@@ -547,8 +560,7 @@ string ReadString(FILE *file) {
 	while((c = (char)ReadByte(file))) {
 		str.push_back(c);
 	}
-	str.push_back('\0');	// noted while porting: ... JESUS! 
-							// must have forgotten to bring my clue along :)
+
 	ReadCounter++;
 
 	return str;
@@ -561,10 +573,9 @@ Color ReadColor(FILE *file) {
 	Color color;
 
 	if(chunk.id == Chunk_Color_Byte3 || chunk.id == Chunk_Color_GammaByte3) {
-		byte r = ReadByte(file);
-		byte g = ReadByte(file);
-		byte b = ReadByte(file);
-		color = Color(r, g, b);
+		color.r = (float)ReadByte(file) / 255.0;
+		color.g = (float)ReadByte(file) / 255.0;
+		color.b = (float)ReadByte(file) / 255.0;
 	} else {
 		color.r = ReadFloat(file);
 		color.g = ReadFloat(file);
@@ -708,12 +719,25 @@ int ReadObject(FILE *file, const ChunkHeader &ch, void **obj) {
 			return OBJ_CURVE;
 		} else {
 
+            Object *object = new Object;
+			object->name = name;
+
 			Animation anim;
 			if(LoadAnimation(file, name, &anim)) {
-				// DEBUG
-				//fprintf(stderr, "found animation for obj: %s\n", name.c_str());
-				//fprintf(stderr, "\thier-id: %d, parent: %d", anim.id, anim.father);
+				int key_count = anim.keys.size();
+				if(key_count <= 1) key_count = 0;
+				/*				
+				fprintf(stderr, "found animation for obj: %s\n", name.c_str());
+				fprintf(stderr, "\thier-id: %d, parent: %d", anim.id, anim.father);
+				fprintf(stderr, "\tkeyframes: %u\n", key_count);
 				//fprintf(stderr, "\tpivot: (%.2f, %.2f, %.2f)\n", (float)anim.pivot.x, (float)anim.pivot.y, (float)anim.pivot.z);
+				*/
+
+				// TODO: fix this
+				/*for(int i=0; i<(int)anim.keys.size(); i++) {
+					object->AddKeyframe(anim.keys[i]);
+					//fprintf(stderr, "key(%u): pos(%f, %f, %f)\n", anim.keys[i].time, anim.keys[i].prs.position.x, anim.keys[i].prs.position.y, anim.keys[i].prs.position.z);
+				}*/
 				
 				for(dword i=0; i<VertexCount; i++) {
 					varray[i].pos -= anim.pivot;
@@ -735,8 +759,6 @@ int ReadObject(FILE *file, const ChunkHeader &ch, void **obj) {
 			}
 			
 
-            Object *object = new Object;
-			object->name = name;
 			object->GetTriMeshPtr()->SetData(varray, VertexCount, tarray, TriCount);
 			object->SetMaterial(mat);
 			object->SetRotation(Quaternion());
@@ -896,6 +918,10 @@ static bool LoadAnimation(FILE *file, string name, Animation *anim) {
 	return false;
 }
 
+#define FPS		30
+#define KEY_TO_TIME(x)	(((x) * 1000) / FPS)
+#define TIME_TO_KEY(x)	(((x) * FPS) / 1000)
+
 // reads the meshinfo chunk and subchunks...
 Animation ReadMeshInfo(FILE *file, const ChunkHeader &ch) {
 	assert(ch.id == Chunk_Key_MeshInfo);
@@ -920,6 +946,48 @@ Animation ReadMeshInfo(FILE *file, const ChunkHeader &ch) {
 
 		case Chunk_Info_HierarchyPosition:
 			anim.id = (short)ReadWord(file);
+			break;
+
+		case Chunk_Info_PositionTrack:
+		//case Chunk_Info_RotationTrack:
+		//case Chunk_Info_ScaleTrack:
+			{
+				unsigned short flags = ReadWord(file) & 0x3;	// timeline mode
+
+				// TODO: figure if TIME_BOUNCE is supported in 3ds files (see: "ping-pong" in max)
+				switch(flags) {
+				case 3:
+					anim.tmode = TIME_WRAP;
+					break;
+				
+				default:
+				case 0:
+					anim.tmode = TIME_CLAMP;
+					break;
+				};
+				
+				ReadDword(file);	// skip
+				ReadDword(file);	// 8 bytes
+				unsigned long key_count = ReadDword(file);
+				
+				for(unsigned long i=0; i<key_count; i++) {
+					unsigned long key = ReadDword(file);
+					
+					// skip acceleration data
+					unsigned short accel_presence = ReadWord(file);
+					while(accel_presence) {
+						if(accel_presence & 1) ReadFloat(file);
+						accel_presence >>= 1;
+					}
+
+					if(chunk.id == Chunk_Info_PositionTrack) {
+						Vector3 vec = ReadVector(file);
+						Keyframe keyframe(PRS(vec, Quaternion()), KEY_TO_TIME(key));
+
+						anim.keys.push_back(keyframe);
+					}
+				}
+			}
 			break;
 
 		default:

@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the n3dmath2 library.
+
+Copyright (c) 2003 - 2005 John Tsiombikas <nuclear@siggraph.org>
 
 The n3dmath2 library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with the n3dmath2 library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* quaterinion math
+ *
+ * Author: John Tsiombikas 2003
+ * Modified: John Tsiombikas 2004, 2005
+ */
 
 #include "n3dmath2.hpp"
 
@@ -136,6 +142,9 @@ void Quaternion::Rotate(const Vector3 &axis, scalar_t angle) {
 	*this *= q;
 }
 
+void Quaternion::Rotate(const Quaternion &q) {
+	*this = q * *this * q.Conjugate();
+}
 
 Matrix3x3 Quaternion::GetRotationMatrix() const {
 	return Matrix3x3(	1.0 - 2.0 * v.y*v.y - 2.0 * v.z*v.z,	2.0 * v.x * v.y + 2.0 * s * v.z,		2.0 * v.z * v.x - 2.0 * s * v.y,
@@ -146,6 +155,9 @@ Matrix3x3 Quaternion::GetRotationMatrix() const {
 
 Quaternion Slerp(const Quaternion &q1, const Quaternion &q2, scalar_t t) {
 	scalar_t dot = DotProduct(Vector4(q1.s, q1.v.x, q1.v.y, q1.v.z), Vector4(q2.s, q2.v.x, q2.v.y, q2.v.z));
+	
+	if(fabs(1.0 - dot) < xsmall_number) return q1;	// avoids divisions by zero later on if q1 == q2
+	
 	if(dot >= 0.0f) {
 		scalar_t angle = acos(dot);
 		scalar_t coef1 = (angle * sin(1.0 - t)) / sin(angle);

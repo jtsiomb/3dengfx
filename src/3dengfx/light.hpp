@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <string>
 #include "n3dmath2/n3dmath2.hpp"
-#include "gfx/3dgeom.hpp"
+#include "gfx/animation.hpp"
 #include "gfx/color.hpp"
 
 #define LIGHTCOL_AMBIENT	1

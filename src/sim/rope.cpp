@@ -1,7 +1,7 @@
 /*
-This file is part of the 3dengfx, realtime visualization system.
+This file is part of the simulation module of 3dengfx.
 
-Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
+Copyright (c) 2005 John Tsiombikas <nuclear@siggraph.org>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,23 +17,16 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#ifndef _3DENGFX_HPP_
-#define _3DENGFX_HPP_
 
-#include "../3dengfx_config.h"
-#include "3denginefx.hpp"
-#include "camera.hpp"
-#include "ggen.hpp"
-#include "light.hpp"
-#include "load_geom.hpp"
-#include "material.hpp"
-#include "object.hpp"
-#include "texman.hpp"
-#include "textures.hpp"
-#include "sceneloader.hpp"
-#include "gfxprog.hpp"
-#include "psys.hpp"
-#include "fxwt/fxwt.hpp"
-#include "common/timer.h"
+/* rope (linear spring system) simulation
+ *
+ * Author: John Tsiombikas 2005
+ */
 
-#endif	// _3DENGFX_HPP_
+#include "rope.hpp"
+
+RopeSim::RopeSim(scalar_t timeslice) : Simulation(timeslice) {}
+
+const SpringConn *RopeSim::AddConnection(const SpringConn &conn) {
+	connection.push_back(conn);
+}

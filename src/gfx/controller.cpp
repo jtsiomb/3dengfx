@@ -1,22 +1,27 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the graphics core library.
 
-the graphics core library is free software; you can redistribute it and/or modify
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
+
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-the graphics core library is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the graphics core library; if not, write to the Free Software
+along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* motion controllers (part of the animation system)
+ *
+ * Author: John Tsiombikas 2004
+ */
 
 #include "3dengfx_config.h"
 
@@ -100,49 +105,8 @@ unsigned int MotionController::GetControlAxis() const {
 }
 
 
-template <class T>
-static inline T wrap(T n, T low, T high) {
-	n -= low;
-	
-	while(n < 0) {
-		n += high;
-	}
-	if(high) n %= high;
-	
-	return n + low;
-}
-
-template <class T>
-static inline T bounce(T n, T low, T high) {
-	T interval = high - low;
-	
-	if((n / interval) % 2) {
-		// descent
-		return high - wrap(n, low, high);
-	} else {
-		return wrap(n, low, high);
-	}
-}
-
 Vector3 MotionController::operator ()(unsigned long time) const {
-	switch(time_mode) {
-	case TIME_WRAP:
-		time = wrap(time, start_time, end_time);
-		break;
-
-	case TIME_BOUNCE:
-		time = bounce(time, start_time, end_time);
-		break;
-
-	case TIME_CLAMP:
-		if(time < start_time) time = start_time;
-		if(time > end_time) time = end_time;
-		break;
-
-	case TIME_FREE:
-	default:
-		break;
-	}
+	time = GetTimelineTime(time, start_time, end_time, time_mode);
 
 	double (*sinusoidal)(double);
 	sinusoidal = sin;

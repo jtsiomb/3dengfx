@@ -1,7 +1,7 @@
 /*
-This file is part of the 3dengfx, realtime visualization system.
+This file is part of the simulation module of 3dengfx.
 
-Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
+Copyright (c) 2005 John Tsiombikas <nuclear@siggraph.org>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,23 +17,31 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#ifndef _3DENGFX_HPP_
-#define _3DENGFX_HPP_
 
-#include "../3dengfx_config.h"
-#include "3denginefx.hpp"
-#include "camera.hpp"
-#include "ggen.hpp"
-#include "light.hpp"
-#include "load_geom.hpp"
-#include "material.hpp"
-#include "object.hpp"
-#include "texman.hpp"
-#include "textures.hpp"
-#include "sceneloader.hpp"
-#include "gfxprog.hpp"
-#include "psys.hpp"
-#include "fxwt/fxwt.hpp"
-#include "common/timer.h"
+/* rope (linear spring system) simulation
+ *
+ * Author: John Tsiombikas 2005
+ */
+#ifndef _ROPE_HPP_
+#define _ROPE_HPP_
 
-#endif	// _3DENGFX_HPP_
+#include <string>
+#include "sim.hpp"
+#include "spring.hpp"
+
+class RopeSim : public Simulation {
+private:
+	std::list<SpringConn> connections;
+	std::list<Spring> springs;
+	
+protected:
+	virtual void Run(unsigned long msec);
+
+public:
+	RopeSim(scalar_t timeslice = SIM_STD_TIMESLICE);
+
+	const SpringConn *AddConnection(const SpringConn &conn);
+	void AddSpring(const Spring &spring);
+};
+
+#endif	// _ROPE_HPP_

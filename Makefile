@@ -13,15 +13,13 @@ include src/dsys/Makefile-part
 include src/common/Makefile-part
 include src/nlibase/Makefile-part
 include src/fxwt/Makefile-part
+include src/sim/Makefile-part
 
 lib3dengfx.so.0.1.0: 3dengfx-config $(obj)
 	$(CXX) -shared -Wl,-soname,lib3dengfx.so.0 -o $@ $(obj)
 
 lib3dengfx.a: 3dengfx-config $(obj)
 	$(AR) rcs $@ $(obj)
-
-3dengfx-config: install/3dengfx_config.c src/3dengfx_config.h
-	$(CC) -o $@ install/3dengfx_config.c -Isrc
 
 include $(obj:.o=.d)
 
@@ -46,3 +44,4 @@ cleandep:
 	$(RM) src/common/*.d src/common/*.d.*
 	$(RM) src/nlibase/*.d src/nlibase/*.d.*
 	$(RM) src/fxwt/*.d src/fxwt/*.d.*
+	$(RM) src/sim/*.d src/sim/*.d.*

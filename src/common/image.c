@@ -30,8 +30,8 @@ typedef struct
     unsigned char r,g,b;
 }RGBTriplet;
 
-// change this macro to support big endian machines
-#define pack32rgb(r,g,b) ((0<<24) | (r<<16) | (g<<8) | b)
+/* change this macro to support big endian machines */
+#define PACK32RGB(r,g,b) ((0<<24) | (r<<16) | (g<<8) | b)
 
 /*jpeg signature*/
 int jpeg_sig_cmp(unsigned char* sig){
@@ -62,10 +62,9 @@ void *load_image(const char *fname, unsigned long *xsz, unsigned long *ysz) {
 	
 	if(png_sig_cmp(signature, 0, FILE_SIG_BYTES) == 0) {
 		return load_png(file, xsz, ysz);
-	}
-	else
-	if(jpeg_sig_cmp(signature) == 0)
+	} else if(jpeg_sig_cmp(signature) == 0) {
 		return load_jpeg(file, xsz, ysz);
+	}
 	
 	return 0;
 }
@@ -186,7 +185,7 @@ static void *load_jpeg(FILE *fp, unsigned long *xsz, unsigned long *ysz){
             {
 				/* packing to 32 bit. take care for big endian*/
                 image[i+(cinfo.output_scanline-1)*cinfo.output_width]
-                    = pack32rgb(buffer[i].r , buffer[i].g , buffer[i].b);    
+                    = PACK32RGB(buffer[i].r , buffer[i].g , buffer[i].b);    
             }
         }
     }

@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _PSYS_HPP_
 #define _PSYS_HPP_
 
+#include <list>
 #include "gfx/3dgeom.hpp"
 #include "n3dmath2/n3dmath2.hpp"
 
@@ -51,15 +52,14 @@ public:
  * Derived from XFormNode for controller functionality
  */
 class Particle : public XFormNode {
-protected:
+public:
 	Vector3 velocity;
 	scalar_t friction;
-	unsigned long birth_time, lifespan;
+	scalar_t birth_time, lifespan;
 
-public:
 	
 	Particle();
-	Particle(const Vector3 &pos, const Vector3 &vel, scalar_t friction, unsigned long lifespan);
+	Particle(const Vector3 &pos, const Vector3 &vel, scalar_t friction, scalar_t lifespan);
 	virtual ~Particle();
 
 	virtual bool Alive() const;
@@ -87,7 +87,7 @@ struct ParticleSysParams {
 	Fuzzy birth_rate;		// birth rate in particles per second
 	Vector3 gravity;		// gravitual force to be applied to all particles
 	FuzzyVec3 shoot_dir;	// shoot direction (initial particle velocity)
-	
+	scalar_t friction;		// friction of the environment
 };
 
 enum ParticleType {PTYPE_PSYS, PTYPE_BILLBOARD, PTYPE_MESH};
@@ -109,14 +109,16 @@ public:
 	ParticleSystem();
 	virtual ~ParticleSystem();
 
-	static void SetGlobalTime(unsigned long msec);
-
 	virtual void SetParams(const ParticleSysParams &psys_params);
 	virtual void SetParticleType(ParticleType ptype);
 
 	virtual void Update(const Vector3 &ext_force = Vector3());
 	virtual void Draw() const;
 };
+
+namespace psys {
+	void SetGlobalTime(unsigned long msec);
+}
 
 
 #endif	// _PSYS_HPP_

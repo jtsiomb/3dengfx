@@ -1,0 +1,2 @@
+obj += common/image.o common/logger.o common/config_parser.o common/timer.o\
+	common/fps_counter.o common/err_msg.o

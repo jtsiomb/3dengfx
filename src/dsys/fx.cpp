@@ -325,15 +325,11 @@ bool FxOverlay::ParseScriptArgs(const char **args) {
 
 	// check if a shader is specified
 	if(args[3]) {
-		shader = new GfxProg(args[3], PROG_FP);
+		shader = new GfxProg(args[3], PROG_CGFP);
 		if(!shader->IsValid()) {
 			delete shader;
-			shader = new GfxProg(args[3], PROG_CGFP);
-			if(!shader->IsValid()) {
-				delete shader;
-				error("failed loading shader %s", args[3]);
-				return false;
-			}
+			error("failed loading shader %s", args[3]);
+			return false;
 		}
 	}
 	return true;
@@ -349,6 +345,9 @@ void FxOverlay::SetShader(GfxProg *sdr) {
 
 void FxOverlay::Apply(unsigned long time) {
 	if(time >= this->time && time < this->time + duration) {
+		if(shader) {
+			shader->SetParameter("t", (float)(time - this->time) / 1000.0);
+		}
 		Overlay(tex, Vector2(0, 0), Vector2(1, 1), Color(1, 1, 1), shader);
 	}
 }

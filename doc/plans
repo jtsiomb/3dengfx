@@ -1,0 +1,28 @@
+3dengfx Future plans
+--------------------
+This file should be used to record plans for future additions and/or
+modifications to the library, so that interesting ideas will not get forgotten.
+
+JT - The 3dengfx initialization should be seperated from SDL at some point and
+     become independent of the underlying toolkit. So that it can be integrated
+	 with various widget toolkits if need be, or use directly the native
+	 graphics interface on each platform (note: cross-platform compatibility
+	 MUST be maintained at all costs though, so for native support, there must
+	 be multiple implementations integrated with some sort of conditional
+	 compilation)
+
+JT - The new particle system is under development. There should be some kind of
+     file format for defining particle systems which can be subsequently loaded
+	 by the engine, so that particle systems parameters etc. can be tweaked
+	 without recompilation. Later on some sort of interactive GUI particle
+	 editor should also be made that will produce such particle system files as
+	 output.
+
+JT - Development of a better, nicely designed and modular 3d file format(s). Such
+     an effort is already underway, and a preliminary design is available. After
+	 the solidification of the file format(s), tools will have to be created for
+	 converting to, and from, that file format(s).
+
+JT - Some support for controlling the spline interpolation speed is
+     available. This support must be refined and enhanced, and again some sort
+	 of tool is necessary to define motion curves interactively.

@@ -21,7 +21,7 @@ BSTree<T>::BSTree() {
 template <class T>
 BSTree<T>::BSTree(const BSTree<T> &tree) {
 	elem_count = tree.elem_count;
-	tree.Traverse(CopyInsert, PreorderTraversal);
+	tree.Traverse(CopyInsert, TRAVERSE_PREORDER);
 }
 
 template <class T>

@@ -24,6 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/3dgeom.hpp"
 
 void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int subdiv);
-void CreateSphere(TriMesh *mesh, const Sphere &sphere, scalar_t radius, int subdiv);
+void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv);
 
 #endif	// _GGEN_HPP_

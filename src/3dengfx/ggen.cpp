@@ -71,11 +71,13 @@ void CreatePlane(TriMesh *mesh, const Plane &plane, const Vector2 &size, int sub
 }
 
 
-void CreateSphere(TriMesh *mesh, const Sphere &sphere, scalar_t radius, int subdiv) {
+void CreateSphere(TriMesh *mesh, const Sphere &sphere, int subdiv) {
 	// Solid of revolution. A slice of pi rads is rotated
 	// for 2pi rads. Subdiv in this revolution should be
 	// double than subdiv of the slice, because the angle
 	// is double.
+
+	scalar_t radius = sphere.GetRadius();
 	
 	unsigned long edges_pi  = 2 * subdiv;
 	unsigned long edges_2pi = 4 * subdiv;

@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3dengfx/3dengfx.hpp"
 #include "gfx/3dgeom.hpp"
 
-namespace wt3d {
+namespace fxwt {
 
 	class Widget {
 	protected:

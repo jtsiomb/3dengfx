@@ -7,6 +7,8 @@ static void HandleEvent(const SDL_Event &event);
 static void (*disp_handler)() = 0;
 static void (*idle_handler)() = 0;
 static void (*keyb_handler)(int) = 0;
+static void (*motion_handler)(int, int) = 0;
+static void (*button_handler)(int, int, int, int) = 0;
 
 void fxwt::SetDisplayHandler(void (*handler)()) {
 	disp_handler = handler;
@@ -18,6 +20,14 @@ void fxwt::SetIdleHandler(void (*handler)()) {
 
 void fxwt::SetKeyboardHandler(void (*handler)(int)) {
 	keyb_handler = handler;
+}
+
+void fxwt::SetMotionHandler(void (*handler)(int, int)) {
+	motion_handler = handler;
+}
+
+void fxwt::SetButtonHandler(void (*handler)(int, int, int, int)) {
+	button_handler = handler;
 }
 
 int fxwt::MainLoop() {
@@ -46,6 +56,15 @@ static void HandleEvent(const SDL_Event &event) {
 
 	case SDL_VIDEOEXPOSE:
 		if(disp_handler) disp_handler();
+		break;
+
+	case SDL_MOUSEMOTION:
+		if(motion_handler) motion_handler(event.motion.x, event.motion.y);
+		break;
+
+	case SDL_MOUSEBUTTONDOWN:
+	case SDL_MOUSEBUTTONUP:
+		if(button_handler) button_handler(event.button.button, event.button.state == SDL_PRESSED, event.button.x, event.button.y);
 		break;
 
 	case SDL_QUIT:

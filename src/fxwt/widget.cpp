@@ -20,10 +20,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "3dengfx_config.h"
 
-#include "3dwt.hpp"
+#include "widget.hpp"
 #include "dsys/demosys.hpp"
 
-using namespace wt3d;
+using namespace fxwt;
 using std::priority_queue;
 
 /* ---------------------------------------------------
@@ -68,7 +68,7 @@ bool Widget::HitTest(const Vector2 &point) const {
 			point.y >= pos.y && point.y < pos.y);
 }
 
-bool wt3d::operator <(const Widget &w1, const Widget &w2) {
+bool fxwt::operator <(const Widget &w1, const Widget &w2) {
 	return w1.priority < w2.priority;
 }
 
@@ -82,7 +82,7 @@ Container::~Container() {}
 
 void Container::AddWidget(Widget *w) {
 	if(w->parent) {
-		EngineLog("warning: adding a widget that already has a parent\n", "3dwt");
+		EngineLog("warning: adding a widget that already has a parent\n", "fxwt");
 	}
 	w->parent = widget_ptr;
 	pqueue.push(w);

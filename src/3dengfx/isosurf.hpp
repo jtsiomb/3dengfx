@@ -44,6 +44,8 @@ private:
 	Vector3 size;
 	int xcount, ycount, zcount;
 
+	int GetCubeIndex(int left, int right, int top, int bottom, int near, int far) const;
+
 public:
 	VoxelField(const Vector3 &size, int xcount, int ycount, int zcount);
 	~VoxelField();

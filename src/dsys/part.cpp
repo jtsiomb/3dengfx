@@ -62,8 +62,6 @@ void Part::PostDraw() {
 		::SetRenderTarget(0);
 	}
 
-	// TODO: apply post effects
-	
 	// reset states
 	for(int i=0; i<8; i++) {
 		glDisable(GL_LIGHT0 + i);

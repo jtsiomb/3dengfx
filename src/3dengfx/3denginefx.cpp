@@ -816,10 +816,17 @@ void SetMaterial(const Material &mat) {
 	mat.SetGLMaterial();
 }
 
+
 void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face) {
-	static Texture *prev;
-	static CubeMapFace prev_face;
+	//static Texture *prev;
+	//static CubeMapFace prev_face;
+	static std::stack<Texture*> rt_stack;
+	static std::stack<CubeMapFace> face_stack;
 	
+	Texture *prev = rt_stack.empty() ? 0 : rt_stack.top();
+	CubeMapFace prev_face;
+	if(!face_stack.empty()) prev_face = face_stack.top();
+
 	if(tex == prev) return;
 
 	if(prev) {
@@ -828,14 +835,26 @@ void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face) {
 	}
 	
 	if(!tex) {
-		SetViewport(0, 0, gparams.x, gparams.y);
+		//SetViewport(0, 0, gparams.x, gparams.y);
+
+		rt_stack.pop();
+		if(prev->GetType() == TEX_CUBE) face_stack.pop();
+
+		if(rt_stack.empty()) {
+			SetViewport(0, 0, gparams.x, gparams.y);
+		} else {
+			SetViewport(0, 0, rt_stack.top()->width, rt_stack.top()->height);
+		}
 	} else {
 		SetViewport(0, 0, tex->width, tex->height);
+
+		rt_stack.push(tex);
+		if(tex->GetType() == TEX_CUBE) face_stack.push(cube_map_face);
 	}
 
-	prev = tex;
-	prev_face = cube_map_face;
-}		
+	//prev = tex;
+	//prev_face = cube_map_face;
+}
 
 // multitexturing interface
 

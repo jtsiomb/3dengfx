@@ -262,7 +262,7 @@ void Object::RenderHack(unsigned long time) {
 		SetTexture(tex_unit, mat.tex[TEXTYPE_ENVMAP]);
 		EnableTextureUnit(tex_unit);
 		SetTextureUnitColor(tex_unit, TOP_ADD, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_MODULATE, TARG_PREV, TARG_TEXTURE);
+		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_TEXTURE);
 
 		if(mat.tex[TEXTYPE_ENVMAP]->GetType() == TEX_CUBE) {
 			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);

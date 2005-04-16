@@ -81,6 +81,33 @@ namespace glext {
 	// point parameters
 	PFNGLPOINTPARAMETERFARBPROC glPointParameterf;
 	PFNGLPOINTPARAMETERFVARBPROC glPointParameterfv;
+
+	// --- OpenGL 2.0 Shading Language ---
+	
+	// - objects
+	PFNGLDELETEOBJECTARBPROC glDeleteObject;
+	PFNGLATTACHOBJECTARBPROC glAttachObject;
+	PFNGLDETACHOBJECTARBPROC glDetachObject;
+
+	// - program objects
+	PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObject;
+	PFNGLLINKPROGRAMARBPROC glLinkProgram;
+	PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObject;
+
+	// - shader objects
+	PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObject;
+	PFNGLSHADERSOURCEARBPROC glShaderSource;
+	PFNGLCOMPILESHADERARBPROC glCompileShader;
+
+	// - uniforms
+	PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocation;
+	PFNGLGETACTIVEUNIFORMARBPROC glGetActiveUniform;
+	PFNGLUNIFORM1FARBPROC glUniform1f;
+	PFNGLUNIFORM2FVARBPROC glUniform2fv;
+	PFNGLUNIFORM3FVARBPROC glUniform3fv;
+	PFNGLUNIFORM4FVARBPROC glUniform4fv;
+	PFNGLUNIFORMMATRIX3FVARBPROC glUniformMatrix3fv;
+	PFNGLUNIFORMMATRIX4FVARBPROC glUniformMatrix4fv;
 }
 
 using namespace glext;
@@ -99,26 +126,25 @@ static const char *gl_error_string[] = {
 ///////////////// local 3d engine state block ///////////////////
 static GraphicsInitParameters gparams;
 static SysCaps sys_caps;
-Matrix4x4 world_matrix;
-Matrix4x4 view_matrix, inv_view_matrix;
-const Camera *view_mat_camera;
-Matrix4x4 proj_matrix;
 static Matrix4x4 tex_matrix[8];
-
 static int coord_index[MAX_TEXTURES];
-
 static PrimitiveType primitive_type;
 static StencilOp stencil_fail, stencil_pass, stencil_pzfail;
 static int stencil_ref;
 static bool mipmapping = true;
-//static bool wire = false;
-
 static TextureDim ttype[8];	// the type of each texture bound to each texunit (1D/2D/3D/CUBE)
 
-_CGcontext *cgc;
+namespace engfx_state {
+	Matrix4x4 world_matrix;
+	Matrix4x4 view_matrix, inv_view_matrix;
+	const Camera *view_mat_camera;
+	Matrix4x4 proj_matrix;
+	_CGcontext *cgc;
+	const Light *bump_light;
+	int light_count;
+}
 
-const Light *bump_light;
-
+using namespace engfx_state;
 
 GraphicsInitParameters *LoadGraphicsContextConfig(const char *fname) {
 	static GraphicsInitParameters gip;	
@@ -251,12 +277,16 @@ SysCaps GetSystemCapabilities() {
 	sys_caps.vertex_buffers = (bool)strstr(ext_str, "GL_ARB_vertex_buffer_object");
 	sys_caps.depth_texture = (bool)strstr(ext_str, "GL_ARB_depth_texture");
 	sys_caps.shadow_mapping = (bool)strstr(ext_str, "GL_ARB_shadow");
-	sys_caps.vertex_program = (bool)strstr(ext_str, "GL_ARB_vertex_program");
-	sys_caps.pixel_program = (bool)strstr(ext_str, "GL_ARB_fragment_program");
-	sys_caps.glslang = (bool)strstr(ext_str, "GL_ARB_shading_language_100");
 	sys_caps.point_sprites = (bool)strstr(ext_str, "GL_ARB_point_sprites");
 	sys_caps.point_params = (bool)strstr(ext_str, "GL_ARB_point_parameters");
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &sys_caps.max_texture_units);
+	
+	sys_caps.prog.asm_vertex = (bool)strstr(ext_str, "GL_ARB_vertex_program");
+	sys_caps.prog.asm_pixel = (bool)strstr(ext_str, "GL_ARB_fragment_program");
+	sys_caps.prog.glslang = (bool)strstr(ext_str, "GL_ARB_shading_language_100");
+	sys_caps.prog.shader_obj = (bool)strstr(ext_str, "GL_ARB_shader_objects");
+	sys_caps.prog.glsl_vertex = (bool)strstr(ext_str, "GL_ARB_vertex_shader");
+	sys_caps.prog.glsl_pixel = (bool)strstr(ext_str, "GL_ARB_fragment_shader");
 
 	delete [] ext_str;
 	
@@ -272,9 +302,11 @@ SysCaps GetSystemCapabilities() {
 	info("Video memory vertex/index buffers: %s", sys_caps.vertex_buffers ? "yes" : "no");
 	info("Depth texture: %s", sys_caps.depth_texture ? "yes" : "no");
 	info("Shadow mapping: %s", sys_caps.shadow_mapping ? "yes" : "no");
-	info("Programmable vertex processing: %s", sys_caps.vertex_program ? "yes" : "no");
-	info("Programmable pixel processing: %s", sys_caps.pixel_program ? "yes" : "no");
-	info("OpenGL 2.0 shading language: %s", sys_caps.glslang ? "yes" : "no");
+	info("Programmable vertex processing (asm): %s", sys_caps.prog.asm_vertex ? "yes" : "no");
+	info("Programmable pixel processing (asm): %s", sys_caps.prog.asm_pixel ? "yes" : "no");
+	info("OpenGL 2.0 shading language: %s", sys_caps.prog.glslang ? "yes" : "no");
+	info("Programmable vertex processing (glsl): %s", sys_caps.prog.glsl_vertex ? "yes" : "no");
+	info("Programmable pixel processing (glsl): %s", sys_caps.prog.glsl_pixel ? "yes" : "no");
 	info("Point sprites: %s", sys_caps.point_sprites ? "yes" : "no");
 	info("Point parameters: %s", sys_caps.point_params ? "yes" : "no");
 	info("Texture units: %d", sys_caps.max_texture_units);
@@ -397,11 +429,33 @@ bool StartGL() {
 		glGenBuffers = (PFNGLGENBUFFERSARBPROC)glGetProcAddress("glGenBuffersARB");
 	}
 
-	if(sys_caps.vertex_program || sys_caps.pixel_program) {
+	if(sys_caps.prog.asm_vertex || sys_caps.prog.asm_pixel) {
 		glBindProgram = (PFNGLBINDPROGRAMARBPROC)glGetProcAddress("glBindProgramARB");
 		glGenPrograms = (PFNGLGENPROGRAMSARBPROC)glGetProcAddress("glGenProgramsARB");
 		glDeletePrograms = (PFNGLDELETEPROGRAMSARBPROC)glGetProcAddress("glDeleteProgramsARB");
 		glProgramString = (PFNGLPROGRAMSTRINGARBPROC)glGetProcAddress("glProgramStringARB");
+	}
+
+	if(sys_caps.prog.shader_obj) {
+		glDeleteObject = (PFNGLDELETEOBJECTARBPROC)glGetProcAddress("glDeleteObjectARB");
+		glAttachObject = (PFNGLATTACHOBJECTARBPROC)glGetProcAddress("glAttachObjectARB");
+		glDetachObject = (PFNGLDETACHOBJECTARBPROC)glGetProcAddress("glDetachObjectARB");
+		glCreateProgramObject = (PFNGLCREATEPROGRAMOBJECTARBPROC)glGetProcAddress("glCreateProgramObjectARB");
+		glLinkProgram = (PFNGLLINKPROGRAMARBPROC)glGetProcAddress("glLinkProgramARB");
+		glUseProgramObject = (PFNGLUSEPROGRAMOBJECTARBPROC)glGetProcAddress("glUseProgramObjectARB");
+
+		glCreateShaderObject = (PFNGLCREATESHADEROBJECTARBPROC)glGetProcAddress("glCreateShaderObjectARB");
+		glShaderSource = (PFNGLSHADERSOURCEARBPROC)glGetProcAddress("glShaderSourceARB");
+		glCompileShader = (PFNGLCOMPILESHADERARBPROC)glGetProcAddress("glCompileShaderARB");
+		
+		glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONARBPROC)glGetProcAddress("glGetUniformLocationARB");
+		glGetActiveUniform = (PFNGLGETACTIVEUNIFORMARBPROC)glGetProcAddress("glGetActiveUniformARB");
+		glUniform1f = (PFNGLUNIFORM1FARBPROC)glGetProcAddress("glUniform1fARB");
+		glUniform2fv = (PFNGLUNIFORM2FVARBPROC)glGetProcAddress("glUniform2fvARB");
+		glUniform3fv = (PFNGLUNIFORM3FVARBPROC)glGetProcAddress("glUniform3fvARB");
+		glUniform4fv = (PFNGLUNIFORM4FVARBPROC)glGetProcAddress("glUniform4fvARB");
+		glUniformMatrix3fv = (PFNGLUNIFORMMATRIX3FVARBPROC)glGetProcAddress("glUniformMatrix3fvARB");
+		glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVARBPROC)glGetProcAddress("glUniformMatrix4fvARB");
 	}
 	
 	if(sys_caps.point_params) {
@@ -849,8 +903,6 @@ void SetMaterial(const Material &mat) {
 
 
 void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face) {
-	//static Texture *prev;
-	//static CubeMapFace prev_face;
 	static std::stack<Texture*> rt_stack;
 	static std::stack<CubeMapFace> face_stack;
 	
@@ -866,8 +918,6 @@ void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face) {
 	}
 	
 	if(!tex) {
-		//SetViewport(0, 0, gparams.x, gparams.y);
-
 		rt_stack.pop();
 		if(prev->GetType() == TEX_CUBE) face_stack.pop();
 
@@ -882,9 +932,6 @@ void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face) {
 		rt_stack.push(tex);
 		if(tex->GetType() == TEX_CUBE) face_stack.push(cube_map_face);
 	}
-
-	//prev = tex;
-	//prev_face = cube_map_face;
 }
 
 // multitexturing interface

@@ -224,12 +224,10 @@ bool Object::Render(unsigned long time) {
 	 * chances are it already has the view frustum, so use it directly to test
 	 * the object, otherwise generate one.
 	 */
-	extern const Camera *view_mat_camera;
-	if(view_mat_camera) {
-		if(!bvol->Visible(view_mat_camera->GetFrustum())) return false;
+	if(engfx_state::view_mat_camera) {
+		if(!bvol->Visible(engfx_state::view_mat_camera->GetFrustum())) return false;
 	} else {
-		extern Matrix4x4 proj_matrix;
-		Matrix4x4 view_proj = proj_matrix * view_matrix;
+		Matrix4x4 view_proj = engfx_state::proj_matrix * engfx_state::view_matrix;
 		
 		FrustumPlane frustum[6];
 		for(int i=0; i<6; i++) {
@@ -296,7 +294,7 @@ void Object::RenderHack(unsigned long time) {
 			glEnable(GL_TEXTURE_GEN_T);
 			glEnable(GL_TEXTURE_GEN_R);
 
-			Matrix4x4 inv_view = view_matrix;
+			Matrix4x4 inv_view = engfx_state::view_matrix;
 			inv_view[0][3] = inv_view[1][3] = inv_view[2][3] = 0.0;
 			inv_view.Transpose();
 
@@ -394,8 +392,7 @@ void Object::DrawNormals() {
 }
 
 void Object::SetupBumpLight(unsigned long time) {
-	extern const Light *bump_light;
-	Vector3 lpos = bump_light->GetPRS(time).position;
+	Vector3 lpos = engfx_state::bump_light->GetPRS(time).position;
 
 	Matrix4x4 inv_world = world_mat.Inverse();
 	lpos.Transform(inv_world);
@@ -482,7 +479,7 @@ void Object::UpdateBoundingVolume() {
 			bsph->SetRadius(vstat.max_dist);
 			bvol_valid = true;
 		} else {
-			int dbg;
+			static int dbg;
 			if(!dbg++) error("obj \"%s\": only bounding spheres are supported at this point", name.c_str());
 		}
 	}

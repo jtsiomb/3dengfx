@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* main 3dengfx state control, and low level OpenGL interaction
  *
  * Author: John Tsiombikas 2004
+ * Modified: John Tsiombikas 2005
  */
 
 #ifndef _3DENGINEFX_HPP_
@@ -34,7 +35,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/image.h"
 #include "light.hpp"
 
-extern Matrix4x4 world_matrix, view_matrix, inv_view_matrix;
+class Camera;
+class _CGcontext;
+
+namespace engfx_state {
+	extern Matrix4x4 world_matrix, view_matrix, inv_view_matrix;
+	extern const Camera *view_mat_camera;
+	extern Matrix4x4 proj_matrix;
+	extern _CGcontext *cgc;
+	extern const Light *bump_light;
+	extern int light_count;
+}
 
 bool CreateGraphicsContext(const GraphicsInitParameters &gip);
 bool StartGL();

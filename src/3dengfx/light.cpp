@@ -113,7 +113,7 @@ void PointLight::SetGLLight(int n, unsigned long time) const {
 	
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	Matrix4x4 test = view_matrix;
+	Matrix4x4 test = engfx_state::view_matrix;
 	test.Translate(pos);
 	LoadMatrixGL(test);
 
@@ -138,6 +138,5 @@ void PointLight::SetGLLight(int n, unsigned long time) const {
 	
 	glPopMatrix();
 
-	extern const Light *bump_light;
-	if(!bump_light) SetBumpLight(this);
+	if(!engfx_state::bump_light) SetBumpLight(this);
 }

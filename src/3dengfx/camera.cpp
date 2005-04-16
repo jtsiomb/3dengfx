@@ -27,27 +27,24 @@ Camera::Camera(const Vector3 &translation, const Quaternion &rot)
 	: BaseCamera(translation, rot) {}
 
 void Camera::Activate(unsigned long msec) const {
-	extern Matrix4x4 view_matrix;
-	
 	PRS prs = GetPRS(msec);
 
-	view_matrix = prs.rotation.Inverse().GetRotationMatrix();
-	view_matrix.Translate(-prs.position);
+	engfx_state::view_matrix = prs.rotation.Inverse().GetRotationMatrix();
+	engfx_state::view_matrix.Translate(-prs.position);
 
 	// TODO: this does not work...
 	Matrix4x4 flip_matrix;
 	if(flip.x) flip_matrix[0][0] = -1;
 	if(flip.y) flip_matrix[1][1] = -1;
 	if(flip.z) flip_matrix[2][2] = -1;
-	SetMatrix(XFORM_VIEW, flip_matrix * view_matrix);
+	SetMatrix(XFORM_VIEW, flip_matrix * engfx_state::view_matrix);
 
 	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
 	SetMatrix(XFORM_PROJECTION, proj);
 
-	extern const Camera *view_mat_camera;
-	view_mat_camera = this;
+	engfx_state::view_mat_camera = this;
 
-	const_cast<Camera*>(this)->SetupFrustum(proj * view_matrix);
+	const_cast<Camera*>(this)->SetupFrustum(proj * engfx_state::view_matrix);
 }
 
 
@@ -66,7 +63,6 @@ Vector3 TargetCamera::GetTarget(unsigned long msec) const {
 }
 
 void TargetCamera::Activate(unsigned long msec) const {
-	extern Matrix4x4 view_matrix;
 	PRS prs = GetPRS(msec);
 
 	Vector3 targ = target.GetPRS(msec).position;
@@ -101,10 +97,9 @@ void TargetCamera::Activate(unsigned long msec) const {
 	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
 	SetMatrix(XFORM_PROJECTION, proj);
 
-	extern const Camera *view_mat_camera;
-	view_mat_camera = this;
+	engfx_state::view_mat_camera = this;
 
-	const_cast<TargetCamera*>(this)->SetupFrustum(proj * view_matrix);
+	const_cast<TargetCamera*>(this)->SetupFrustum(proj * engfx_state::view_matrix);
 }
 
 

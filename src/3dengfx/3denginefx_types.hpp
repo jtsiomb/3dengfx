@@ -145,6 +145,13 @@ struct GraphicsInitParameters {
 	unsigned short dont_care_flags;
 };
 
+struct ProgCaps {
+	bool shader_obj;
+	bool asm_pixel, asm_vertex;
+	bool glslang;
+	bool glsl_pixel, glsl_vertex;
+};
+
 struct SysCaps {
 	bool load_transpose;
 	bool gen_mipmaps;
@@ -154,12 +161,10 @@ struct SysCaps {
 	bool vertex_buffers;
 	bool depth_texture;
 	bool shadow_mapping;
-	bool vertex_program;
-	bool pixel_program;
-	bool glslang;
 	bool point_sprites;
 	bool point_params;
 	int max_texture_units;
+	ProgCaps prog;
 };
 
 enum TransformType {

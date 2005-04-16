@@ -30,8 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using namespace std;
 using namespace glext;
-
-extern _CGcontext *cgc;
+using engfx_state::cgc;
 
 #ifdef USING_CG_TOOLKIT
 

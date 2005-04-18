@@ -27,6 +27,7 @@ void RemoveTexture(Texture *texture);
 Texture *FindTexture(const char *fname);
 
 Texture *GetTexture(const char *fname);
+void DestroyTextures();
 
 
 enum CubeMapIndex {

@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 #ifndef _OPENGL_H_
 #define _OPENGL_H_
 
@@ -47,7 +48,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <GL/glu.h>
 
 #undef GL_GLEXT_PROTOTYPES
-#include "glext.h"
+#include "opengl_ext.h"
 
 /* GL_ARB_transpose_matrix */
 
@@ -79,6 +80,36 @@ namespace glext {
 	// point parameters
 	extern PFNGLPOINTPARAMETERFARBPROC glPointParameterf;
 	extern PFNGLPOINTPARAMETERFVARBPROC glPointParameterfv;
+
+	// --- OpenGL 2.0 Shading Language ---
+	
+	// - objects
+	extern PFNGLDELETEOBJECTARBPROC glDeleteObject;
+	extern PFNGLATTACHOBJECTARBPROC glAttachObject;
+	extern PFNGLDETACHOBJECTARBPROC glDetachObject;
+	extern PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameteriv;
+	extern PFNGLGETINFOLOGARBPROC glGetInfoLog;
+
+	// - program objects
+	extern PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObject;
+	extern PFNGLLINKPROGRAMARBPROC glLinkProgram;
+	extern PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObject;
+
+	// - shader objects
+	extern PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObject;
+	extern PFNGLSHADERSOURCEARBPROC glShaderSource;
+	extern PFNGLCOMPILESHADERARBPROC glCompileShader;
+
+	// - uniforms
+	extern PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocation;
+	extern PFNGLGETACTIVEUNIFORMARBPROC glGetActiveUniform;
+	extern PFNGLUNIFORM1FARBPROC glUniform1f;
+	extern PFNGLUNIFORM2FARBPROC glUniform2f;
+	extern PFNGLUNIFORM3FARBPROC glUniform3f;
+	extern PFNGLUNIFORM4FARBPROC glUniform4f;
+	extern PFNGLUNIFORMMATRIX3FVARBPROC glUniformMatrix3fv;
+	extern PFNGLUNIFORMMATRIX4FVARBPROC glUniformMatrix4fv;
+
 }
 
 #endif	/* _OPENGL_H_ */

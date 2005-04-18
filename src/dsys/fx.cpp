@@ -162,7 +162,7 @@ void dsys::Overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2,
 	glEnd();
 
 	if(pprog) {
-		SetPixelProgramming(false);
+		SetGfxProgram(0);
 	}
 	
 	if(tex) {
@@ -325,12 +325,13 @@ bool FxOverlay::ParseScriptArgs(const char **args) {
 
 	// check if a shader is specified
 	if(args[3]) {
-		shader = new GfxProg(args[3], PROG_CGFP);
-		if(!shader->IsValid()) {
-			delete shader;
+		Shader sdr = GetShader(args[3], PROG_PIXEL);
+		if(!sdr) {
 			error("failed loading shader %s", args[3]);
 			return false;
 		}
+
+		shader = new GfxProg(0, sdr);
 	}
 	return true;
 }

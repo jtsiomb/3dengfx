@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * Author: John Tsiombikas 2004
  */
 
+// TODO: create a decent hash table and get rid of this mess.
+
 #ifndef _HASHTABLE_HPP_
 #define _HASHTABLE_HPP_
 
@@ -38,13 +40,13 @@ struct Pair {
 template <class KeyType, class ValType>
 class HashTable {
 private:
-
 	size_t size;
 	std::vector<std::list<Pair<KeyType, ValType> > > table;
 
 	unsigned int (*HashFunc)(const KeyType &key, unsigned long size);
 	unsigned int Hash(const KeyType &key) {return (unsigned int)HashFunc(key, (unsigned long)size);}
 
+	void (*data_destructor)(ValType);
 public:
 
 	HashTable(unsigned long size = 101);
@@ -56,6 +58,8 @@ public:
 	void Remove(KeyType key);
 
 	Pair<KeyType, ValType> *Find(KeyType key);
+
+	void SetDataDestructor(void (*destructor)(ValType));
 };
 
 
@@ -64,11 +68,20 @@ template <class KeyType, class ValType>
 HashTable<KeyType, ValType>::HashTable(unsigned long size) {
 	this->size = size;
 	table.resize(size);
+	data_destructor = 0;
 }
 
 template <class KeyType, class ValType>
 HashTable<KeyType, ValType>::~HashTable() {
 	for(unsigned long i=0; i<size; i++) {
+		if(data_destructor) {
+			typename std::list<Pair<KeyType, ValType> >::iterator iter = table[i].begin();
+			while(iter != table[i].end()) {
+				data_destructor(iter->val);
+				iter++;
+			}
+		}
+			
 		table[i].erase(table[i].begin(), table[i].end());
 	}
 }
@@ -117,6 +130,11 @@ Pair<KeyType, ValType> *HashTable<KeyType, ValType>::Find(KeyType key) {
 	}
 
 	return 0;
+}
+
+template <class KeyType, class ValType>
+void HashTable<KeyType, ValType>::SetDataDestructor(void (*destructor)(ValType)) {
+	data_destructor = destructor;
 }
 
 #endif	// _HASHTABLE_HPP_

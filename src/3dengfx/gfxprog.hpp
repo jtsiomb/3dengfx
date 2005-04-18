@@ -17,57 +17,52 @@ You should have received a copy of the GNU General Public License
 along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+/* GPU programs support (shaders)
+ *
+ * Author: John Tsiombikas 2005
+ */
 #ifndef _GFXPROG_HPP_
 #define _GFXPROG_HPP_
 
-#include <string>
+#include <list>
+#include "opengl.h"
 #include "n3dmath2/n3dmath2.hpp"
 
-#ifdef USING_CG_TOOLKIT
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-#else
-// to keep binary compatibility
-typedef void _CGcontext;
-typedef void _CGprogram;
-#endif	// USING_CG_TOOLKIT
-
 enum {
-	PROG_CGVP,		// Cg vertex program
-	PROG_CGFP,		// Cg fragment program
-	PROG_VP,		// ARB_vertex_program
-	PROG_FP			// ARB_fragment_program
+	PROG_VERTEX	= GL_VERTEX_SHADER_ARB,
+	PROG_PIXEL	= GL_FRAGMENT_SHADER_ARB
+	//PROG_CGVP,		// Cg vertex program
+	//PROG_CGFP,		// Cg fragment program
+	//PROG_VP,		// ARB_vertex_program
+	//PROG_FP			// ARB_fragment_program
 };
 
-class GfxProg {
-protected:
-	std::string name;
-	_CGprogram *cg_prog;
-	unsigned int asm_prog;
+typedef unsigned int Shader;
 
+class GfxProg {
+private:
+	unsigned int prog;
+	std::list<Shader> sdr_list;
+	bool linked;
+	
 	void (*update_handler)(GfxProg*);
-	int prog_type;
 
 public:
-	GfxProg(const char *fname = 0, int ptype = -1);
-	virtual ~GfxProg();
+	GfxProg(Shader vertex = 0, Shader pixel = 0);
+	~GfxProg();
 
-	void SetName(const char *name);
-	const char *GetName() const;
+	void AddShader(Shader sdr);
+	void Link();
 
-	virtual bool IsValid() const;
+	void SetParameter(const char *pname, scalar_t val);
+	void SetParameter(const char *pname, const Vector3 &val);
+	void SetParameter(const char *pname, const Vector4 &val);
+	void SetParameter(const char *pname, const Matrix4x4 &val);
 
-	virtual int GetType() const;
-
-	virtual bool LoadProgram(const char *fname, int ptype = -1);
-
-	virtual void SetParameter(const char *pname, scalar_t val);
-	virtual void SetParameter(const char *pname, const Vector3 &val);
-	virtual void SetParameter(const char *pname, const Matrix4x4 &val);
-
-	virtual void SetUpdateHandler(void (*func)(GfxProg*));
+	void SetUpdateHandler(void (*func)(GfxProg*));
 	
-	friend void SetGfxProgram(GfxProg *prog, bool enable);
+	friend void SetGfxProgram(GfxProg *prog);
 };
 	
 

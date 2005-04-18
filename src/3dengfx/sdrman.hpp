@@ -18,19 +18,14 @@ along with 3dengfx; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* GfxProg manager (shader manager)
+/* Shader manager (shader manager)
  * 
  * author: John Tsiombikas 2005
  */
 
-#ifndef _GPMAN_HPP_
-#define _GPMAN_HPP_
-
 #include "gfxprog.hpp"
 
-void AddProgram(GfxProg *prog, const char *fname = 0);
-void RemoveProgram(GfxProg *prog);
-GfxProg *GetProgram(const char *fname);
-GfxProg *LoadProgram(const char *fname, int type);
-
-#endif	// _GPMAN_HPP_
+Shader AddShaderFile(const char *fname, int sdr_type);
+Shader AddShaderString(const char *code, int sdr_type, const char *name = 0);
+Shader GetShader(const char *name, int sdr_type);
+void DestroyShaders();

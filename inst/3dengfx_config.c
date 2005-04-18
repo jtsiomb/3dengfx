@@ -25,12 +25,6 @@
 #define LD_JPEG	""
 #endif	/* IMGLIB_NO_JPEG */
 
-#ifdef USING_CG_TOOLKIT
-#define LD_CG	"-lCg -lCgGL"
-#else
-#define LD_CG	""
-#endif	/* USING_CG_TOOLKIT */
-
 void print_cflags(void);
 void print_libs(void);
 void print_libs_no_3dengfx(void);
@@ -102,7 +96,7 @@ void print_libs_no_3dengfx(void) {
 	FILE *p;
 	int c;
 		
-	printf("-lGL -lGLU -l3ds -lbz2 %s %s %s ", LD_JPEG, LD_PNG, LD_CG);
+	printf("-lGL -lGLU -l3ds -lbz2 %s %s ", LD_JPEG, LD_PNG);
 
 	if((p = popen(GFX_LIBS, "r"))) {
 		while((c = fgetc(p)) != -1) {

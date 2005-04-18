@@ -30,177 +30,84 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using namespace std;
 using namespace glext;
-using engfx_state::cgc;
 
-#ifdef USING_CG_TOOLKIT
+GfxProg::GfxProg(Shader vertex, Shader pixel) {
+	linked = false;
 
-#ifdef SINGLE_PRECISION_MATH
-static void (*cg_set_param)(_CGparameter*, scalar_t) = cgGLSetParameter1f;
-static void (*cg_set_param_vec3)(_CGparameter*, scalar_t x, scalar_t y, scalar_t z) = cgGLSetParameter3f;
-static void (*cg_set_param_mat4x4)(_CGparameter*, const scalar_t*) = cgGLSetMatrixParameterfr;
-#else	// !defined(SINGLE_PRECISION_MATH)
-static void (*cg_set_param)(_CGparameter*, scalar_t) = cgGLSetParameter1d;
-static void (*cg_set_param_vec3)(_CGparameter*, scalar_t x, scalar_t y, scalar_t z) = cgGLSetParameter3d;
-static void (*cg_set_param_mat4x4)(_CGparameter*, const scalar_t*) = cgGLSetMatrixParameterdr;
-#endif	// SINGLE_PRECISION_MATH
+	prog = glCreateProgramObject();
 
-#endif	// USING_CG_TOOLKIT
-
-GfxProg::GfxProg(const char *fname, int ptype) {
-	name = fname;
-	cg_prog = 0;
-	asm_prog = 0;
-	update_handler = 0;
-
-	if(fname) {
-		LoadProgram(fname, ptype);
-	}
+	if(vertex) AddShader(vertex);
+	if(pixel) AddShader(pixel);
 }
 
 GfxProg::~GfxProg() {
-	if(cg_prog) {
-#ifdef USING_CG_TOOLKIT
-		cgDestroyProgram(cg_prog);
-#else
-		error("Tried to destroy a Cg program, but this 3dengfx lib is not compiled with Cg support");
-#endif	// USING_CG_TOOLKIT
+	list<Shader>::iterator iter = sdr_list.begin();
+	while(iter != sdr_list.end()) {
+		glDetachObject(prog, *iter++);
 	}
-	if(asm_prog) {
-		glext::glDeletePrograms(1, &asm_prog);
-	}
+	glDeleteObject(prog);
 }
 
-void GfxProg::SetName(const char *name) {
-	this->name = name;
+void GfxProg::AddShader(Shader sdr) {
+	glAttachObject(prog, sdr);
+	sdr_list.push_back(sdr);
 }
 
-const char *GfxProg::GetName() const {
-	return name.c_str();
-}
-
-bool GfxProg::IsValid() const {
-	return cg_prog || asm_prog;
-}
-
-int GfxProg::GetType() const {
-	return prog_type;
-}
-
-bool GfxProg::LoadProgram(const char *fname, int ptype) {
-	FILE *fp;
+void GfxProg::Link() {
+	int linked, log_size;
 	
-	if(!fname || !(fp = fopen(fname, "r"))) return false;
-	
-	if(ptype == -1) {
-		// try to determine the nature of the program
-		char magic[8];
-		fread(magic, 1, 7, fp);
-		magic[7] = 0;
+	glLinkProgram(prog);
+	glGetObjectParameteriv(prog, GL_OBJECT_LINK_STATUS_ARB, &linked);
+	glGetObjectParameteriv(prog, GL_OBJECT_INFO_LOG_LENGTH_ARB, &log_size);
 
-		if(!strcmp(magic, "!!ARBfp")) {
-			ptype = PROG_FP;
-		} else if(!strcmp(magic, "!!ARBvp")) {
-			ptype = PROG_VP;
-		} else {
-			fclose(fp);
-			return false;
-		}
+	char *err_str = 0;
+	if(log_size) {
+		err_str = new char[log_size + 1];
+		glGetInfoLog(prog, log_size, 0, err_str);
 	}
 
-	prog_type = ptype;
-
-	fseek(fp, 0, SEEK_END);
-	int sz = ftell(fp);
-	fseek(fp, 0, SEEK_SET);
-
-	char *prog_buf = new char[sz + 1];
-	char *ptr = prog_buf;
-	int ch;
-	while((ch = fgetc(fp)) != EOF) {
-		*ptr++ = (char)ch;
-	}
-	*ptr = 0;
-	
-	fclose(fp);
-
-	// clean any opengl errors
-	while(glGetError() != GL_NO_ERROR);
-
-	if(ptype == PROG_VP || ptype == PROG_FP) {
-		if(!asm_prog) glGenPrograms(1, &asm_prog);
-		
-		GLenum gl_prog_type = ptype == PROG_FP ? GL_FRAGMENT_PROGRAM_ARB : GL_VERTEX_PROGRAM_ARB;
-		glBindProgram(gl_prog_type, asm_prog);
-		glProgramString(gl_prog_type, GL_PROGRAM_FORMAT_ASCII_ARB, sz, prog_buf);
-		
-		if(glGetError() != GL_NO_ERROR) {
-			cerr << "Error loading program \"" << fname << "\":\n";
-			cerr << glGetString(GL_PROGRAM_ERROR_STRING_ARB) << endl;
-			int err_pos;
-			glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &err_pos);
-			cerr << "line: " << strtok(prog_buf + err_pos, "\n") << endl;
-			delete [] prog_buf;
-			return false;
+	if(linked) {
+		info("program linked successfully");
+		if(err_str) {
+			info("linker output: %s", err_str);
+			delete [] err_str;
 		}
 	} else {
-#ifdef USING_CG_TOOLKIT
-		if(cg_prog) cgDestroyProgram(cg_prog);
-
-		CGprofile cg_profile = ptype == PROG_CGFP ? CG_PROFILE_ARBFP1 : CG_PROFILE_ARBVP1;
-		if(!(cg_prog = cgCreateProgram(cgc, CG_SOURCE, prog_buf, cg_profile, 0, 0))) {
-			cerr << "Error loading program \"" << fname << "\":\n";
-			cerr << cgGetLastListing(cgc) << endl;
-			delete [] prog_buf;
-			return false;
+		error("program linking failed");
+		if(err_str) {
+			error("linker output: %s", err_str);
+			delete [] err_str;
 		}
-
-		cgGLLoadProgram(cg_prog);
-#else
-		error("tried to load a Cg program, but this 3dengfx lib is not compiled with Cg support");
-#endif	// USING_CG_TOOLKIT
 	}
 
-	delete [] prog_buf;
-	return true;
+	this->linked = (bool)linked;
 }
-
 
 void GfxProg::SetParameter(const char *pname, scalar_t val) {
-	if(prog_type == PROG_VP || prog_type == PROG_FP) {
-		error("Parameters to ARB fp/vp NOT implemented yet");
-	} else {
-#ifdef USING_CG_TOOLKIT
-		_CGparameter *cgparam = cgGetNamedParameter(cg_prog, pname);
-		cg_set_param(cgparam, val);
-#else
-		error("tried to set a Cg program parameter, but this 3dengfx lib is not compiled with Cg support");
-#endif	// USING_CG_TOOLKIT
+	int loc = glGetUniformLocation(prog, pname);
+	if(loc != -1) {
+		glUniform1f(loc, val);
 	}
 }
 
 void GfxProg::SetParameter(const char *pname, const Vector3 &val) {
-	if(prog_type == PROG_VP || prog_type == PROG_FP) {
-		error("Parameters to ARB fp/vp NOT implemented yet");
-	} else {
-#ifdef USING_CG_TOOLKIT
-		_CGparameter *cgparam = cgGetNamedParameter(cg_prog, pname);
-		cg_set_param_vec3(cgparam, val.x, val.y, val.z);
-#else
-		error("tried to set a Cg program parameter, but this 3dengfx lib is not compiled with Cg support");
-#endif	// USING_CG_TOOLKIT
+	int loc = glGetUniformLocation(prog, pname);
+	if(loc != -1) {
+		glUniform3f(loc, val.x, val.y, val.z);
+	}
+}
+
+void GfxProg::SetParameter(const char *pname, const Vector4 &val) {
+	int loc = glGetUniformLocation(prog, pname);
+	if(loc != -1) {
+		glUniform4f(loc, val.x, val.y, val.z, val.w);
 	}
 }
 
 void GfxProg::SetParameter(const char *pname, const Matrix4x4 &val) {
-	if(prog_type == PROG_VP || prog_type == PROG_FP) {
-		error("Parameters to ARB fp/vp NOT implemented yet");
-	} else {
-#ifdef USING_CG_TOOLKIT
-		_CGparameter *cgparam = cgGetNamedParameter(cg_prog, pname);
-		cg_set_param_mat4x4(cgparam, val.OpenGLMatrix());
-#else
-		error("tried to set a Cg program parameter, but this 3dengfx lib is not compiled with Cg support");
-#endif	// USING_CG_TOOLKIT
+	int loc = glGetUniformLocation(prog, pname);
+	if(loc != -1) {
+		glUniformMatrix4fv(loc, 1, 1, val.OpenGLMatrix());
 	}
 }
 

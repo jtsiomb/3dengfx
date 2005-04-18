@@ -38,23 +38,28 @@ using std::string;
 
 static void CreateNormalCubeMap();
 
-static HashTable<string, Texture*> textures;
-static bool texman_initialized = false;
+static HashTable<string, Texture*> *textures;
 static Texture *normal_cubemap;
 
+static void DeleteTexture(Texture *tex) {
+	delete tex;
+}
+
 static void InitTexMan() {
-	textures.SetHashFunction(StringHash);
-	texman_initialized = true;
+	if(textures) return;
+	textures = new HashTable<string, Texture*>;
+	textures->SetHashFunction(StringHash);
+	textures->SetDataDestructor(DeleteTexture);
 }
 
 void AddTexture(Texture *texture, const char *fname) {
 	
-	if(!texman_initialized) InitTexMan();
+	if(!textures) InitTexMan();
 	
 	if(!fname) {	// enter a randomly named texture
-		textures.Insert(tmpnam(0), texture);
+		textures->Insert(tmpnam(0), texture);
 	} else {
-		textures.Insert(fname, texture);
+		textures->Insert(fname, texture);
 	}
 }
 
@@ -64,9 +69,9 @@ void RemoveTexture(Texture *texture) {
 
 Texture *FindTexture(const char *fname) {
 	
-	if(!texman_initialized) InitTexMan();
+	if(!textures) InitTexMan();
 	
-	Pair<string, Texture*> *res = textures.Find(fname);
+	Pair<string, Texture*> *res = textures->Find(fname);
 	return res ? res->val : 0;
 }
 
@@ -96,6 +101,12 @@ Texture *GetTexture(const char *fname) {
 	tex = new Texture;
 	tex->SetPixelData(pbuf);
 	return tex;
+}
+
+
+void DestroyTextures() {
+	delete textures;
+	textures = 0;
 }
 
 

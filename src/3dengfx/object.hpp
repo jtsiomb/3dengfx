@@ -41,7 +41,7 @@ struct RenderParams {
 	bool blending;
 	BlendingFactor src_blend, dest_blend;
 	bool handle_blending;
-	GfxProg *vprog, *pprog;
+	GfxProg *gfxprog;
 	bool auto_cube_maps;
 	bool hidden;
 	bool show_normals;
@@ -104,8 +104,7 @@ public:
 	void SetBlendingMode(BlendingFactor sblend, BlendingFactor dblend);
 	void SetHandleBlending(bool enable);
 	void SetWireframe(bool enable);
-	void SetVertexProgram(GfxProg *prog);
-	void SetPixelProgram(GfxProg *prog);
+	void SetGfxProgram(GfxProg *prog);
 	void SetAutoCubeMaps(bool enable);
 	void SetHidden(bool enable);
 	void SetShowNormals(bool enable);

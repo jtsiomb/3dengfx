@@ -36,13 +36,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "light.hpp"
 
 class Camera;
-class _CGcontext;
 
 namespace engfx_state {
+	extern SysCaps sys_caps;
 	extern Matrix4x4 world_matrix, view_matrix, inv_view_matrix;
 	extern const Camera *view_mat_camera;
 	extern Matrix4x4 proj_matrix;
-	extern _CGcontext *cgc;
 	extern const Light *bump_light;
 	extern int light_count;
 }
@@ -120,9 +119,7 @@ void SetTextureConstant(int tex_unit, const Color &col);
 void SetPointSpriteCoords(int tex_unit, bool enable);
 
 // programmable interface
-void SetGfxProgram(GfxProg *prog, bool enable = true);
-void SetVertexProgramming(bool enable);
-void SetPixelProgramming(bool enable);
+void SetGfxProgram(GfxProg *prog);
 
 // lighting states
 void SetLighting(bool enable);

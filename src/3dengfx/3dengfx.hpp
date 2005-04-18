@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "textures.hpp"
 #include "sceneloader.hpp"
 #include "gfxprog.hpp"
-#include "gpman.hpp"
+#include "sdrman.hpp"
 #include "psys.hpp"
 #include "scfield.hpp"
 #include "fxwt/fxwt.hpp"

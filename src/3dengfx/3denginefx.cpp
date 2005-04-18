@@ -33,6 +33,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "fxwt/init.hpp"
 #include "fxwt/gfx_library.h"
 #include "3denginefx.hpp"
+#include "texman.hpp"
+#include "sdrman.hpp"
 #include "camera.hpp"
 #include "gfx/3dgeom.hpp"
 #include "gfxprog.hpp"
@@ -88,6 +90,8 @@ namespace glext {
 	PFNGLDELETEOBJECTARBPROC glDeleteObject;
 	PFNGLATTACHOBJECTARBPROC glAttachObject;
 	PFNGLDETACHOBJECTARBPROC glDetachObject;
+	PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameteriv;
+	PFNGLGETINFOLOGARBPROC glGetInfoLog;
 
 	// - program objects
 	PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObject;
@@ -103,9 +107,9 @@ namespace glext {
 	PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocation;
 	PFNGLGETACTIVEUNIFORMARBPROC glGetActiveUniform;
 	PFNGLUNIFORM1FARBPROC glUniform1f;
-	PFNGLUNIFORM2FVARBPROC glUniform2fv;
-	PFNGLUNIFORM3FVARBPROC glUniform3fv;
-	PFNGLUNIFORM4FVARBPROC glUniform4fv;
+	PFNGLUNIFORM2FARBPROC glUniform2f;
+	PFNGLUNIFORM3FARBPROC glUniform3f;
+	PFNGLUNIFORM4FARBPROC glUniform4f;
 	PFNGLUNIFORMMATRIX3FVARBPROC glUniformMatrix3fv;
 	PFNGLUNIFORMMATRIX4FVARBPROC glUniformMatrix4fv;
 }
@@ -125,7 +129,6 @@ static const char *gl_error_string[] = {
 
 ///////////////// local 3d engine state block ///////////////////
 static GraphicsInitParameters gparams;
-static SysCaps sys_caps;
 static Matrix4x4 tex_matrix[8];
 static int coord_index[MAX_TEXTURES];
 static PrimitiveType primitive_type;
@@ -135,11 +138,11 @@ static bool mipmapping = true;
 static TextureDim ttype[8];	// the type of each texture bound to each texunit (1D/2D/3D/CUBE)
 
 namespace engfx_state {
+	SysCaps sys_caps;
 	Matrix4x4 world_matrix;
 	Matrix4x4 view_matrix, inv_view_matrix;
 	const Camera *view_mat_camera;
 	Matrix4x4 proj_matrix;
-	_CGcontext *cgc;
 	const Light *bump_light;
 	int light_count;
 }
@@ -389,16 +392,6 @@ bool StartGL() {
 		return false;
 	}
 
-#ifdef USING_CG_TOOLKIT
-	// create a Cg context
-	if(!(cgc = cgCreateContext())) {
-		error("%s: Could not create Cg context", __func__);
-		return false;
-	}
-	cgGLSetOptimalOptions(CG_PROFILE_ARBFP1);
-	cgGLSetOptimalOptions(CG_PROFILE_ARBVP1);
-#endif	// USING_CG_TOOLKIT
-
 	glext::glActiveTexture = (PFNGLACTIVETEXTUREARBPROC)glGetProcAddress("glActiveTextureARB");
 	glext::glClientActiveTexture = (PFNGLCLIENTACTIVETEXTUREARBPROC)glGetProcAddress("glClientActiveTextureARB");
 	
@@ -440,6 +433,9 @@ bool StartGL() {
 		glDeleteObject = (PFNGLDELETEOBJECTARBPROC)glGetProcAddress("glDeleteObjectARB");
 		glAttachObject = (PFNGLATTACHOBJECTARBPROC)glGetProcAddress("glAttachObjectARB");
 		glDetachObject = (PFNGLDETACHOBJECTARBPROC)glGetProcAddress("glDetachObjectARB");
+		glGetObjectParameteriv = (PFNGLGETOBJECTPARAMETERIVARBPROC)glGetProcAddress("glGetObjectParameterivARB");
+		glGetInfoLog = (PFNGLGETINFOLOGARBPROC)glGetProcAddress("glGetInfoLogARB");
+		
 		glCreateProgramObject = (PFNGLCREATEPROGRAMOBJECTARBPROC)glGetProcAddress("glCreateProgramObjectARB");
 		glLinkProgram = (PFNGLLINKPROGRAMARBPROC)glGetProcAddress("glLinkProgramARB");
 		glUseProgramObject = (PFNGLUSEPROGRAMOBJECTARBPROC)glGetProcAddress("glUseProgramObjectARB");
@@ -451,9 +447,9 @@ bool StartGL() {
 		glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONARBPROC)glGetProcAddress("glGetUniformLocationARB");
 		glGetActiveUniform = (PFNGLGETACTIVEUNIFORMARBPROC)glGetProcAddress("glGetActiveUniformARB");
 		glUniform1f = (PFNGLUNIFORM1FARBPROC)glGetProcAddress("glUniform1fARB");
-		glUniform2fv = (PFNGLUNIFORM2FVARBPROC)glGetProcAddress("glUniform2fvARB");
-		glUniform3fv = (PFNGLUNIFORM3FVARBPROC)glGetProcAddress("glUniform3fvARB");
-		glUniform4fv = (PFNGLUNIFORM4FVARBPROC)glGetProcAddress("glUniform4fvARB");
+		glUniform2f = (PFNGLUNIFORM2FARBPROC)glGetProcAddress("glUniform2fARB");
+		glUniform3f = (PFNGLUNIFORM3FARBPROC)glGetProcAddress("glUniform3fARB");
+		glUniform4f = (PFNGLUNIFORM4FARBPROC)glGetProcAddress("glUniform4fARB");
 		glUniformMatrix3fv = (PFNGLUNIFORMMATRIX3FVARBPROC)glGetProcAddress("glUniformMatrix3fvARB");
 		glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVARBPROC)glGetProcAddress("glUniformMatrix4fvARB");
 	}
@@ -468,10 +464,8 @@ bool StartGL() {
 }
 
 void DestroyGraphicsContext() {
-#ifdef USING_CG_TOOLKIT
-	cgDestroyContext(cgc);
-#endif	// USING_CG_TOOLKIT
-	
+	DestroyTextures();
+	DestroyShaders();
 	fxwt::DestroyGraphics();
 }
 
@@ -995,53 +989,22 @@ void SetPointSpriteCoords(int tex_unit, bool enable) {
 
 
 // programmable interface
-void SetGfxProgram(GfxProg *prog, bool enable) {
-	if(prog->prog_type == PROG_FP || prog->prog_type == PROG_VP) {
-		GLenum ptype = prog->prog_type == PROG_FP ? GL_FRAGMENT_PROGRAM_ARB : GL_VERTEX_PROGRAM_ARB;
+void SetGfxProgram(GfxProg *prog) {
+	if(prog) {
+		if(!prog->linked) {
+			prog->Link();
+			if(!prog->linked) return;
+		}
+		glUseProgramObject(prog->prog);
 		
-		if(enable) {
-			glEnable(ptype);
-			glBindProgram(ptype, prog->asm_prog);
-		} else {
-			glDisable(ptype);
+		// call any registered update handlers
+		if(prog->update_handler) {
+			prog->update_handler(prog);
 		}
 	} else {
-#ifdef USING_CG_TOOLKIT
-		CGprofile cg_prof = prog->prog_type == PROG_CGFP ? CG_PROFILE_ARBFP1 : CG_PROFILE_ARBVP1;
-
-		if(enable) {
-			cgGLEnableProfile(cg_prof);
-			cgGLBindProgram(prog->cg_prog);
-		} else {
-			cgGLDisableProfile(cg_prof);
-		}
-#else
-		error("tried to set a Cg GfxProg, but this 3dengfx lib is not compiled with Cg support");
-#endif	// USING_CG_TOOLKIT
-	}
-
-	// calla any registered update handlers
-	if(prog->update_handler) {
-		prog->update_handler(prog);
+		glUseProgramObject(0);
 	}
 }
-
-void SetVertexProgramming(bool enable) {
-	if(enable) {
-		glEnable(GL_VERTEX_PROGRAM_ARB);
-	} else {
-		glDisable(GL_VERTEX_PROGRAM_ARB);
-	}
-}
-
-void SetPixelProgramming(bool enable) {
-	if(enable) {
-		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-	} else {
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
-	}
-}
-
 
 // lighting states
 void SetLighting(bool enable) {

@@ -41,7 +41,7 @@ RenderParams::RenderParams() {
 	src_blend = BLEND_SRC_ALPHA;
 	dest_blend = BLEND_ONE_MINUS_SRC_ALPHA;
 	handle_blending = true;
-	vprog = pprog = 0;
+	gfxprog = 0;
 	auto_cube_maps = false;
 	hidden = false;
 	show_normals = false;
@@ -156,24 +156,8 @@ void Object::SetWireframe(bool enable) {
 	mat.wireframe = enable;
 }
 
-void Object::SetVertexProgram(GfxProg *prog) {
-	if(prog) {
-		if(prog->GetType() == PROG_VP || prog->GetType() == PROG_CGVP) {
-			render_params.vprog = prog;
-		}
-	} else {
-		render_params.vprog = 0;
-	}
-}
-
-void Object::SetPixelProgram(GfxProg *prog) {
-	if(prog) {
-		if(prog->GetType() == PROG_FP || prog->GetType() == PROG_CGFP) {
-			render_params.pprog = prog;
-		}
-	} else {
-		render_params.pprog = 0;
-	}
+void Object::SetGfxProgram(GfxProg *prog) {
+	render_params.gfxprog = prog;
 }
 
 void Object::SetAutoCubeMaps(bool enable) {
@@ -331,8 +315,7 @@ void Object::RenderHack(unsigned long time) {
 
 	if(mat.wireframe) ::SetWireframe(true);
 
-	if(render_params.pprog) ::SetGfxProgram(render_params.pprog);
-	if(render_params.vprog) ::SetGfxProgram(render_params.vprog);
+	if(render_params.gfxprog) ::SetGfxProgram(render_params.gfxprog);
 
 	if(mat.two_sided) SetBackfaceCulling(false);
 	
@@ -340,8 +323,6 @@ void Object::RenderHack(unsigned long time) {
 
 	if(mat.two_sided) SetBackfaceCulling(true);
 
-	if(render_params.pprog) SetPixelProgramming(false);
-	
 	if(mat.wireframe) ::SetWireframe(false);
 	if((render_params.handle_blending && mat.alpha < 1.0 - small_number) || 
 			(!render_params.handle_blending && render_params.blending)) {
@@ -366,7 +347,7 @@ void Object::RenderHack(unsigned long time) {
 	if(render_params.show_normals) {
 		DrawNormals();
 	}
-	if(render_params.vprog) SetVertexProgramming(false);
+	if(render_params.gfxprog) ::SetGfxProgram(0);
 }
 
 void Object::DrawNormals() {

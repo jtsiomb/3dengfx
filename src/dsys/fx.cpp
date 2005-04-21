@@ -332,6 +332,7 @@ bool FxOverlay::ParseScriptArgs(const char **args) {
 		}
 
 		shader = new GfxProg(0, sdr);
+		shader->Link();
 	}
 	return true;
 }
@@ -347,9 +348,17 @@ void FxOverlay::SetShader(GfxProg *sdr) {
 void FxOverlay::Apply(unsigned long time) {
 	if(time >= this->time && time < this->time + duration) {
 		if(shader) {
-			float time = (float)(time - this->time) / 1000.0;
-			shader->SetParameter("time", time);
-			shader->SetParameter("t", time / ((float)duration / 1000.0f));
+			float fsec = (float)(time - this->time) / 1000.0;
+			shader->SetParameter("time", fsec);
+
+			float t = fsec / ((float)duration / 1000.0f);
+			shader->SetParameter("t", t);
+
+			float ease = (t < 0.25 || t >= 0.75) ? fabs(sin(t * 2.0 * pi)) : 1.0;
+			shader->SetParameter("ease", ease);
+
+			float ease_sin = sin(t * pi);
+			shader->SetParameter("ease_sin", ease_sin);
 		}
 		Overlay(tex, Vector2(0, 0), Vector2(1, 1), Color(1, 1, 1), shader);
 	}

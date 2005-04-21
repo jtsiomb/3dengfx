@@ -118,6 +118,7 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 
 
 void fxwt::DestroyGraphics() {
+	info("Shutting down SDL...");
 	SDL_Quit();
 }
 #endif	// SDL

@@ -79,7 +79,8 @@ bool dsys::Init() {
 
 void dsys::CleanUp() {
 	for(int i=0; i<4; i++) {
-		delete tex[i];
+		if(tex[i]) delete tex[i];
+		tex[i] = 0;
 	}
 }
 

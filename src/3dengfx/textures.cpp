@@ -162,6 +162,7 @@ void Texture::Unlock(CubeMapFace cube_map_face) {
 	}
 	
 	delete [] buffer;
+	buffer = 0;
 }
 
 void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
@@ -198,6 +199,7 @@ void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
 	}
 
 	delete [] buffer;
+	buffer = 0;
 }
 
 TextureDim Texture::GetType() const {

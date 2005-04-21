@@ -128,6 +128,7 @@ static const char *gl_error_string[] = {
 };
 
 ///////////////// local 3d engine state block ///////////////////
+static bool gc_valid;
 static GraphicsInitParameters gparams;
 static Matrix4x4 tex_matrix[8];
 static int coord_index[MAX_TEXTURES];
@@ -347,6 +348,7 @@ void LoadMatrix_TransposeManual(const Matrix4x4 &mat) {
 
 static void SignalHandler(int sig) {
 	error("It seems this is the end... caught signal %d, exiting...\n", sig);
+	DestroyGraphicsContext();
 	exit(-1);
 }
 
@@ -367,7 +369,6 @@ bool CreateGraphicsContext(const GraphicsInitParameters &gip) {
 		return false;
 	}
 
-	atexit(fxwt::DestroyGraphics);
 	signal(SIGSEGV, SignalHandler);
 	signal(SIGILL, SignalHandler);
 	signal(SIGTERM, SignalHandler);
@@ -458,12 +459,18 @@ bool StartGL() {
 		glPointParameterf = (PFNGLPOINTPARAMETERFARBPROC)glGetProcAddress("glPointParameterfARB");
 		glPointParameterfv = (PFNGLPOINTPARAMETERFVARBPROC)glGetProcAddress("glPointParameterfvARB");
 	}
+
+	gc_valid = true;
+	set_verbosity(3);
 	
 	SetDefaultStates();
 	return true;
 }
 
 void DestroyGraphicsContext() {
+	if(!gc_valid) return;
+	gc_valid = false;
+	info("3d engine shutting down...");
 	DestroyTextures();
 	DestroyShaders();
 	fxwt::DestroyGraphics();

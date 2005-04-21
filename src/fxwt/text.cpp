@@ -98,6 +98,8 @@ static Font font_style_list[3][4] = {
 
 bool fxwt::TextInit() {
 
+	set_verbosity(2);
+
 	text_table.SetHashFunction(StringHash);
 
 	if(FT_Init_FreeType(&ft) != 0) return false;
@@ -123,6 +125,8 @@ bool fxwt::TextInit() {
 	}
 
 	atexit(fxwt::TextClose);
+
+	set_verbosity(3);
 
 	return true;
 }

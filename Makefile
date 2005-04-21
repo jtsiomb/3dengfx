@@ -1,6 +1,6 @@
 obj :=
 
-opt := -O3
+opt := -g
 inc_flags := -Isrc
 
 CXXFLAGS := $(opt) -ansi -pedantic -Wall -fPIC $(inc_flags) `./3dengfx-config --cflags`

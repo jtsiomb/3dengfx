@@ -33,6 +33,7 @@ using namespace glext;
 
 GfxProg::GfxProg(Shader vertex, Shader pixel) {
 	linked = false;
+	update_handler = 0;
 
 	prog = glCreateProgramObject();
 
@@ -67,16 +68,18 @@ void GfxProg::Link() {
 	}
 
 	if(linked) {
-		info("program linked successfully");
 		if(err_str) {
-			info("linker output: %s", err_str);
+			info("linked: %s", err_str);
 			delete [] err_str;
-		}
+		} else {
+			info("program linked successfully");
+		}		
 	} else {
-		error("program linking failed");
 		if(err_str) {
-			error("linker output: %s", err_str);
+			error("linking failed: %s", err_str);
 			delete [] err_str;
+		} else {
+			error("program linking failed");
 		}
 	}
 
@@ -84,31 +87,39 @@ void GfxProg::Link() {
 }
 
 void GfxProg::SetParameter(const char *pname, scalar_t val) {
+	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
 		glUniform1f(loc, val);
 	}
+	glUseProgramObject(0);
 }
 
 void GfxProg::SetParameter(const char *pname, const Vector3 &val) {
+	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
 		glUniform3f(loc, val.x, val.y, val.z);
 	}
+	glUseProgramObject(0);
 }
 
 void GfxProg::SetParameter(const char *pname, const Vector4 &val) {
+	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
 		glUniform4f(loc, val.x, val.y, val.z, val.w);
 	}
+	glUseProgramObject(0);
 }
 
 void GfxProg::SetParameter(const char *pname, const Matrix4x4 &val) {
+	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
 		glUniformMatrix4fv(loc, 1, 1, val.OpenGLMatrix());
 	}
+	glUseProgramObject(0);
 }
 
 void GfxProg::SetUpdateHandler(void (*func)(GfxProg*)) {

@@ -136,6 +136,7 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 }
 
 void fxwt::DestroyGraphics() {
+	info("Shutting down GTK+");
 }
 
 #endif	// GTK

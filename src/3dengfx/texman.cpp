@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/color.hpp"
 #include "n3dmath2/n3dmath2.hpp"
 #include "common/string_hash.hpp"
+#include "common/err_msg.h"
 
 using std::string;
 
@@ -105,6 +106,7 @@ Texture *GetTexture(const char *fname) {
 
 
 void DestroyTextures() {
+	info("Shutting down texture manager, destroying all textures...");
 	delete textures;
 	textures = 0;
 }

@@ -77,6 +77,7 @@ Shader AddShaderFile(const char *fname, int sdr_type) {
 
 	char *source = new char[src_size + 1];
 	src_size = fread(source, 1, src_size, fp);
+	source[src_size] = 0;
 	fclose(fp);
 
 	Shader sdr = AddShaderString(source, sdr_type, fname);
@@ -89,7 +90,7 @@ Shader AddShaderString(const char *code, int sdr_type, const char *name) {
 	if(!shaders) InitSdrMan();
 	
 	if(!CheckShaderCaps(sdr_type, name)) return 0;
-	
+
 	Shader sdr = glCreateShaderObject(sdr_type);
 	glShaderSource(sdr, 1, &code, 0);
 	glCompileShader(sdr);
@@ -106,18 +107,20 @@ Shader AddShaderString(const char *code, int sdr_type, const char *name) {
 	}
 	
 	if(success) {
-		info("%s compiled successfully", name);
 		if(info_len) {
-			info("%s", info_str);
+			info("%s compiled: %s", name, info_str);
 			delete [] info_str;
+		} else {
+			info("%s compiled successfully", name);
 		}
 
 		shaders->Insert(name ? name : tmpnam(0), sdr);
 	} else {
-		error("%s compile failed", name);
 		if(info_len) {
-			error("%s", info_str);
+			error("%s compile failed: %s", name, info_str);
 			delete [] info_str;
+		} else {
+			error("%s compile failed", name);
 		}
 
 		glDeleteObject(sdr);
@@ -138,6 +141,7 @@ Shader GetShader(const char *name, int sdr_type) {
 }
 
 void DestroyShaders() {
+	info("Shutting down shader manager, destroying all shaders...");
 	delete shaders;
 	shaders = 0;
 }

@@ -61,7 +61,8 @@ public:
 	void SetParameter(const char *pname, const Matrix4x4 &val);
 
 	void SetUpdateHandler(void (*func)(GfxProg*));
-	
+
+	const char *GetShaderNames() const;	
 	friend void SetGfxProgram(GfxProg *prog);
 };
 	

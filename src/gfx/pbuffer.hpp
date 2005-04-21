@@ -60,7 +60,7 @@ Buffer<T>::Buffer(const Buffer<T> &b) {
 
 template <class T>
 Buffer<T>::~Buffer() {
-	delete [] buffer;
+	if(buffer) delete [] buffer;
 }
 
 #endif	// _PBUFFER_HPP_

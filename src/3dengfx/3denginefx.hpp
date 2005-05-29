@@ -64,6 +64,7 @@ void Draw(const VertexArray &varray);
 void Draw(const VertexArray &varray, const IndexArray &iarray);
 void DrawLine(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2 = -1.0);
 void DrawPoint(const Vertex &pt, scalar_t size);
+void DrawFullQuad(const Vector2 &corner1, const Vector2 &corner2, const Color &color = Color(1.0));
 
 int GetTextureUnitCount();
 

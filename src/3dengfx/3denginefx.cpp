@@ -731,6 +731,34 @@ void DrawPoint(const Vertex &pt, scalar_t size) {
 
 }
 
+
+void DrawFullQuad(const Vector2 &corner1, const Vector2 &corner2, const Color &color) {
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
+
+	glBegin(GL_QUADS);
+	glColor4f(color.r, color.g, color.b, color.a);
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex3f(corner1.x, corner1.y, -0.5);
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f(corner2.x, corner1.y, -0.5);
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex3f(corner2.x, corner2.y, -0.5);
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex3f(corner1.x, corner2.y, -0.5);
+	glEnd();
+
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
+
 int GetTextureUnitCount() {
 	return sys_caps.max_texture_units;
 }

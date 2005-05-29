@@ -11,7 +11,6 @@ include src/gfx/Makefile-part
 include src/n3dmath2/Makefile-part
 include src/dsys/Makefile-part
 include src/common/Makefile-part
-include src/nlibase/Makefile-part
 include src/fxwt/Makefile-part
 include src/sim/Makefile-part
 

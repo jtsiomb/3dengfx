@@ -28,27 +28,28 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "gfx/animation.hpp"
 
-class SpringConn : public XFormNode {
+class SpringPoint : public XFormNode {
 public:
 	bool fixed;
 	scalar_t weight;
+	Spring *spr[2];
 
-	SpringConn(const Vector3 &pos = Vector3(), bool fixed = false);
+	SpringPoint(const Vector3 &pos = Vector3(), bool fixed = false);
 
 	virtual void SetFixed(bool fixed);
 	virtual bool IsFixed() const;
 
 	virtual void SetWeight(scalar_t weight);
 	virtual scalar_t GetWeight() const;
+
+	virtual void Calc();
 };
 
 
 class Spring {
 private:
 	scalar_t stiffness;	// the k thingy
-	scalar_t length;	// the length of the rope with no forces acting on it
-
-	SpringConn *ends[2];
+	scalar_t length;	// the length of the string with no forces acting on it
 
 public:
 	Spring();

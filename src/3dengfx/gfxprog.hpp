@@ -32,10 +32,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 enum {
 	PROG_VERTEX	= GL_VERTEX_SHADER_ARB,
 	PROG_PIXEL	= GL_FRAGMENT_SHADER_ARB
-	//PROG_CGVP,		// Cg vertex program
-	//PROG_CGFP,		// Cg fragment program
-	//PROG_VP,		// ARB_vertex_program
-	//PROG_FP			// ARB_fragment_program
 };
 
 typedef unsigned int Shader;

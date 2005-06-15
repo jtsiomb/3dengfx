@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "camera.hpp"
 #include "ggen.hpp"
 #include "light.hpp"
-#include "load_geom.hpp"
 #include "material.hpp"
 #include "object.hpp"
 #include "rend_curve.hpp"

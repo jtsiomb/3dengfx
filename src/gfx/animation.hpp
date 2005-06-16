@@ -46,14 +46,14 @@ public:
 	PRS();
 	PRS(const Vector3 &pos, const Quaternion &rot, const Vector3 &scale = Vector3(1,1,1), const Vector3 &pivot = Vector3(0,0,0));
 	
-	Matrix4x4 GetXFormMatrix() const;
+	Matrix4x4 get_xform_matrix() const;
 
-	friend PRS CombinePRS(const PRS &prs1, const PRS &prs2);
+	friend PRS combine_prs(const PRS &prs1, const PRS &prs2);
 	friend std::ostream &operator <<(std::ostream &out, const PRS &prs);
 };
 
-PRS CombinePRS(const PRS &prs1, const PRS &prs2);
-PRS InheritPRS(const PRS &child, const PRS &parent);
+PRS combine_prs(const PRS &prs1, const PRS &prs2);
+PRS inherit_prs(const PRS &child, const PRS &parent);
 std::ostream &operator <<(std::ostream &out, const PRS &prs);
 
 class Keyframe {
@@ -91,11 +91,11 @@ protected:
 	
 	bool use_ctrl;
 
-	inline Keyframe *GetNearestKey(unsigned long time);
-	inline const Keyframe *GetNearestKey(unsigned long time) const;
-	Keyframe *GetNearestKey(int start, int end, unsigned long time);
-	inline const Keyframe *GetNearestKey(int start, int end, unsigned long time) const;
-	void GetKeyInterval(unsigned long time, const Keyframe **start, const Keyframe **end) const;
+	inline Keyframe *get_nearest_key(unsigned long time);
+	inline const Keyframe *get_nearest_key(unsigned long time) const;
+	Keyframe *get_nearest_key(int start, int end, unsigned long time);
+	inline const Keyframe *get_nearest_key(int start, int end, unsigned long time) const;
+	void get_key_interval(unsigned long time, const Keyframe **start, const Keyframe **end) const;
 	
 public:
 	std::string name;
@@ -105,39 +105,39 @@ public:
 	XFormNode();
 	virtual ~XFormNode();
 
-	virtual void AddController(MotionController ctrl, ControllerType ctrl_type);
-	virtual std::vector<MotionController> *GetControllers(ControllerType ctrl_type);
+	virtual void add_controller(MotionController ctrl, ControllerType ctrl_type);
+	virtual std::vector<MotionController> *get_controllers(ControllerType ctrl_type);
 		
-	virtual void AddKeyframe(const Keyframe &key);
-	virtual Keyframe *GetKeyframe(unsigned long time);
-	virtual void DeleteKeyframe(unsigned long time);
-	virtual std::vector<Keyframe> *GetKeyframes();
+	virtual void add_keyframe(const Keyframe &key);
+	virtual Keyframe *get_keyframe(unsigned long time);
+	virtual void delete_keyframe(unsigned long time);
+	virtual std::vector<Keyframe> *get_keyframes();
 
-	virtual void SetTimelineMode(TimelineMode time_mode);
+	virtual void set_timeline_mode(TimelineMode time_mode);
 	
-	virtual void SetPosition(const Vector3 &pos, unsigned long time = XFORM_LOCAL_PRS);
-	virtual void SetRotation(const Quaternion &rot, unsigned long time = XFORM_LOCAL_PRS);
-	virtual void SetRotation(const Vector3 &euler, unsigned long time = XFORM_LOCAL_PRS);
-	virtual void SetScaling(const Vector3 &scale, unsigned long time = XFORM_LOCAL_PRS);
-	virtual void SetPivot(const Vector3 &pivot);
+	virtual void set_position(const Vector3 &pos, unsigned long time = XFORM_LOCAL_PRS);
+	virtual void set_rotation(const Quaternion &rot, unsigned long time = XFORM_LOCAL_PRS);
+	virtual void set_rotation(const Vector3 &euler, unsigned long time = XFORM_LOCAL_PRS);
+	virtual void set_scaling(const Vector3 &scale, unsigned long time = XFORM_LOCAL_PRS);
+	virtual void set_pivot(const Vector3 &pivot);
 	
-	virtual Vector3 GetPosition(unsigned long time = XFORM_LOCAL_PRS) const;
-	virtual Quaternion GetRotation(unsigned long time = XFORM_LOCAL_PRS) const;
-	virtual Vector3 GetScaling(unsigned long time = XFORM_LOCAL_PRS) const;
-	virtual Vector3 GetPivot() const;
+	virtual Vector3 get_position(unsigned long time = XFORM_LOCAL_PRS) const;
+	virtual Quaternion get_rotation(unsigned long time = XFORM_LOCAL_PRS) const;
+	virtual Vector3 get_scaling(unsigned long time = XFORM_LOCAL_PRS) const;
+	virtual Vector3 get_pivot() const;
 	
-	virtual void Translate(const Vector3 &trans, unsigned long time = XFORM_LOCAL_PRS);
-	virtual void Rotate(const Quaternion &rot, unsigned long time = XFORM_LOCAL_PRS);
-	virtual void Rotate(const Vector3 &euler, unsigned long time = XFORM_LOCAL_PRS);
-	virtual void Rotate(const Matrix3x3 &rmat, unsigned long time = XFORM_LOCAL_PRS);
-	virtual void Scale(const Vector3 &scale, unsigned long time = XFORM_LOCAL_PRS);	
+	virtual void translate(const Vector3 &trans, unsigned long time = XFORM_LOCAL_PRS);
+	virtual void rotate(const Quaternion &rot, unsigned long time = XFORM_LOCAL_PRS);
+	virtual void rotate(const Vector3 &euler, unsigned long time = XFORM_LOCAL_PRS);
+	virtual void rotate(const Matrix3x3 &rmat, unsigned long time = XFORM_LOCAL_PRS);
+	virtual void scale(const Vector3 &scale, unsigned long time = XFORM_LOCAL_PRS);	
 
-	virtual void ResetPosition(unsigned long time = XFORM_LOCAL_PRS);
-	virtual void ResetRotation(unsigned long time = XFORM_LOCAL_PRS);
-	virtual void ResetScaling(unsigned long time = XFORM_LOCAL_PRS);
-	virtual void ResetXForm(unsigned long time = XFORM_LOCAL_PRS);
+	virtual void reset_position(unsigned long time = XFORM_LOCAL_PRS);
+	virtual void reset_rotation(unsigned long time = XFORM_LOCAL_PRS);
+	virtual void reset_scaling(unsigned long time = XFORM_LOCAL_PRS);
+	virtual void reset_xform(unsigned long time = XFORM_LOCAL_PRS);
 	
-	virtual PRS GetPRS(unsigned long time = XFORM_LOCAL_PRS) const;
+	virtual PRS get_prs(unsigned long time = XFORM_LOCAL_PRS) const;
 };
 
 #include "animation.inl"

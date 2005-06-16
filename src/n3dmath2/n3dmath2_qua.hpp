@@ -49,29 +49,29 @@ public:
 	void operator -=(const Quaternion &quat);
 	void operator *=(const Quaternion &quat);
 
-	void ResetIdentity();
+	void reset_identity();
 
-	Quaternion Conjugate() const;
+	Quaternion conjugate() const;
 
-	scalar_t Length() const;
-	scalar_t LengthSq() const;
+	scalar_t length() const;
+	scalar_t length_sq() const;
 	
-	void Normalize();
-	Quaternion Normalized() const;
+	void normalize();
+	Quaternion normalized() const;
 
-	Quaternion Inverse() const;
+	Quaternion inverse() const;
 
-	void SetRotation(const Vector3 &axis, scalar_t angle);
-	void Rotate(const Vector3 &axis, scalar_t angle);
+	void set_rotation(const Vector3 &axis, scalar_t angle);
+	void rotate(const Vector3 &axis, scalar_t angle);
 	/* note: this is a totally different operation from the above
 	 * this treats the quaternion as signifying direction and rotates
 	 * it by a rotation quaternion by rot * q * rot'
 	 */
-	void Rotate(const Quaternion &q);
+	void rotate(const Quaternion &q);
 
-	Matrix3x3 GetRotationMatrix() const;
+	Matrix3x3 get_rotation_matrix() const;
 	
-	friend Quaternion Slerp(const Quaternion &q1, const Quaternion &q2, scalar_t t);
+	friend Quaternion slerp(const Quaternion &q1, const Quaternion &q2, scalar_t t);
 	
 	friend std::ostream &operator <<(std::ostream &out, const Quaternion &q);
 };

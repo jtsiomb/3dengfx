@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using std::list;
 
 #if GFX_LIBRARY == SDL
-static void HandleEvent(const SDL_Event &event);
+static void handle_event(const SDL_Event &event);
 #endif	// SDL
 
 static list<void (*)()> disp_handlers;
@@ -52,60 +52,60 @@ static GdkGLContext *gl_context;
 static GdkGLDrawable *gl_drawable;
 #endif	// GTK
 
-void fxwt::Init() {
-	fxwt::TextInit();
-	fxwt::WidgetInit();
+void fxwt::init() {
+	fxwt::text_init();
+	fxwt::widget_init();
 
-	const GraphicsInitParameters *gip = GetGraphicsInitParameters();
+	const GraphicsInitParameters *gip = get_graphics_init_parameters();
 	screenx = gip->x;
 	screeny = gip->y;
 }
 
-void fxwt::SetDisplayHandler(void (*handler)()) {
+void fxwt::set_display_handler(void (*handler)()) {
 	disp_handlers.push_back(handler);
 }
 
-void fxwt::SetIdleHandler(void (*handler)()) {
+void fxwt::set_idle_handler(void (*handler)()) {
 	idle_handlers.push_back(handler);
 }
 
-void fxwt::SetKeyboardHandler(void (*handler)(int)) {
+void fxwt::set_keyboard_handler(void (*handler)(int)) {
 	keyb_handlers.push_back(handler);
 }
 
-void fxwt::SetMotionHandler(void (*handler)(int, int)) {
+void fxwt::set_motion_handler(void (*handler)(int, int)) {
 	motion_handlers.push_back(handler);
 }
 
-void fxwt::SetButtonHandler(void (*handler)(int, int, int, int)) {
+void fxwt::set_button_handler(void (*handler)(int, int, int, int)) {
 	button_handlers.push_back(handler);
 }
 
-void fxwt::RemoveDisplayHandler(void (*handler)()) {
+void fxwt::remove_display_handler(void (*handler)()) {
 	disp_handlers.remove(handler);
 }
 
-void fxwt::RemoveIdleHandler(void (*handler)()) {
+void fxwt::remove_idle_handler(void (*handler)()) {
 	idle_handlers.remove(handler);
 }
 
-void fxwt::RemoveKeyboardHandler(void (*handler)(int)) {
+void fxwt::remove_keyboard_handler(void (*handler)(int)) {
 	keyb_handlers.remove(handler);
 }
 
-void fxwt::RemoveMotionHandler(void (*handler)(int, int)) {
+void fxwt::remove_motion_handler(void (*handler)(int, int)) {
 	motion_handlers.remove(handler);
 }
 
-void fxwt::RemoveButtonHandler(void (*handler)(int, int, int, int)) {
+void fxwt::remove_button_handler(void (*handler)(int, int, int, int)) {
 	button_handlers.remove(handler);
 }
 
-bool fxwt::MouseButtonPressed(int bn) {
+bool fxwt::mouse_button_pressed(int bn) {
 	return button_state[bn];
 }
 
-Vector2 fxwt::GetMousePosNormalized() {
+Vector2 fxwt::get_mouse_pos_normalized() {
 	int x, y;
 #if GFX_LIBRARY == SDL
 	SDL_GetMouseState(&x, &y);
@@ -114,13 +114,13 @@ Vector2 fxwt::GetMousePosNormalized() {
 	return Vector2((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
 }
 
-void fxwt::SetWindowTitle(const char *title) {
+void fxwt::set_window_title(const char *title) {
 #if GFX_LIBRARY == SDL
 	SDL_WM_SetCaption(title, 0);
 #endif
 }
 
-void fxwt::SwapBuffers() {
+void fxwt::swap_buffers() {
 #if GFX_LIBRARY == SDL
 	SDL_GL_SwapBuffers();
 #elif GFX_LIBRARY == GTK
@@ -128,7 +128,7 @@ void fxwt::SwapBuffers() {
 #endif
 }
 
-int fxwt::MainLoop() {
+int fxwt::main_loop() {
 
 	set_verbosity(3);
 	
@@ -140,7 +140,7 @@ int fxwt::MainLoop() {
 
 		if(!idle_handlers.empty()) {
 			while(SDL_PollEvent(&event)) {
-				HandleEvent(event);
+				handle_event(event);
 			}
 
 			list<void (*)()>::iterator iter = idle_handlers.begin();
@@ -149,7 +149,7 @@ int fxwt::MainLoop() {
 			}
 		} else {
 			SDL_WaitEvent(&event);
-			HandleEvent(event);
+			handle_event(event);
 		}
 	}
 #endif	// SDL
@@ -159,7 +159,7 @@ int fxwt::MainLoop() {
 #endif	// GTK
 
 #if GFX_LIBRARY == GLUT
-	glutMainLoop();
+	glut_main_loop();
 #endif	// GLUT
 	
 	return 0;
@@ -168,7 +168,7 @@ int fxwt::MainLoop() {
 
 // ------- event handling dirty job --------
 #if GFX_LIBRARY == SDL
-static void HandleEvent(const SDL_Event &event) {
+static void handle_event(const SDL_Event &event) {
 	switch(event.type) {
 	case SDL_KEYDOWN:
 		{
@@ -219,34 +219,34 @@ static void HandleEvent(const SDL_Event &event) {
 
 
 #if GFX_LIBRARY == GTK
-static void GtkIdleAdd(GtkWidget *widget);
-static void GtkIdleRemove(GtkWidget *widget);
-static gboolean GtkKey(GtkWidget *widget, GdkEventKey *event, gpointer data);
-static gboolean GtkIdle(GtkWidget *widget);
-static gboolean GtkVisible(GtkWidget *widget, GdkEventVisibility *event, gpointer data);
-static gboolean GtkMap(GtkWidget *widget, GdkEventAny *event, gpointer data);
-static gboolean GtkUnmap(GtkWidget *widget, GdkEventAny *event, gpointer data);
-static gboolean GtkExpose(GtkWidget *widget, GdkEventExpose *event, gpointer data);
-static gboolean GtkRealize(GtkWidget *widget, gpointer data);
-//static gboolean GtkReshape(GtkWidget *widget, GdkEventConfigure *event, gpointer data);
+static void gtk_idle_add(GtkWidget *widget);
+static void gtk_idle_remove(GtkWidget *widget);
+static gboolean gtk_key(GtkWidget *widget, GdkEventKey *event, gpointer data);
+static gboolean gtk_idle(GtkWidget *widget);
+static gboolean gtk_visible(GtkWidget *widget, GdkEventVisibility *event, gpointer data);
+static gboolean gtk_map(GtkWidget *widget, GdkEventAny *event, gpointer data);
+static gboolean gtk_unmap(GtkWidget *widget, GdkEventAny *event, gpointer data);
+static gboolean gtk_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data);
+static gboolean gtk_realize(GtkWidget *widget, gpointer data);
+//static gboolean gtk_reshape(GtkWidget *widget, GdkEventConfigure *event, gpointer data);
 
 static bool realized; 
 static unsigned int idle_id;
 
-void SetGtkCallbacks(GtkWidget *widget) {
+void set_gtk_callbacks(GtkWidget *widget) {
 	gtk_widget_add_events(widget, GDK_VISIBILITY_NOTIFY_MASK | GDK_KEY_PRESS_MASK);
 	
-	g_signal_connect_after(G_OBJECT(widget), "realize", G_CALLBACK(GtkRealize), 0);
-	//g_signal_connect(G_OBJECT(widget), "configure_event", G_CALLBACK(GtkReshape), 0);
-	g_signal_connect(G_OBJECT(widget), "expose_event", G_CALLBACK(GtkExpose), 0);
-	g_signal_connect(G_OBJECT(widget), "map_event", G_CALLBACK(GtkMap), 0);
-	g_signal_connect(G_OBJECT(widget), "unmap_event", G_CALLBACK(GtkUnmap), 0);
-	g_signal_connect(G_OBJECT(widget), "visibility_notify_event", G_CALLBACK(GtkVisible), 0);
+	g_signal_connect_after(g_object(widget), "realize", g_callback(GtkRealize), 0);
+	//g_signal_connect(g_object(widget), "configure_event", g_callback(GtkReshape), 0);
+	g_signal_connect(g_object(widget), "expose_event", g_callback(GtkExpose), 0);
+	g_signal_connect(g_object(widget), "map_event", g_callback(GtkMap), 0);
+	g_signal_connect(g_object(widget), "unmap_event", g_callback(GtkUnmap), 0);
+	g_signal_connect(g_object(widget), "visibility_notify_event", g_callback(GtkVisible), 0);
 
-	g_signal_connect(G_OBJECT(widget), "key_press_event", G_CALLBACK(GtkKey), 0);
+	g_signal_connect(g_object(widget), "key_press_event", g_callback(GtkKey), 0);
 }
 
-static gboolean GtkKey(GtkWidget *widget, GdkEventKey *event, gpointer data) {
+static gboolean gtk_key(GtkWidget *widget, GdkEventKey *event, gpointer data) {
 	std::cout << __func__ << std::endl;
 	if(event->type == GDK_KEY_PRESS) {
 		list<void (*)(int)>::iterator iter = keyb_handlers.begin();
@@ -257,39 +257,39 @@ static gboolean GtkKey(GtkWidget *widget, GdkEventKey *event, gpointer data) {
 	return TRUE;
 }
 
-static void GtkIdleAdd(GtkWidget *widget) {
+static void gtk_idle_add(GtkWidget *widget) {
 	if(!idle_id && !idle_handlers.empty()) {
 		idle_id = g_idle_add_full(GDK_PRIORITY_REDRAW, (GSourceFunc)GtkIdle, widget, 0);
 	}
 }
 
-static void GtkIdleRemove(GtkWidget *widget) {
+static void gtk_idle_remove(GtkWidget *widget) {
 	if(idle_id) {
 		g_source_remove(idle_id);
 		idle_id = 0;
 	}
 }
 
-static gboolean GtkVisible(GtkWidget *widget, GdkEventVisibility *event, gpointer data) {
+static gboolean gtk_visible(GtkWidget *widget, GdkEventVisibility *event, gpointer data) {
 	if(event->state == GDK_VISIBILITY_FULLY_OBSCURED) {
-		GtkIdleRemove(widget);
+		gtk_idle_remove(widget);
 	} else {
-		GtkIdleAdd(widget);
+		gtk_idle_add(widget);
 	}
 	return TRUE;
 }
 
-static gboolean GtkMap(GtkWidget *widget, GdkEventAny *event, gpointer data) {
-	GtkIdleAdd(widget);
+static gboolean gtk_map(GtkWidget *widget, GdkEventAny *event, gpointer data) {
+	gtk_idle_add(widget);
 	return TRUE;
 }
 
-static gboolean GtkUnmap(GtkWidget *widget, GdkEventAny *event, gpointer data) {
-	GtkIdleRemove(widget);
+static gboolean gtk_unmap(GtkWidget *widget, GdkEventAny *event, gpointer data) {
+	gtk_idle_remove(widget);
 	return TRUE;
 }
 
-static gboolean GtkExpose(GtkWidget *widget, GdkEventExpose *event, gpointer data) {
+static gboolean gtk_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data) {
 	gdk_gl_drawable_gl_begin(gl_drawable, gl_context);
 	
 	if(!realized) {
@@ -306,7 +306,7 @@ static gboolean GtkExpose(GtkWidget *widget, GdkEventExpose *event, gpointer dat
 	return TRUE;
 }
 
-static gboolean GtkIdle(GtkWidget *widget) {
+static gboolean gtk_idle(GtkWidget *widget) {
 	if(!realized) return TRUE;
 	
 	gdk_window_invalidate_rect(widget->window, &widget->allocation, FALSE);
@@ -315,7 +315,7 @@ static gboolean GtkIdle(GtkWidget *widget) {
 	return TRUE;
 }
 
-static gboolean GtkRealize(GtkWidget *widget, gpointer data) {
+static gboolean gtk_realize(GtkWidget *widget, gpointer data) {
 	gl_context = gtk_widget_get_gl_context(widget);
 	gl_drawable = gtk_widget_get_gl_drawable(widget);
   
@@ -324,7 +324,7 @@ static gboolean GtkRealize(GtkWidget *widget, gpointer data) {
 		return FALSE;
 	}
 	
-	if(!StartGL()) {
+	if(!start_gl()) {
 		exit(-1);
 	}
 	
@@ -335,7 +335,7 @@ static gboolean GtkRealize(GtkWidget *widget, gpointer data) {
 }
 
 #if 0
-static gboolean GtkReshape(GtkWidget *widget, GdkEventConfigure *event, gpointer data) {
+static gboolean gtk_reshape(GtkWidget *widget, GdkEventConfigure *event, gpointer data) {
 	GLfloat h = (GLfloat) (widget->allocation.height) / (GLfloat) (widget->allocation.width);
 
 	/*** OpenGL BEGIN ***/

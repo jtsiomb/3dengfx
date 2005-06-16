@@ -37,8 +37,8 @@ GfxProg::GfxProg(Shader vertex, Shader pixel) {
 
 	prog = glCreateProgramObject();
 
-	if(vertex) AddShader(vertex);
-	if(pixel) AddShader(pixel);
+	if(vertex) add_shader(vertex);
+	if(pixel) add_shader(pixel);
 }
 
 GfxProg::~GfxProg() {
@@ -49,12 +49,12 @@ GfxProg::~GfxProg() {
 	glDeleteObject(prog);
 }
 
-void GfxProg::AddShader(Shader sdr) {
+void GfxProg::add_shader(Shader sdr) {
 	glAttachObject(prog, sdr);
 	sdr_list.push_back(sdr);
 }
 
-void GfxProg::Link() {
+void GfxProg::link() {
 	int linked, log_size;
 	
 	glLinkProgram(prog);
@@ -86,7 +86,7 @@ void GfxProg::Link() {
 	this->linked = (bool)linked;
 }
 
-void GfxProg::SetParameter(const char *pname, scalar_t val) {
+void GfxProg::set_parameter(const char *pname, scalar_t val) {
 	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
@@ -95,7 +95,7 @@ void GfxProg::SetParameter(const char *pname, scalar_t val) {
 	glUseProgramObject(0);
 }
 
-void GfxProg::SetParameter(const char *pname, const Vector3 &val) {
+void GfxProg::set_parameter(const char *pname, const Vector3 &val) {
 	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
@@ -104,7 +104,7 @@ void GfxProg::SetParameter(const char *pname, const Vector3 &val) {
 	glUseProgramObject(0);
 }
 
-void GfxProg::SetParameter(const char *pname, const Vector4 &val) {
+void GfxProg::set_parameter(const char *pname, const Vector4 &val) {
 	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
@@ -113,15 +113,15 @@ void GfxProg::SetParameter(const char *pname, const Vector4 &val) {
 	glUseProgramObject(0);
 }
 
-void GfxProg::SetParameter(const char *pname, const Matrix4x4 &val) {
+void GfxProg::set_parameter(const char *pname, const Matrix4x4 &val) {
 	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
-		glUniformMatrix4fv(loc, 1, 1, val.OpenGLMatrix());
+		glUniformMatrix4fv(loc, 1, 1, val.opengl_matrix());
 	}
 	glUseProgramObject(0);
 }
 
-void GfxProg::SetUpdateHandler(void (*func)(GfxProg*)) {
+void GfxProg::set_update_handler(void (*func)(GfxProg*)) {
 	update_handler = func;
 }

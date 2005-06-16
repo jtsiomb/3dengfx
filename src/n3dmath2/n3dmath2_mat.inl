@@ -26,7 +26,7 @@ inline const scalar_t *Matrix3x3::operator [](int index) const {
 	return m[index];
 }
 
-inline void Matrix3x3::ResetIdentity() {
+inline void Matrix3x3::reset_identity() {
 	memcpy(this->m, identity_matrix.m, 9 * sizeof(scalar_t));
 }
 
@@ -38,6 +38,6 @@ inline const scalar_t *Matrix4x4::operator [](int index) const {
 	return m[index];
 }
 
-inline void Matrix4x4::ResetIdentity() {
+inline void Matrix4x4::reset_identity() {
 	memcpy(this->m, identity_matrix.m, 16 * sizeof(scalar_t));
 }

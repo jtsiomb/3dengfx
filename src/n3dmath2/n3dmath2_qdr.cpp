@@ -26,19 +26,19 @@ Surface::Surface(const Vector3 &pos) {
 
 Surface::~Surface() {}
 
-void Surface::SetPosition(const Vector3 &pos) {
+void Surface::set_position(const Vector3 &pos) {
 	this->pos = pos;
 }
 
-Vector3 Surface::GetPosition() const {
+Vector3 Surface::get_position() const {
 	return pos;
 }
 
-void Surface::SetRotation(const Quaternion &rot) {
+void Surface::set_rotation(const Quaternion &rot) {
 	this->rot = rot;
 }
 
-Quaternion Surface::GetRotation() const {
+Quaternion Surface::get_rotation() const {
 	return rot;
 }
 
@@ -50,21 +50,21 @@ Sphere::Sphere(const Vector3 &pos, scalar_t rad) : Surface(pos) {
 
 Sphere::~Sphere() {}
 
-void Sphere::SetRadius(scalar_t rad) {
+void Sphere::set_radius(scalar_t rad) {
 	radius = rad;
 }
 
-scalar_t Sphere::GetRadius() const {
+scalar_t Sphere::get_radius() const {
 	return radius;
 }
 
-Vector2 Sphere::InvMap(const Vector3 &pt) const {
+Vector2 Sphere::inv_map(const Vector3 &pt) const {
 	Vector3 normal = (pt - pos) / radius;
-	Vector3 pole = Vector3(0, 1, 0).Transformed(rot);
-	Vector3 equator = Vector3(0, 0, 1).Transformed(rot);
+	Vector3 pole = Vector3(0, 1, 0).transformed(rot);
+	Vector3 equator = Vector3(0, 0, 1).transformed(rot);
 	Vector2 imap;
 
-	scalar_t phi = acos(DotProduct(normal, pole));
+	scalar_t phi = acos(dot_product(normal, pole));
 	imap.y = phi / pi;
 
 	if(imap.y < xsmall_number || 1.0 - imap.y < xsmall_number) {
@@ -72,18 +72,18 @@ Vector2 Sphere::InvMap(const Vector3 &pt) const {
 		return imap;
 	}
 
-	scalar_t theta = acos(DotProduct(equator, normal) / sin(phi)) / two_pi;
+	scalar_t theta = acos(dot_product(equator, normal) / sin(phi)) / two_pi;
 	
-	imap.x = (DotProduct(CrossProduct(pole, equator), normal) < 0.0) ? theta : 1.0 - theta;
+	imap.x = (dot_product(cross_product(pole, equator), normal) < 0.0) ? theta : 1.0 - theta;
 
 	return imap;
 }
 
-bool Sphere::CheckIntersection(const Ray &ray) const {
-	return FindIntersection(ray, 0);
+bool Sphere::check_intersection(const Ray &ray) const {
+	return find_intersection(ray, 0);
 }
 
-bool Sphere::FindIntersection(const Ray &ray, SurfPoint *isect) const {	
+bool Sphere::find_intersection(const Ray &ray, SurfPoint *isect) const {	
 	// find terms of the quadratic equation
 	scalar_t a = SQ(ray.dir.x) + SQ(ray.dir.y) + SQ(ray.dir.z);
 	scalar_t b = 2.0 * ray.dir.x * (ray.origin.x - pos.x) +
@@ -125,37 +125,37 @@ Plane::Plane(const Vector3 &pos, const Vector3 &normal) : Surface(pos) {
 
 Plane::Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3) : Surface(p1)
 {
-	normal = CrossProduct(p2 - p1, p3 - p1).Normalized();
+	normal = cross_product(p2 - p1, p3 - p1).normalized();
 }
 
 Plane::~Plane() {}
 
-void Plane::SetNormal(const Vector3 &normal) {
+void Plane::set_normal(const Vector3 &normal) {
 	this->normal = normal;
 }
 
-Vector3 Plane::GetNormal() const {
+Vector3 Plane::get_normal() const {
 	return normal;
 }
 
-Vector2 Plane::InvMap(const Vector3 &pt) const {
+Vector2 Plane::inv_map(const Vector3 &pt) const {
 	static int dbg; dbg++;
 	if(dbg == 1) std::cerr << "inverse mapping for planes not implemented yet!\n";
 	return Vector2(0, 0);
 }
 
-bool Plane::CheckIntersection(const Ray &ray) const {
-	return FindIntersection(ray, 0);
+bool Plane::check_intersection(const Ray &ray) const {
+	return find_intersection(ray, 0);
 }
 
-bool Plane::FindIntersection(const Ray &ray, SurfPoint *isect) const {
-	scalar_t normal_dot_dir = DotProduct(normal, ray.dir);
+bool Plane::find_intersection(const Ray &ray, SurfPoint *isect) const {
+	scalar_t normal_dot_dir = dot_product(normal, ray.dir);
 	if(fabs(normal_dot_dir) < error_margin) return false;
 	
 	// TODO: this is only correct if pos is the projection of the origin on the plane
-	scalar_t d = pos.Length();
+	scalar_t d = pos.length();
 	
-	scalar_t t = -(DotProduct(normal, ray.origin) + d) / normal_dot_dir;
+	scalar_t t = -(dot_product(normal, ray.origin) + d) / normal_dot_dir;
 
 	if(t < error_margin) return false;
 
@@ -198,15 +198,15 @@ Box::Box(const Vector3 *array) {
 	memcpy(verts, array, sizeof verts);
 }
 
-Vector2 Box::InvMap(const Vector3 &pt) const {
+Vector2 Box::inv_map(const Vector3 &pt) const {
 	return Vector2();	// TODO: implement
 }
 
-bool Box::CheckIntersection(const Ray &ray) const {
+bool Box::check_intersection(const Ray &ray) const {
 	return false;	// TODO: implement
 }
 
-bool Box::FindIntersection(const Ray &ray, SurfPoint *isect) const {
+bool Box::find_intersection(const Ray &ray, SurfPoint *isect) const {
 	return false;	// TODO: implement
 }
 
@@ -216,9 +216,9 @@ bool Box::FindIntersection(const Ray &ray, SurfPoint *isect) const {
  * returns true if the point is in the positive side of the
  * plane
  */
-bool PointOverPlane(const Plane &plane, const Vector3 &point)
+bool point_over_plane(const Plane &plane, const Vector3 &point)
 {
-	if (DotProduct(plane.GetPosition() - point, plane.GetNormal()) < 0)
+	if (dot_product(plane.get_position() - point, plane.get_normal()) < 0)
 	{
 		return true;
 	}

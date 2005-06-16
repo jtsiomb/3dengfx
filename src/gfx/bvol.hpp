@@ -40,18 +40,18 @@ public:
 	BoundingVolume();
 	virtual ~BoundingVolume();
 
-	virtual void SetTransform(const Matrix4x4 &transform);
+	virtual void set_transform(const Matrix4x4 &transform);
 
-	virtual bool RayHit(const Ray &ray) const = 0;
-	virtual bool Visible(const FrustumPlane *frustum) const = 0;
+	virtual bool ray_hit(const Ray &ray) const = 0;
+	virtual bool visible(const FrustumPlane *frustum) const = 0;
 };
 
 class BoundingSphere : public BoundingVolume, public Sphere {
 public:
 	BoundingSphere(const Vector3 &pos = Vector3(0,0,0), scalar_t rad = 1.0);
 
-	virtual bool RayHit(const Ray &ray) const;
-	virtual bool Visible(const FrustumPlane *frustum) const;
+	virtual bool ray_hit(const Ray &ray) const;
+	virtual bool visible(const FrustumPlane *frustum) const;
 };
 
 #endif	// _BVOL_HPP_

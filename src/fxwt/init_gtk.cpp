@@ -29,7 +29,7 @@ GtkWidget *gl_window;
 GtkWidget *gl_drawing_area;
 GdkGLConfig *glconfig;
 
-bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
+bool fxwt::init_graphics(GraphicsInitParameters *gparams) {
 	info("Initializing GTK and GTK-GLext");
 
 	char *argv[] = {"foo", (char*)0};
@@ -113,9 +113,9 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 	}
 
 	//gl_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	//gtk_window_set_title(GTK_WINDOW(gl_window), "3dengfx visualization window");
-	//gtk_container_set_reallocate_redraws(GTK_CONTAINER(gl_window), TRUE);
-	//g_signal_connect(G_OBJECT(gl_window), "delete_event", G_CALLBACK(gtk_main_quit), NULL);
+	//gtk_window_set_title(gtk_window(gl_window), "3dengfx visualization window");
+	//gtk_container_set_reallocate_redraws(gtk_container(gl_window), TRUE);
+	//g_signal_connect(g_object(gl_window), "delete_event", g_callback(gtk_main_quit), NULL);
 		
 	gl_drawing_area = gtk_drawing_area_new();
 	gtk_widget_set_size_request(gl_drawing_area, gparams->x, gparams->y);
@@ -125,17 +125,17 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 		return false;
 	}
 
-	extern void SetGtkCallbacks(GtkWidget*);
-	SetGtkCallbacks(gl_drawing_area);
+	extern void set_gtk_callbacks(GtkWidget*);
+	set_gtk_callbacks(gl_drawing_area);
 
-	//gtk_container_add(GTK_CONTAINER(gl_window), gl_drawing_area);
+	//gtk_container_add(gtk_container(gl_window), gl_drawing_area);
 	//gtk_widget_show(gl_drawing_area);
 	//gtk_widget_show(gl_window);
 
 	return true;
 }
 
-void fxwt::DestroyGraphics() {
+void fxwt::destroy_graphics() {
 	info("Shutting down GTK+");
 }
 

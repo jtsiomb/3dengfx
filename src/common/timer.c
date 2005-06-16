@@ -44,7 +44,7 @@ static unsigned long sys_get_msec(void) {
 	}
 	return (timeval.tv_sec - first_timeval.tv_sec) * 1000 + (timeval.tv_usec - first_timeval.tv_usec) / 1000;
 #else
-	return GetTickCount();
+	return get_tick_count();
 #endif	/* __unix__ */
 }
 

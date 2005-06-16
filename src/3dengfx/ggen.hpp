@@ -33,17 +33,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/3dgeom.hpp"
 
 // basic primitives
-void CreatePlane(TriMesh *mesh, const Vector3 &normal, const Vector2 &size, int subdiv);
-void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int udiv, int vdiv);
-void CreateSphere(TriMesh *mesh, scalar_t radius, int subdiv);
-void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv);
+void create_plane(TriMesh *mesh, const Vector3 &normal, const Vector2 &size, int subdiv);
+void create_cylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int udiv, int vdiv);
+void create_sphere(TriMesh *mesh, scalar_t radius, int subdiv);
+void create_torus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv);
 
 // bezier surface construction
-void CreateBezierPatch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline &u1, const BezierSpline &u2, const BezierSpline &u3, int subdiv);
-void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv);
-void CreateBezierMesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, int patch_count, int subdiv);
+void create_bezier_patch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline &u1, const BezierSpline &u2, const BezierSpline &u3, int subdiv);
+void create_bezier_patch(TriMesh *mesh, const Vector3 *cp, int subdiv);
+void create_bezier_mesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, int patch_count, int subdiv);
 
 // oddities
-void CreateTeapot(TriMesh *mesh, scalar_t size, int subdiv);
+void create_teapot(TriMesh *mesh, scalar_t size, int subdiv);
 
 #endif	// _GGEN_HPP_

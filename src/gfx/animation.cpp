@@ -46,20 +46,20 @@ PRS::PRS(const Vector3 &pos, const Quaternion &rot, const Vector3 &scale, const 
 	this->pivot = pivot;
 }
 
-Matrix4x4 PRS::GetXFormMatrix() const {
+Matrix4x4 PRS::get_xform_matrix() const {
 	Matrix4x4 trans_mat, rot_mat, scale_mat, pivot_mat, neg_pivot_mat;
 
-	pivot_mat.SetTranslation(pivot);
-	neg_pivot_mat.SetTranslation(-pivot);
+	pivot_mat.set_translation(pivot);
+	neg_pivot_mat.set_translation(-pivot);
 	
-	trans_mat.SetTranslation(position);
-	rot_mat = (Matrix4x4)rotation.GetRotationMatrix();
-	scale_mat.SetScaling(scale);
+	trans_mat.set_translation(position);
+	rot_mat = (Matrix4x4)rotation.get_rotation_matrix();
+	scale_mat.set_scaling(scale);
 	
 	return pivot_mat * trans_mat * rot_mat * scale_mat * neg_pivot_mat;
 }
 
-PRS CombinePRS(const PRS &prs1, const PRS &prs2) {
+PRS combine_prs(const PRS &prs1, const PRS &prs2) {
 	PRS prs;
 
 	prs.position = prs1.position + prs2.position;
@@ -72,7 +72,7 @@ PRS CombinePRS(const PRS &prs1, const PRS &prs2) {
 	return prs;
 }
 
-PRS InheritPRS(const PRS &child, const PRS &parent) {
+PRS inherit_prs(const PRS &child, const PRS &parent) {
 	PRS prs;
 	prs.pivot = child.pivot;
 	
@@ -80,10 +80,10 @@ PRS InheritPRS(const PRS &child, const PRS &parent) {
 
 	prs.position += child.position;
 	prs.position -= parent.position;
-	prs.position.Transform(parent.rotation.Conjugate());
+	prs.position.transform(parent.rotation.conjugate());
 	prs.position += parent.position;
 
-	Vector3 ppos_trans = parent.position.Transformed(parent.rotation.Conjugate());
+	Vector3 ppos_trans = parent.position.transformed(parent.rotation.conjugate());
 	prs.position += ppos_trans;
 	
 	prs.position.x *= parent.scale.x;
@@ -122,20 +122,20 @@ XFormNode::XFormNode() {
 XFormNode::~XFormNode() {
 }
 
-Keyframe *XFormNode::GetNearestKey(int start, int end, unsigned long time) {
+Keyframe *XFormNode::get_nearest_key(int start, int end, unsigned long time) {
 	if(start == end) return &keys[start];
 	if(end - start == 1) {
 		return abs((int)(time - keys[start].time)) < abs((int)(keys[end].time - time)) ? &keys[start] : &keys[end];
 	}
 
 	int mid = (start + end) / 2;
-	if(time < keys[mid].time) return GetNearestKey(start, mid, time);
-	if(time > keys[mid].time) return GetNearestKey(mid + 1, end, time);
+	if(time < keys[mid].time) return get_nearest_key(start, mid, time);
+	if(time > keys[mid].time) return get_nearest_key(mid + 1, end, time);
 	return &keys[mid];
 }
 
-void XFormNode::GetKeyInterval(unsigned long time, const Keyframe **start, const Keyframe **end) const {
-	const Keyframe *nearest = GetNearestKey(time);
+void XFormNode::get_key_interval(unsigned long time, const Keyframe **start, const Keyframe **end) const {
+	const Keyframe *nearest = get_nearest_key(time);
 
 	*start = nearest;
 	*end = 0;
@@ -149,7 +149,7 @@ void XFormNode::GetKeyInterval(unsigned long time, const Keyframe **start, const
 	}
 }
 
-void XFormNode::AddController(MotionController ctrl, ControllerType ctrl_type) {
+void XFormNode::add_controller(MotionController ctrl, ControllerType ctrl_type) {
 	switch(ctrl_type) {
 	case CTRL_TRANSLATION:
 		trans_ctrl.push_back(ctrl);
@@ -167,7 +167,7 @@ void XFormNode::AddController(MotionController ctrl, ControllerType ctrl_type) {
 	cache.valid = false;
 }
 
-vector<MotionController> *XFormNode::GetControllers(ControllerType ctrl_type) {
+vector<MotionController> *XFormNode::get_controllers(ControllerType ctrl_type) {
 	switch(ctrl_type) {
 	case CTRL_TRANSLATION:
 		return &trans_ctrl;
@@ -185,9 +185,9 @@ vector<MotionController> *XFormNode::GetControllers(ControllerType ctrl_type) {
 	cache.valid = false;
 }
 
-void XFormNode::AddKeyframe(const Keyframe &key) {
+void XFormNode::add_keyframe(const Keyframe &key) {
 	if(!keys.empty()) {
-		Keyframe *keyframe = GetNearestKey(key.time);
+		Keyframe *keyframe = get_nearest_key(key.time);
 	
 		if(keyframe->time == key.time) {
 			keyframe->prs = key.prs;
@@ -203,13 +203,13 @@ void XFormNode::AddKeyframe(const Keyframe &key) {
 	cache.valid = false;
 }
 
-Keyframe *XFormNode::GetKeyframe(unsigned long time) {
+Keyframe *XFormNode::get_keyframe(unsigned long time) {
 	cache.valid = false;
-	Keyframe *keyframe = GetNearestKey(time);
+	Keyframe *keyframe = get_nearest_key(time);
 	return (keyframe->time == time) ? keyframe : 0;
 }
 
-void XFormNode::DeleteKeyframe(unsigned long time) {
+void XFormNode::delete_keyframe(unsigned long time) {
 	vector<Keyframe>::iterator iter = find(keys.begin(), keys.end(), Keyframe(PRS(), time));
 	if(iter != keys.end()) {
 		keys.erase(iter);
@@ -217,21 +217,21 @@ void XFormNode::DeleteKeyframe(unsigned long time) {
 	cache.valid = false;
 }
 
-std::vector<Keyframe> *XFormNode::GetKeyframes() {
+std::vector<Keyframe> *XFormNode::get_keyframes() {
 	cache.valid = false;
 	return &keys;
 }
 
-void XFormNode::SetTimelineMode(TimelineMode time_mode) {
+void XFormNode::set_timeline_mode(TimelineMode time_mode) {
 	key_time_mode = time_mode;
 	cache.valid = false;
 }
 
-void XFormNode::SetPosition(const Vector3 &pos, unsigned long time) {
+void XFormNode::set_position(const Vector3 &pos, unsigned long time) {
 	if(time == XFORM_LOCAL_PRS) {
 		local_prs.position = pos;
 	} else {
-		Keyframe *keyframe = GetNearestKey(time);
+		Keyframe *keyframe = get_nearest_key(time);
 		if(keyframe && keyframe->time == time) {
 			keyframe->prs.position = pos;
 		}
@@ -239,11 +239,11 @@ void XFormNode::SetPosition(const Vector3 &pos, unsigned long time) {
 	cache.valid = false;
 }
 
-void XFormNode::SetRotation(const Quaternion &rot, unsigned long time) {
+void XFormNode::set_rotation(const Quaternion &rot, unsigned long time) {
 	if(time == XFORM_LOCAL_PRS) {
 		local_prs.rotation = rot;
 	} else {
-		Keyframe *keyframe = GetNearestKey(time);
+		Keyframe *keyframe = get_nearest_key(time);
 		if(keyframe && keyframe->time == time) {
 			keyframe->prs.rotation = rot;
 		}
@@ -251,17 +251,17 @@ void XFormNode::SetRotation(const Quaternion &rot, unsigned long time) {
 	cache.valid = false;
 }
 
-void XFormNode::SetRotation(const Vector3 &euler, unsigned long time) {
+void XFormNode::set_rotation(const Vector3 &euler, unsigned long time) {
 	
 	Quaternion xrot, yrot, zrot;
-	xrot.SetRotation(Vector3(1, 0, 0), euler.x);
-	yrot.SetRotation(Vector3(0, 1, 0), euler.y);
-	zrot.SetRotation(Vector3(0, 0, 1), euler.z);
+	xrot.set_rotation(Vector3(1, 0, 0), euler.x);
+	yrot.set_rotation(Vector3(0, 1, 0), euler.y);
+	zrot.set_rotation(Vector3(0, 0, 1), euler.z);
 	
 	if(time == XFORM_LOCAL_PRS) {		
 		local_prs.rotation = xrot * yrot * zrot;
 	} else {
-		Keyframe *keyframe = GetNearestKey(time);
+		Keyframe *keyframe = get_nearest_key(time);
 		if(keyframe && keyframe->time == time) {
 			keyframe->prs.rotation = xrot * yrot * zrot;
 		}
@@ -269,11 +269,11 @@ void XFormNode::SetRotation(const Vector3 &euler, unsigned long time) {
 	cache.valid = false;
 }
 
-void XFormNode::SetScaling(const Vector3 &scale, unsigned long time) {
+void XFormNode::set_scaling(const Vector3 &scale, unsigned long time) {
 	if(time == XFORM_LOCAL_PRS) {
 		local_prs.scale = scale;
 	} else {
-		Keyframe *keyframe = GetNearestKey(time);
+		Keyframe *keyframe = get_nearest_key(time);
 		if(keyframe && keyframe->time == time) {
 			keyframe->prs.scale = scale;
 		}
@@ -281,34 +281,34 @@ void XFormNode::SetScaling(const Vector3 &scale, unsigned long time) {
 	cache.valid = false;
 }
 
-void XFormNode::SetPivot(const Vector3 &pivot) {
+void XFormNode::set_pivot(const Vector3 &pivot) {
 	local_prs.pivot = pivot;
 	cache.valid = false;
 }
 
 
-Vector3 XFormNode::GetPosition(unsigned long time) const {
-	return GetPRS(time).position;
+Vector3 XFormNode::get_position(unsigned long time) const {
+	return get_prs(time).position;
 }
 
-Quaternion XFormNode::GetRotation(unsigned long time) const {
-	return GetPRS(time).rotation;
+Quaternion XFormNode::get_rotation(unsigned long time) const {
+	return get_prs(time).rotation;
 }
 
-Vector3 XFormNode::GetScaling(unsigned long time) const {
-	return GetPRS(time).scale;
+Vector3 XFormNode::get_scaling(unsigned long time) const {
+	return get_prs(time).scale;
 }
 
-Vector3 XFormNode::GetPivot() const {
+Vector3 XFormNode::get_pivot() const {
 	return local_prs.pivot;
 }
 
 
-void XFormNode::Translate(const Vector3 &trans, unsigned long time) {
+void XFormNode::translate(const Vector3 &trans, unsigned long time) {
 	if(time == XFORM_LOCAL_PRS) {
 		local_prs.position += trans;
 	} else {
-		Keyframe *keyframe = GetNearestKey(time);
+		Keyframe *keyframe = get_nearest_key(time);
 		if(keyframe && keyframe->time == time) {
 			keyframe->prs.position += trans;
 		}
@@ -316,11 +316,11 @@ void XFormNode::Translate(const Vector3 &trans, unsigned long time) {
 	cache.valid = false;
 }
 
-void XFormNode::Rotate(const Quaternion &rot, unsigned long time) {
+void XFormNode::rotate(const Quaternion &rot, unsigned long time) {
 	if(time == XFORM_LOCAL_PRS) {
 		local_prs.rotation = rot * local_prs.rotation;
 	} else {
-		Keyframe *keyframe = GetNearestKey(time);
+		Keyframe *keyframe = get_nearest_key(time);
 		if(keyframe && keyframe->time == time) {
 			keyframe->prs.rotation = rot * keyframe->prs.rotation;
 		}
@@ -328,17 +328,17 @@ void XFormNode::Rotate(const Quaternion &rot, unsigned long time) {
 	cache.valid = false;
 }
 
-void XFormNode::Rotate(const Vector3 &euler, unsigned long time) {
+void XFormNode::rotate(const Vector3 &euler, unsigned long time) {
 	
 	Quaternion xrot, yrot, zrot;
-	xrot.SetRotation(Vector3(1, 0, 0), euler.x);
-	yrot.SetRotation(Vector3(0, 1, 0), euler.y);
-	zrot.SetRotation(Vector3(0, 0, 1), euler.z);
+	xrot.set_rotation(Vector3(1, 0, 0), euler.x);
+	yrot.set_rotation(Vector3(0, 1, 0), euler.y);
+	zrot.set_rotation(Vector3(0, 0, 1), euler.z);
 	
 	if(time == XFORM_LOCAL_PRS) {		
 		local_prs.rotation = xrot * yrot * zrot * local_prs.rotation;
 	} else {
-		Keyframe *keyframe = GetNearestKey(time);
+		Keyframe *keyframe = get_nearest_key(time);
 		if(keyframe && keyframe->time == time) {
 			keyframe->prs.rotation = xrot * yrot * zrot * keyframe->prs.rotation;
 		}
@@ -346,7 +346,7 @@ void XFormNode::Rotate(const Vector3 &euler, unsigned long time) {
 	cache.valid = false;
 }
 
-void XFormNode::Rotate(const Matrix3x3 &rmat, unsigned long time) {
+void XFormNode::rotate(const Matrix3x3 &rmat, unsigned long time) {
 	// hack a matrix to quat conversion (this should go into the math lib)
 	Quaternion q;
 	q.s = sqrt(rmat[0][0] + rmat[1][1] + rmat[2][2] + 1.0) / 2.0;
@@ -355,17 +355,17 @@ void XFormNode::Rotate(const Matrix3x3 &rmat, unsigned long time) {
 	q.v.y = sqrt((rmat[1][1] + 1.0 - 2.0 * ssq) / 2.0);
 	q.v.z = sqrt((rmat[2][2] + 1.0 - 2.0 * ssq) / 2.0);
 
-	Rotate(q, time);
+	rotate(q, time);
 	cache.valid = false;
 }
 
-void XFormNode::Scale(const Vector3 &scale, unsigned long time) {
+void XFormNode::scale(const Vector3 &scale, unsigned long time) {
 	if(time == XFORM_LOCAL_PRS) {
 		local_prs.scale.x *= scale.x;
 		local_prs.scale.y *= scale.y;
 		local_prs.scale.z *= scale.z;
 	} else {
-		Keyframe *keyframe = GetNearestKey(time);
+		Keyframe *keyframe = get_nearest_key(time);
 		if(keyframe && keyframe->time == time) {
 			keyframe->prs.scale.x *= scale.x;
 			keyframe->prs.scale.y *= scale.y;
@@ -376,31 +376,31 @@ void XFormNode::Scale(const Vector3 &scale, unsigned long time) {
 }
 
 
-void XFormNode::ResetPosition(unsigned long time) {
-	SetPosition(Vector3(0, 0, 0), time);
+void XFormNode::reset_position(unsigned long time) {
+	set_position(Vector3(0, 0, 0), time);
 	cache.valid = false;
 }
 
-void XFormNode::ResetRotation(unsigned long time) {
-	SetRotation(Quaternion(), time);
+void XFormNode::reset_rotation(unsigned long time) {
+	set_rotation(Quaternion(), time);
 	cache.valid = false;
 }
 
-void XFormNode::ResetScaling(unsigned long time) {
-	SetScaling(Vector3(1, 1, 1), time);
+void XFormNode::reset_scaling(unsigned long time) {
+	set_scaling(Vector3(1, 1, 1), time);
 	cache.valid = false;
 }
 
-void XFormNode::ResetXForm(unsigned long time) {
-	ResetPosition(time);
-	ResetRotation(time);
-	ResetScaling(time);
+void XFormNode::reset_xform(unsigned long time) {
+	reset_position(time);
+	reset_rotation(time);
+	reset_scaling(time);
 }
 
 #define MIN(a, b)	((a) < (b) ? (a) : (b))
 #define MAX(a, b)	((a) > (b) ? (a) : (b))
 
-PRS XFormNode::GetPRS(unsigned long time) const {
+PRS XFormNode::get_prs(unsigned long time) const {
 	if(cache.valid && time == cache.time) {
 		return cache.prs;
 	}
@@ -409,11 +409,11 @@ PRS XFormNode::GetPRS(unsigned long time) const {
 
 	PRS parent_prs;
 	if(parent) {
-		parent_prs = parent->GetPRS(time);
+		parent_prs = parent->get_prs(time);
 	}
 	
 	if(time == XFORM_LOCAL_PRS) {
-		cache.prs = CombinePRS(local_prs, parent_prs);
+		cache.prs = combine_prs(local_prs, parent_prs);
 		return cache.prs;
 	}
 	
@@ -421,10 +421,10 @@ PRS XFormNode::GetPRS(unsigned long time) const {
 
 	// apply keyframes
 	if(key_count) {
-		unsigned long ktime = GetTimelineTime(time, keys[0].time, keys[key_count-1].time, key_time_mode);
+		unsigned long ktime = get_timeline_time(time, keys[0].time, keys[key_count-1].time, key_time_mode);
 		
 		const Keyframe *start, *end;
-		GetKeyInterval(ktime, &start, &end);
+		get_key_interval(ktime, &start, &end);
 
 		PRS key_prs;
 	
@@ -434,12 +434,12 @@ PRS XFormNode::GetPRS(unsigned long time) const {
 	
 			key_prs.position = start->prs.position + (end->prs.position - start->prs.position) * t;
 			key_prs.scale = start->prs.scale + (end->prs.scale - start->prs.scale) * t;
-			key_prs.rotation = Slerp(start->prs.rotation, end->prs.rotation, t);
+			key_prs.rotation = slerp(start->prs.rotation, end->prs.rotation, t);
 		} else {
 			key_prs = start->prs;
 		}
 
-		prs = CombinePRS(prs, key_prs);
+		prs = combine_prs(prs, key_prs);
 	}
 	
 	// now let's also apply the controllers, if any
@@ -456,9 +456,9 @@ PRS XFormNode::GetPRS(unsigned long time) const {
 			Quaternion xrot, yrot, zrot;
 			Vector3 euler = rot_ctrl[i](time);
 			
-			xrot.SetRotation(Vector3(1, 0, 0), euler.x);
-			yrot.SetRotation(Vector3(0, 1, 0), euler.y);
-			zrot.SetRotation(Vector3(0, 0, 1), euler.z);
+			xrot.set_rotation(Vector3(1, 0, 0), euler.x);
+			yrot.set_rotation(Vector3(0, 1, 0), euler.y);
+			zrot.set_rotation(Vector3(0, 0, 1), euler.z);
 			
 			ctrl_prs.rotation = xrot * yrot * zrot * ctrl_prs.rotation;
 		}
@@ -471,9 +471,9 @@ PRS XFormNode::GetPRS(unsigned long time) const {
 			ctrl_prs.scale.z *= scale.z;
 		}
 
-		prs = CombinePRS(prs, ctrl_prs);
+		prs = combine_prs(prs, ctrl_prs);
 	}
 	
-	cache.prs = InheritPRS(prs, parent_prs);
+	cache.prs = inherit_prs(prs, parent_prs);
 	return cache.prs;
 }

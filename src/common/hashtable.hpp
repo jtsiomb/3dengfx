@@ -43,8 +43,8 @@ private:
 	size_t size;
 	std::vector<std::list<Pair<KeyType, ValType> > > table;
 
-	unsigned int (*HashFunc)(const KeyType &key, unsigned long size);
-	unsigned int Hash(const KeyType &key) {return (unsigned int)HashFunc(key, (unsigned long)size);}
+	unsigned int (*hash_func)(const KeyType &key, unsigned long size);
+	unsigned int hash(const KeyType &key) {return (unsigned int)hash_func(key, (unsigned long)size);}
 
 	void (*data_destructor)(ValType);
 public:
@@ -52,12 +52,12 @@ public:
 	HashTable(unsigned long size = 101);
 	~HashTable();
 
-	void SetHashFunction(unsigned int (*HashFunc)(const KeyType&, unsigned long));
+	void set_hash_function(unsigned int (*hash_func)(const KeyType&, unsigned long));
 
-	void Insert(KeyType key, ValType value);
-	void Remove(KeyType key);
+	void insert(KeyType key, ValType value);
+	void remove(KeyType key);
 
-	Pair<KeyType, ValType> *Find(KeyType key);
+	Pair<KeyType, ValType> *find(KeyType key);
 
 	void SetDataDestructor(void (*destructor)(ValType));
 };
@@ -87,23 +87,23 @@ HashTable<KeyType, ValType>::~HashTable() {
 }
 
 template <class KeyType, class ValType>
-void HashTable<KeyType, ValType>::SetHashFunction(unsigned int (*HashFunc)(const KeyType&, unsigned long)) {
-	this->HashFunc = HashFunc;
+void HashTable<KeyType, ValType>::set_hash_function(unsigned int (*hash_func)(const KeyType&, unsigned long)) {
+	this->hash_func = hash_func;
 }
 
 template <class KeyType, class ValType>
-void HashTable<KeyType, ValType>::Insert(KeyType key, ValType value) {
+void HashTable<KeyType, ValType>::insert(KeyType key, ValType value) {
 	Pair<KeyType, ValType> newpair;
 	newpair.key = key;
 	newpair.val = value;
 
-	table[Hash(key)].push_back(newpair);
+	table[hash(key)].push_back(newpair);
 }
 
 template <class KeyType, class ValType>
-void HashTable<KeyType, ValType>::Remove(KeyType key) {
+void HashTable<KeyType, ValType>::remove(KeyType key) {
 
-	unsigned int pos = Hash(key);
+	unsigned int pos = hash(key);
 
 	typename std::list<Pair<KeyType, ValType> >::iterator iter = table[pos].begin();
 	
@@ -117,9 +117,9 @@ void HashTable<KeyType, ValType>::Remove(KeyType key) {
 }
 
 template <class KeyType, class ValType>
-Pair<KeyType, ValType> *HashTable<KeyType, ValType>::Find(KeyType key) {
+Pair<KeyType, ValType> *HashTable<KeyType, ValType>::find(KeyType key) {
 
-	unsigned int pos = Hash(key);
+	unsigned int pos = hash(key);
 
 	typename std::list<Pair<KeyType, ValType> >::iterator iter = table[pos].begin();
 	while(iter != table[pos].end()) {

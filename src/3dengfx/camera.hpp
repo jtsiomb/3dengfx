@@ -27,7 +27,7 @@ class Camera : public BaseCamera {
 public:
 	Camera(const Vector3 &trans = Vector3(0,0,0), const Quaternion &rot = Quaternion());
 	
-	virtual void Activate(unsigned long msec = XFORM_LOCAL_PRS) const;
+	virtual void activate(unsigned long msec = XFORM_LOCAL_PRS) const;
 };
 
 
@@ -38,13 +38,13 @@ public:
 	TargetCamera(const Vector3 &trans = Vector3(0,0,-10), const Vector3 &target = Vector3(0,0,0));
 	virtual ~TargetCamera();
 
-	virtual void SetTarget(const Vector3 &target);
-	virtual Vector3 GetTarget(unsigned long msec = XFORM_LOCAL_PRS) const;
+	virtual void set_target(const Vector3 &target);
+	virtual Vector3 get_target(unsigned long msec = XFORM_LOCAL_PRS) const;
 	
-	virtual void Activate(unsigned long msec = XFORM_LOCAL_PRS) const;
+	virtual void activate(unsigned long msec = XFORM_LOCAL_PRS) const;
 
-	virtual void Zoom(scalar_t factor, unsigned long msec = XFORM_LOCAL_PRS);
-	virtual void Roll(scalar_t angle, unsigned long msec = XFORM_LOCAL_PRS);
+	virtual void zoom(scalar_t factor, unsigned long msec = XFORM_LOCAL_PRS);
+	virtual void roll(scalar_t angle, unsigned long msec = XFORM_LOCAL_PRS);
 };
 
 #endif	// _CAMERA_HPP_

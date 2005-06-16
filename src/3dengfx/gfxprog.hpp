@@ -48,18 +48,18 @@ public:
 	GfxProg(Shader vertex = 0, Shader pixel = 0);
 	~GfxProg();
 
-	void AddShader(Shader sdr);
-	void Link();
+	void add_shader(Shader sdr);
+	void link();
 
-	void SetParameter(const char *pname, scalar_t val);
-	void SetParameter(const char *pname, const Vector3 &val);
-	void SetParameter(const char *pname, const Vector4 &val);
-	void SetParameter(const char *pname, const Matrix4x4 &val);
+	void set_parameter(const char *pname, scalar_t val);
+	void set_parameter(const char *pname, const Vector3 &val);
+	void set_parameter(const char *pname, const Vector4 &val);
+	void set_parameter(const char *pname, const Matrix4x4 &val);
 
-	void SetUpdateHandler(void (*func)(GfxProg*));
+	void set_update_handler(void (*func)(GfxProg*));
 
-	const char *GetShaderNames() const;	
-	friend void SetGfxProgram(GfxProg *prog);
+	const char *get_shader_names() const;	
+	friend void set_gfx_program(GfxProg *prog);
 };
 	
 

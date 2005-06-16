@@ -36,9 +36,9 @@ namespace fxwt {
 		Button(const char *text = 0);
 		virtual ~Button();
 
-		void SetText(const char *text);
+		void set_text(const char *text);
 		
-		virtual void Draw() const;
+		virtual void draw() const;
 	};
 }
 

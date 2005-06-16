@@ -31,82 +31,82 @@ RendCurve::RendCurve(Curve *curve) {
 	stroke = false;
 	width = 1.0;
 	detail = 5;
-	SetBlendingMode(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+	set_blending_mode(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
 }
 
-void RendCurve::SetCurve(Curve *curve) {
+void RendCurve::set_curve(Curve *curve) {
 	this->curve = curve;
 }
 
-Curve *RendCurve::GetCurve() {
+Curve *RendCurve::get_curve() {
 	return curve;
 }
 
-void RendCurve::SetWidth(scalar_t width) {
+void RendCurve::set_width(scalar_t width) {
 	this->width = width;
 }
 
-scalar_t RendCurve::GetWidth() const {
+scalar_t RendCurve::get_width() const {
 	return width;
 }
 
-void RendCurve::SetBlendingMode(BlendingFactor sblend, BlendingFactor dblend) {
+void RendCurve::set_blending_mode(BlendingFactor sblend, BlendingFactor dblend) {
 	src_blend = sblend;
 	dst_blend = dblend;
 }
 
-void RendCurve::SetStroke(bool enable) {
+void RendCurve::set_stroke(bool enable) {
 	stroke = enable;
 }
 
-void RendCurve::SetDetail(int detail) {
+void RendCurve::set_detail(int detail) {
 	this->detail = detail;
 }
 
-void RendCurve::SetMaterial(const Material &mat) {
+void RendCurve::set_material(const Material &mat) {
 	this->mat = mat;
 }
 
-Material *RendCurve::GetMaterialPtr() {
+Material *RendCurve::get_material_ptr() {
 	return &mat;
 }
 
-Material RendCurve::GetMaterial() const {
+Material RendCurve::get_material() const {
 	return mat;
 }
 
-bool RendCurve::Render(unsigned long time) {
+bool RendCurve::render(unsigned long time) {
 	if(!curve) return false;
 	
-	SetMatrix(XFORM_WORLD, GetPRS(time).GetXFormMatrix());
-	mat.SetGLMaterial();
+	set_matrix(XFORM_WORLD, get_prs(time).get_xform_matrix());
+	mat.set_glmaterial();
 
 	if(mat.tex[TEXTYPE_DIFFUSE]) {
-		SetTexture(0, mat.tex[TEXTYPE_DIFFUSE]);
-		EnableTextureUnit(0);
-		SetTextureCoordIndex(0, 0);
-		SetTextureUnitColor(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+		set_texture(0, mat.tex[TEXTYPE_DIFFUSE]);
+		enable_texture_unit(0);
+		set_texture_coord_index(0, 0);
+		set_texture_unit_color(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+		set_texture_unit_alpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
 	}
 
-	SetAlphaBlending(true);
-	SetZWrite(false);
-	SetBlendFunc(src_blend, dst_blend);
+	set_alpha_blending(true);
+	set_zwrite(false);
+	set_blend_func(src_blend, dst_blend);
 
-	int line_count = curve->GetSegmentCount() * detail;
+	int line_count = curve->get_segment_count() * detail;
 	scalar_t dx = 1.0 / (scalar_t)line_count;
 	scalar_t t = dx;
 	Vector3 prev_pos = (*curve)(0.0);
 	for(int i=1; i<line_count; i++) {
 		Vector3 pos = (*curve)(t);
-		DrawLine(Vertex(prev_pos, 0.0), Vertex(pos, 1.0), width, width);
+		draw_line(Vertex(prev_pos, 0.0), Vertex(pos, 1.0), width, width);
 		prev_pos = pos;
 		t += dx;
 	}
 	
-	SetAlphaBlending(false);
-	SetZWrite(true);
-	DisableTextureUnit(0);
+	set_alpha_blending(false);
+	set_zwrite(true);
+	disable_texture_unit(0);
 
 	return true;
 }

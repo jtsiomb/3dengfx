@@ -30,23 +30,25 @@ Simulation::Simulation(scalar_t timeslice) {
 	timer_reset(&timer);
 }
 
-void Simulation::Start() {
+Simulation::~Simulation() {}
+
+void Simulation::start() {
 	timer_start(&timer);
 }
 
-void Simulation::Stop() {
+void Simulation::stop() {
 	timer_stop(&timer);
 }
 
-void Simulation::Reset() {
+void Simulation::reset() {
 	timer_reset(&timer);
 }
 
-void Simulation::Update() {
-	Update(timer_getmsec(&timer));
+void Simulation::update() {
+	update(timer_getmsec(&timer));
 }
 
-void Simulation::Update(unsigned long msec) {
+void Simulation::update(unsigned long msec) {
 	scalar_t time = (scalar_t)msec / 1000.0;
 	int updates_missed = (int)round((time - prev_update) / timeslice);
 
@@ -55,7 +57,7 @@ void Simulation::Update(unsigned long msec) {
 	scalar_t t = prev_update * 1000.0;
 	for(int i=0; i<updates_missed; i++) {
 		t += timeslice;
-		Run((unsigned long)(t * 1000.0));
+		run((unsigned long)(t * 1000.0));
 	}
 
 	prev_update = msec;

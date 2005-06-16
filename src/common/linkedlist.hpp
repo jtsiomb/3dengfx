@@ -31,29 +31,29 @@ template <class T>
 class LinkedList {
 private:
 	ListNode<T> *head, *tail;
-	int size;
+	int sz;
 
 public:
 
 	LinkedList();
 	~LinkedList();
 
-	inline ListNode<T> *Begin();
-	inline ListNode<T> *End();
+	inline ListNode<T> *begin();
+	inline ListNode<T> *end();
 
-	void PushBack(ListNode<T> *node);
-	void PushBack(T data);
+	void push_back(ListNode<T> *node);
+	void push_back(T data);
 
-	void Insert(ListNode<T> *pos, ListNode<T> *node);
-	void Insert(ListNode<T> *pos, T data);
+	void insert(ListNode<T> *pos, ListNode<T> *node);
+	void insert(ListNode<T> *pos, T data);
 
-	void Remove(ListNode<T> *node);
-	ListNode<T> *Erase(ListNode<T> *node);
+	void remove(ListNode<T> *node);
+	ListNode<T> *erase(ListNode<T> *node);
 
-	ListNode<T> *Find(T key);
+	ListNode<T> *find(T key);
 
-	int CountNodes();
-	inline int Size() const;
+	int count_nodes();
+	inline int size() const;
 
 	void operator =(LinkedList &rhs);
 };
@@ -63,7 +63,7 @@ public:
 template <class T>
 LinkedList<T>::LinkedList() {
 	head = tail = 0;
-	size = 0;
+	sz = 0;
 }
 
 
@@ -71,22 +71,22 @@ template <class T>
 LinkedList<T>::~LinkedList() {
 
 	while(head) {
-		Erase(head);
+		erase(head);
 	}
 }
 
 template <class T>
-ListNode<T> *LinkedList<T>::Begin() {
+ListNode<T> *LinkedList<T>::begin() {
 	return head;
 }
 
 template <class T>
-ListNode<T> *LinkedList<T>::End() {
+ListNode<T> *LinkedList<T>::end() {
 	return tail;
 }
 
 template <class T>
-void LinkedList<T>::PushBack(ListNode<T> *node) {
+void LinkedList<T>::push_back(ListNode<T> *node) {
 
 	if(!head) {		// empty list
 		head = tail = node;
@@ -98,11 +98,11 @@ void LinkedList<T>::PushBack(ListNode<T> *node) {
 		node->next = 0;
 	}
 
-	size++;
+	sz++;
 }
 
 template <class T>
-void LinkedList<T>::PushBack(T data) {
+void LinkedList<T>::push_back(T data) {
 
 	ListNode<T> *node = new ListNode<T>;
 	node->data = data;
@@ -117,11 +117,11 @@ void LinkedList<T>::PushBack(T data) {
 		node->next = 0;
 	}
 
-	size++;
+	sz++;
 }
 
 template <class T>
-void LinkedList<T>::Insert(ListNode<T> *pos, ListNode<T> *node) {
+void LinkedList<T>::insert(ListNode<T> *pos, ListNode<T> *node) {
 
 	if(!head) {
 		head = tail = node;
@@ -133,11 +133,11 @@ void LinkedList<T>::Insert(ListNode<T> *pos, ListNode<T> *node) {
 		if(head == pos) head = node; else node->prev->next = node;
 	}
 
-	size++;
+	sz++;
 }
 
 template <class T>
-void LinkedList<T>::Insert(ListNode<T> *pos, T data) {
+void LinkedList<T>::insert(ListNode<T> *pos, T data) {
 
 	ListNode<T> *node = new ListNode<T>;
 	node->data = data;
@@ -152,13 +152,13 @@ void LinkedList<T>::Insert(ListNode<T> *pos, T data) {
 		if(head == pos) head = node; else node->prev->next = node;
 	}
 
-	size++;
+	sz++;
 }
 
 template <class T>
-void LinkedList<T>::Remove(ListNode<T> *node) {
+void LinkedList<T>::remove(ListNode<T> *node) {
 
-	if(!node) return;	// e.g. Remove(head) on an empty list
+	if(!node) return;	// e.g. remove(head) on an empty list
 
 	if(node->prev) {
 		node->prev->next = node->next;
@@ -172,13 +172,13 @@ void LinkedList<T>::Remove(ListNode<T> *node) {
 		tail = node->prev;
 	}
 
-	size--;
+	sz--;
 }
 
 template <class T>
-ListNode<T> *LinkedList<T>::Erase(ListNode<T> *node) {
+ListNode<T> *LinkedList<T>::erase(ListNode<T> *node) {
 
-	if(!node) return 0;	// e.g. Erase(head) on an empty list
+	if(!node) return 0;	// e.g. erase(head) on an empty list
 
 	if(node->prev) {
 		node->prev->next = node->next;
@@ -197,13 +197,13 @@ ListNode<T> *LinkedList<T>::Erase(ListNode<T> *node) {
 	
 	delete destr;
 
-	size--;
+	sz--;
 
 	return node;
 }
 
 template <class T>
-ListNode<T> *LinkedList<T>::Find(T key) {
+ListNode<T> *LinkedList<T>::find(T key) {
 	
 	ListNode<T> *iter = head;
 	while(iter) {
@@ -215,31 +215,31 @@ ListNode<T> *LinkedList<T>::Find(T key) {
 }
 
 template <class T>
-int LinkedList<T>::CountNodes() {
+int LinkedList<T>::count_nodes() {
 
-	size = 0;
+	sz = 0;
 
 	ListNode<T> *iter = head;
 	while(iter) {
-		size++;
+		sz++;
 		iter = iter->next;
 	}
 
-	return size;
+	return sz;
 }
 
 template <class T>
-int LinkedList<T>::Size() const {
-	return size;
+int LinkedList<T>::size() const {
+	return sz;
 }
 
 
 template <class T>
 void LinkedList<T>::operator =(LinkedList<T> &rhs) {
 	
-	ListNode<T> *src = rhs.Begin();
+	ListNode<T> *src = rhs.begin();
 	while(src) {
-		PushBack(src->data);
+		push_back(src->data);
 		src = src->next;
 	}
 }

@@ -60,63 +60,63 @@ private:
 	BoundingVolume *bvol;
 	bool bvol_valid;
 	
-	//void Render2TexUnits();
-	//void Render4TexUnits();
+	//void render2tex_units();
+	//void render4tex_units();
 	
-	void Render8TexUnits();
-	void RenderHack(unsigned long time);
+	void render8tex_units();
+	void render_hack(unsigned long time);
 
-	void DrawNormals();
+	void draw_normals();
 	
-	void SetupBumpLight(unsigned long time);
-	void UpdateBoundingVolume();
+	void setup_bump_light(unsigned long time);
+	void update_bounding_volume();
 	
 public:
 	Object();
 	Object(const TriMesh &mesh);
 	
-	void SetTriMesh(const TriMesh &mesh);
-	TriMesh *GetTriMeshPtr();
-	TriMesh GetTriMesh() const;
+	void set_tri_mesh(const TriMesh &mesh);
+	TriMesh *get_tri_mesh_ptr();
+	TriMesh get_tri_mesh() const;
 
 	// shortcut functions for accessing the geometry easily
-	unsigned long GetVertexCount() const;
-	const Vertex *GetVertexData() const;
-	Vertex *GetModVertexData();
-	unsigned long GetTriangleCount() const;
-	const Triangle *GetTriangleData() const;
-	Triangle *GetModTriangleData();
+	unsigned long get_vertex_count() const;
+	const Vertex *get_vertex_data() const;
+	Vertex *get_mod_vertex_data();
+	unsigned long get_triangle_count() const;
+	const Triangle *get_triangle_data() const;
+	Triangle *get_mod_triangle_data();
 
-	void SetDynamic(bool enable);
-	bool GetDynamic() const;
+	void set_dynamic(bool enable);
+	bool get_dynamic() const;
 	
-	void SetMaterial(const Material &mat);
-	Material *GetMaterialPtr();
-	Material GetMaterial() const;
+	void set_material(const Material &mat);
+	Material *get_material_ptr();
+	Material get_material() const;
 	
-	void SetRenderParams(const RenderParams &rp);
-	RenderParams GetRenderParams() const;
+	void set_render_params(const RenderParams &rp);
+	RenderParams get_render_params() const;
 	
-	void SetShading(ShadeMode shading_mode);
-	void SetBillboarding(bool enable);
-	void SetZWrite(bool enable);
-	void SetBlending(bool enable);
-	void SetBlendingMode(BlendingFactor sblend, BlendingFactor dblend);
-	void SetHandleBlending(bool enable);
-	void SetWireframe(bool enable);
-	void SetGfxProgram(GfxProg *prog);
-	void SetAutoCubeMaps(bool enable);
-	void SetHidden(bool enable);
-	void SetShowNormals(bool enable);
-	void SetShowNormalsScale(scalar_t scale);
-	void SetAutoGlobal(bool enable);
+	void set_shading(ShadeMode shading_mode);
+	void set_billboarding(bool enable);
+	void set_zwrite(bool enable);
+	void set_blending(bool enable);
+	void set_blending_mode(BlendingFactor sblend, BlendingFactor dblend);
+	void set_handle_blending(bool enable);
+	void set_wireframe(bool enable);
+	void set_gfx_program(GfxProg *prog);
+	void set_auto_cube_maps(bool enable);
+	void set_hidden(bool enable);
+	void set_show_normals(bool enable);
+	void set_show_normals_scale(scalar_t scale);
+	void set_auto_global(bool enable);
 
-	void ApplyXForm(unsigned long time = XFORM_LOCAL_PRS);
+	void apply_xform(unsigned long time = XFORM_LOCAL_PRS);
 
-	void CalculateNormals();
-	void NormalizeNormals();
+	void calculate_normals();
+	void normalize_normals();
 	
-	bool Render(unsigned long time = XFORM_LOCAL_PRS);
+	bool render(unsigned long time = XFORM_LOCAL_PRS);
 };
 
 #endif	// _OBJECT_HPP_

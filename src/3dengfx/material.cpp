@@ -65,20 +65,20 @@ Material::Material(const Color &col) {
 	memset(tex, 0, MAX_TEXTURES * sizeof(Texture*));
 }
 
-void Material::SetTexture(Texture *texture, TextureType type) {
+void Material::set_texture(Texture *texture, TextureType type) {
 	if(texture) tex_count++;
 	tex[type] = texture;
 }
 
-Texture *Material::GetTexture(TextureType type) {
+Texture *Material::get_texture(TextureType type) {
 	return tex[type];
 }
 
-int Material::GetTextureCount() const {
+int Material::get_texture_count() const {
 	return tex_count;
 }
 
-void Material::SetGLMaterial() const {
+void Material::set_glmaterial() const {
 	float amb[] = {ambient_color.r, ambient_color.g, ambient_color.b, ambient_color.a};
 	float dif[] = {diffuse_color.r, diffuse_color.g, diffuse_color.b, diffuse_color.a};
 	float spc[] = {specular_color.r, specular_color.g, specular_color.b, specular_color.a};

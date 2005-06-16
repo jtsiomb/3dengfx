@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #if GFX_LIBRARY == SDL
 
-bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
+bool fxwt::init_graphics(GraphicsInitParameters *gparams) {
 	info("Initializing SDL");
 
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE) == -1) {
@@ -117,7 +117,7 @@ bool fxwt::InitGraphics(GraphicsInitParameters *gparams) {
 }
 
 
-void fxwt::DestroyGraphics() {
+void fxwt::destroy_graphics() {
 	info("Shutting down SDL...");
 	SDL_Quit();
 }

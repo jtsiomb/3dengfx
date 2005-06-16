@@ -45,28 +45,28 @@ namespace fxwt {
 		BN_WHEELDOWN	= 5
 	};
 
-	void Init();
+	void init();
 
-	void SetDisplayHandler(void (*handler)());
-	void SetIdleHandler(void (*handler)());
-	void SetKeyboardHandler(void (*handler)(int));
-	void SetMotionHandler(void (*handler)(int, int));
-	void SetButtonHandler(void (*handler)(int, int, int, int));
+	void set_display_handler(void (*handler)());
+	void set_idle_handler(void (*handler)());
+	void set_keyboard_handler(void (*handler)(int));
+	void set_motion_handler(void (*handler)(int, int));
+	void set_button_handler(void (*handler)(int, int, int, int));
 
-	void RemoveDisplayHandler(void (*handler)());
-	void RemoveIdleHandler(void (*handler)());
-	void RemoveKeyboardHandler(void (*handler)(int));
-	void RemoveMotionHandler(void (*handler)(int, int));
-	void RemoveButtonHandler(void (*handler)(int, int, int, int));
+	void remove_display_handler(void (*handler)());
+	void remove_idle_handler(void (*handler)());
+	void remove_keyboard_handler(void (*handler)(int));
+	void remove_motion_handler(void (*handler)(int, int));
+	void remove_button_handler(void (*handler)(int, int, int, int));
 
-	bool MouseButtonPressed(int bn);
+	bool mouse_button_pressed(int bn);
 
-	Vector2 GetMousePosNormalized();
+	Vector2 get_mouse_pos_normalized();
 
-	void SetWindowTitle(const char *title);
-	void SwapBuffers();
+	void set_window_title(const char *title);
+	void swap_buffers();
 	
-	int MainLoop();
+	int main_loop();
 }
 
 #endif	/* _FXWT_HPP_ */

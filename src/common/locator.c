@@ -156,7 +156,7 @@ static const char *exec_path(void) {
 #endif	/* __FreeBSD__ */
 	
 #ifdef WIN32
-	ccount = GetModuleFileName(0, path, MAX_PATH - 1);	
+	ccount = get_module_file_name(0, path, MAX_PATH - 1);	
 #endif	/* WIN32 */
 	
 	if(!ccount) return 0;

@@ -48,12 +48,12 @@ Scene::Scene() {
 	// setup the cube-map cameras
 	for(int i=0; i<6; i++) {
 		cubic_cam[i] = new TargetCamera;
-		cubic_cam[i]->SetFOV(half_pi);
-		cubic_cam[i]->SetAspect(1.0);
-		cubic_cam[i]->Flip(false, true, false);
+		cubic_cam[i]->set_fov(half_pi);
+		cubic_cam[i]->set_aspect(1.0);
+		cubic_cam[i]->flip(false, true, false);
 	}
-	cubic_cam[CUBE_MAP_INDEX_PY]->SetUpVector(Vector3(0, 0, -1));
-	cubic_cam[CUBE_MAP_INDEX_NY]->SetUpVector(Vector3(0, 0, 1));
+	cubic_cam[CUBE_MAP_INDEX_PY]->set_up_vector(Vector3(0, 0, -1));
+	cubic_cam[CUBE_MAP_INDEX_NY]->set_up_vector(Vector3(0, 0, 1));
 
 	first_render = true;
 	frame_count = 0;
@@ -93,24 +93,24 @@ Scene::~Scene() {
 
 }
 
-void Scene::SetPolyCount(unsigned long pcount) {
+void Scene::set_poly_count(unsigned long pcount) {
 	scene_poly_count = pcount;
 }
 
-unsigned long Scene::GetPolyCount() const {
+unsigned long Scene::get_poly_count() const {
 	return scene_poly_count;
 }
 
-unsigned long Scene::GetFramePolyCount() const {
+unsigned long Scene::get_frame_poly_count() const {
 	return poly_count;
 }
 
-void Scene::AddCamera(Camera *cam) {
+void Scene::add_camera(Camera *cam) {
 	cameras.push_back(cam);
 	if(!active_camera) active_camera = cam;
 }
 
-void Scene::AddLight(Light *light) {
+void Scene::add_light(Light *light) {
 	for(int i=0; i<8; i++) {
 		if(!lights[i]) {
 			lights[i] = light;
@@ -119,23 +119,23 @@ void Scene::AddLight(Light *light) {
 	}
 }
 
-void Scene::AddObject(Object *obj) {
-	if(obj->GetMaterialPtr()->alpha < 1.0f - small_number) {
+void Scene::add_object(Object *obj) {
+	if(obj->get_material_ptr()->alpha < 1.0f - small_number) {
         objects.push_back(obj);
 	} else {
 		objects.push_front(obj);
 	}
 }
 
-void Scene::AddCurve(Curve *curve) {
+void Scene::add_curve(Curve *curve) {
 	curves.push_back(curve);
 }
 
-void Scene::AddParticleSys(ParticleSystem *p) {
+void Scene::add_particle_sys(ParticleSystem *p) {
 	psys.push_back(p);
 }
 
-void Scene::RemoveObject(const Object *obj) {
+void Scene::remove_object(const Object *obj) {
 	std::list<Object *>::iterator iter = objects.begin();
 	while(iter != objects.end()) {
 		if(obj == *iter) {
@@ -146,7 +146,7 @@ void Scene::RemoveObject(const Object *obj) {
 	}
 }
 
-void Scene::RemoveLight(const Light *light) {
+void Scene::remove_light(const Light *light) {
 	for(int i=0; i<8; i++) {
 		if(light == lights[i]) {
 			lights[i] = 0;
@@ -156,7 +156,7 @@ void Scene::RemoveLight(const Light *light) {
 }
 
 
-Camera *Scene::GetCamera(const char *name) {
+Camera *Scene::get_camera(const char *name) {
 	std::list<Camera *>::iterator iter = cameras.begin();
 	while(iter != cameras.end()) {
 		if(!strcmp((*iter)->name.c_str(), name)) return *iter;
@@ -165,14 +165,14 @@ Camera *Scene::GetCamera(const char *name) {
 	return 0;
 }
 
-Light *Scene::GetLight(const char *name) {
+Light *Scene::get_light(const char *name) {
 	for(int i=0; i<8; i++) {
 		if(lights[i] && !strcmp(lights[i]->name.c_str(), name)) return lights[i];
 	}
 	return 0;
 }
 
-Object *Scene::GetObject(const char *name) {
+Object *Scene::get_object(const char *name) {
 	std::list<Object *>::iterator iter = objects.begin();
 	while(iter != objects.end()) {
 		if(!strcmp((*iter)->name.c_str(), name)) return *iter;
@@ -181,7 +181,7 @@ Object *Scene::GetObject(const char *name) {
 	return 0;
 }
 
-Curve *Scene::GetCurve(const char *name) {
+Curve *Scene::get_curve(const char *name) {
 	std::list<Curve *>::iterator iter = curves.begin();
 	while(iter != curves.end()) {
 		if(!strcmp((*iter)->name.c_str(), name)) return *iter;
@@ -190,7 +190,7 @@ Curve *Scene::GetCurve(const char *name) {
 	return 0;
 }
 
-ParticleSystem *Scene::GetParticleSys(const char *name) {
+ParticleSystem *Scene::get_particle_sys(const char *name) {
 	std::list<ParticleSystem*>::iterator iter = psys.begin();
 	while(iter != psys.end()) {
 		if(!strcmp((*iter)->name.c_str(), name)) return *iter;
@@ -199,49 +199,49 @@ ParticleSystem *Scene::GetParticleSys(const char *name) {
 	return 0;
 }
 
-XFormNode *Scene::GetNode(const char *name) {
+XFormNode *Scene::get_node(const char *name) {
 	XFormNode *node;
 
-	if((node = GetObject(name))) return node;
-	if((node = GetLight(name))) return node;
-	if((node = GetCamera(name))) return node;
+	if((node = get_object(name))) return node;
+	if((node = get_light(name))) return node;
+	if((node = get_camera(name))) return node;
 	
 	return 0;
 }
 
-std::list<Object*> *Scene::GetObjectList() {
+std::list<Object*> *Scene::get_object_list() {
 	return &objects;
 }
 
-std::list<Camera*> *Scene::GetCameraList() {
+std::list<Camera*> *Scene::get_camera_list() {
 	return &cameras;
 }
 
-void Scene::SetActiveCamera(const Camera *cam) {
+void Scene::set_active_camera(const Camera *cam) {
 	active_camera = cam;
 }
 
-Camera *Scene::GetActiveCamera() const {
+Camera *Scene::get_active_camera() const {
 	return const_cast<Camera*>(active_camera);
 }
 
-void Scene::SetHaloDrawing(bool enable) {
+void Scene::set_halo_drawing(bool enable) {
 	light_halos = enable;
 }
 
-void Scene::SetHaloSize(float size) {
+void Scene::set_halo_size(float size) {
 	halo_size = size;
 }
 
-void Scene::SetAmbientLight(Color ambient) {
+void Scene::set_ambient_light(Color ambient) {
 	ambient_light = ambient;
 }
 
-Color Scene::GetAmbientLight() const {
+Color Scene::get_ambient_light() const {
 	return ambient_light;
 }
 
-void Scene::SetFog(bool enable, Color fog_color, float near_fog, float far_fog) {
+void Scene::set_fog(bool enable, Color fog_color, float near_fog, float far_fog) {
 	use_fog = enable;
 	if(enable) {
 		this->fog_color = fog_color;
@@ -250,49 +250,49 @@ void Scene::SetFog(bool enable, Color fog_color, float near_fog, float far_fog) 
 	}
 }
 
-void Scene::SetAutoClear(bool enable) {
+void Scene::set_auto_clear(bool enable) {
 	auto_clear = enable;
 }
 
-void Scene::SetBackground(const Color &bg) {
+void Scene::set_background(const Color &bg) {
 	bg_color = bg;
 }
 
-void Scene::SetupLights(unsigned long msec) const {
+void Scene::setup_lights(unsigned long msec) const {
 	int light_index = 0;
 	for(int i=0; i<8; i++) {
 		if(lights[i]) {
-			lights[i]->SetGLLight(light_index++, msec);
+			lights[i]->set_gllight(light_index++, msec);
 		}
 	}
 	glDisable(GL_LIGHT0 + light_index);
 }
 
-void Scene::Render(unsigned long msec) const {
+void Scene::render(unsigned long msec) const {
 	static int level = -1;
 	level++;
 	
-	::SetAmbientLight(ambient_light);
+	::set_ambient_light(ambient_light);
 
 	bool rendered_cubemaps = false;
 	if(!level) {
 		poly_count = 0;
-		rendered_cubemaps = RenderAllCubeMaps(msec);
+		rendered_cubemaps = render_all_cube_maps(msec);
 		first_render = false;
 		frame_count++;
 
 		// update particle systems
-		psys::SetGlobalTime(msec);
+		psys::set_global_time(msec);
 		
 		std::list<ParticleSystem*>::const_iterator iter = psys.begin();
 		while(iter != psys.end()) {
-			(*iter++)->Update();
+			(*iter++)->update();
 		}
 	}
 
 	if(auto_clear || rendered_cubemaps) {
-		Clear(bg_color);
-		ClearZBufferStencil(1.0, 0);
+		clear(bg_color);
+		clear_zbuffer_stencil(1.0, 0);
 	}
 	
 	// set camera
@@ -300,20 +300,20 @@ void Scene::Render(unsigned long msec) const {
 		level--;
 		return;
 	}
-	active_camera->Activate(msec);
+	active_camera->activate(msec);
 	
-	SetupLights(msec);
+	setup_lights(msec);
 
 	// render objects
 	std::list<Object *>::const_iterator iter = objects.begin();
 	while(iter != objects.end()) {
 		Object *obj = *iter++;
 
-		RenderParams rp = obj->GetRenderParams();
+		RenderParams rp = obj->get_render_params();
 
 		if(!rp.hidden) {
-			if(obj->Render(msec)) {
-				poly_count += obj->GetTriMeshPtr()->GetTriangleArray()->GetCount();
+			if(obj->render(msec)) {
+				poly_count += obj->get_tri_mesh_ptr()->get_triangle_array()->get_count();
 			}
 		}
 	}
@@ -321,53 +321,53 @@ void Scene::Render(unsigned long msec) const {
 	// render particles
 	std::list<ParticleSystem*>::const_iterator piter = psys.begin();
 	while(piter != psys.end()) {
-		(*piter++)->Draw();
+		(*piter++)->draw();
 	}
 
 	level--;
 }
 
 
-void Scene::RenderCubeMap(Object *obj, unsigned long msec) const {
+void Scene::render_cube_map(Object *obj, unsigned long msec) const {
 	Scene *non_const_this = const_cast<Scene*>(this);
 
-	Material *mat = obj->GetMaterialPtr();
-	Texture *tex = mat->GetTexture(TEXTYPE_ENVMAP);
+	Material *mat = obj->get_material_ptr();
+	Texture *tex = mat->get_texture(TEXTYPE_ENVMAP);
 
-	if(!tex || (tex && tex->GetType() != TEX_CUBE)) {
-		warning("tried to RenderCubeMap() on a non-cubemapped object");
+	if(!tex || (tex && tex->get_type() != TEX_CUBE)) {
+		warning("tried to render_cube_map() on a non-cubemapped object");
 		return;
 	}
 
-	RenderParams render_params = obj->GetRenderParams();
+	RenderParams render_params = obj->get_render_params();
 	if(render_params.hidden) return;
 
-	Vector3 obj_pos = obj->GetPRS(msec).position;
+	Vector3 obj_pos = obj->get_prs(msec).position;
 
-	non_const_this->PlaceCubeCamera(obj_pos + obj->GetPivot());
+	non_const_this->place_cube_camera(obj_pos + obj->get_pivot());
 
-	const Camera *active_cam = GetActiveCamera();
+	const Camera *active_cam = get_active_camera();
 
-	obj->SetHidden(true);
+	obj->set_hidden(true);
 
 	for(int i=0; i<6; i++) {
 		static CubeMapFace cube_face[] = {CUBE_MAP_PX, CUBE_MAP_NX, CUBE_MAP_PY, CUBE_MAP_NY, CUBE_MAP_PZ, CUBE_MAP_NZ};
-		SetRenderTarget(tex, cube_face[i]);
-		non_const_this->SetActiveCamera(cubic_cam[i]);
-		Clear(bg_color);
-		ClearZBufferStencil(1.0, 0);
-		Render(msec);
-		dsys::Overlay(0, Vector2(0,0), Vector2(1,1), Color(0, 0, 0, 1 - mat->env_intensity));
-		SetRenderTarget(0);
+		set_render_target(tex, cube_face[i]);
+		non_const_this->set_active_camera(cubic_cam[i]);
+		clear(bg_color);
+		clear_zbuffer_stencil(1.0, 0);
+		render(msec);
+		dsys::overlay(0, Vector2(0,0), Vector2(1,1), Color(0, 0, 0, 1 - mat->env_intensity));
+		set_render_target(0);
 	}
 
-	non_const_this->SetActiveCamera(active_cam);
-	SetupLights(msec);
+	non_const_this->set_active_camera(active_cam);
+	setup_lights(msec);
 
-	obj->SetHidden(false);
+	obj->set_hidden(false);
 }
 
-void Scene::PlaceCubeCamera(const Vector3 &pos) {
+void Scene::place_cube_camera(const Vector3 &pos) {
 	static const Vector3 targets[] = {
 		Vector3(1, 0, 0), Vector3(-1, 0, 0),	// +/- X
 		Vector3(0, 1, 0), Vector3(0, -1, 0),	// +/- Y
@@ -375,13 +375,13 @@ void Scene::PlaceCubeCamera(const Vector3 &pos) {
 	};
 
 	for(int i=0; i<6; i++) {
-		cubic_cam[i]->SetPosition(pos);
-		cubic_cam[i]->SetTarget(targets[i] + pos);
+		cubic_cam[i]->set_position(pos);
+		cubic_cam[i]->set_target(targets[i] + pos);
 	}
 }
 
 
-bool Scene::RenderAllCubeMaps(unsigned long msec) const {
+bool Scene::render_all_cube_maps(unsigned long msec) const {
 	bool did_some = false;
 	
 	std::list<Object *>::const_iterator iter = objects.begin();
@@ -389,8 +389,8 @@ bool Scene::RenderAllCubeMaps(unsigned long msec) const {
 		Object *obj = *iter++;
 
 		Texture *env;
-		Material *mat = obj->GetMaterialPtr();
-		RenderParams rp = obj->GetRenderParams();
+		Material *mat = obj->get_material_ptr();
+		RenderParams rp = obj->get_render_params();
 		if(rp.hidden) continue;
 
 		if(mat->auto_refl) {
@@ -399,10 +399,10 @@ bool Scene::RenderAllCubeMaps(unsigned long msec) const {
 			if(!first_render) continue;
 		}
 		
-		if((env = mat->GetTexture(TEXTYPE_ENVMAP))) {
-			if(env->GetType() == TEX_CUBE) {
+		if((env = mat->get_texture(TEXTYPE_ENVMAP))) {
+			if(env->get_type() == TEX_CUBE) {
 				did_some = true;
-				RenderCubeMap(obj, msec);
+				render_cube_map(obj, msec);
 			}
 		}
 	}

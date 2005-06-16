@@ -32,7 +32,7 @@ static struct ConfigOption cfg_opt;
 
 static char *config_file, *cfgptr;
 
-void SetParserState(enum ParserState state, int value) {
+void set_parser_state(enum ParserState state, int value) {
 	switch(state) {
 	case PS_AssignmentSymbol:
 		sym_assign = (char)value;
@@ -52,7 +52,7 @@ void SetParserState(enum ParserState state, int value) {
 	}
 }
 
-int LoadConfigFile(const char *fname) {
+int load_config_file(const char *fname) {
 	FILE *fp;
 	int fsize;
 	char *temp, *line;
@@ -94,7 +94,7 @@ int LoadConfigFile(const char *fname) {
 	return 0;
 }
 
-const struct ConfigOption *GetNextOption() {
+const struct ConfigOption *get_next_option() {
 	char *tmpbuf = malloc(max_line_len + 1);
 	char *ptr = tmpbuf;
 	
@@ -133,7 +133,7 @@ const struct ConfigOption *GetNextOption() {
 	return &cfg_opt;
 }
 
-void DestroyConfigParser() {
+void destroy_config_parser() {
 	if(cfg_opt.str_value) free(cfg_opt.str_value);
 	if(cfg_opt.option) free(cfg_opt.option);
 	if(config_file) free(config_file);

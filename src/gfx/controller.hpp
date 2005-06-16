@@ -64,25 +64,25 @@ public:
 	MotionController(ControllerClass ctype = CTRL_CURVE, TimelineMode mode = TIME_CLAMP);
 	MotionController(Curve *curve, unsigned long start, unsigned long end, TimelineMode mode = TIME_CLAMP);
 	
-	void SetCurve(Curve *curve);
-	void SetSinFunc(scalar_t freq, scalar_t ampl, scalar_t phase = 0.0f);
-	void SetSinFunc(scalar_t (*freq_func)(scalar_t), scalar_t(*ampl_func)(scalar_t));
+	void set_curve(Curve *curve);
+	void set_sin_func(scalar_t freq, scalar_t ampl, scalar_t phase = 0.0f);
+	void set_sin_func(scalar_t (*freq_func)(scalar_t), scalar_t(*ampl_func)(scalar_t));
 	
-	void SetOrigin(scalar_t orig);
-	void SetOrigin(const Vector3 &orig_vec);
-	void SetSlope(scalar_t slope);
-	void SetSlope(const Vector3 &slope_vec);
+	void set_origin(scalar_t orig);
+	void set_origin(const Vector3 &orig_vec);
+	void set_slope(scalar_t slope);
+	void set_slope(const Vector3 &slope_vec);
 	
-	void SetTiming(unsigned long start, unsigned long end);
-	void SetTimelineMode(TimelineMode tmode);
-	void SetControllerType(ControllerClass ctype);
-	void SetControlAxis(unsigned int axis_flags);
+	void set_timing(unsigned long start, unsigned long end);
+	void set_timeline_mode(TimelineMode tmode);
+	void set_controller_type(ControllerClass ctype);
+	void set_control_axis(unsigned int axis_flags);
 	
-	Curve *GetCurve();
-	unsigned long GetStartTime() const;
-	unsigned long GetEndTime() const;
-	TimelineMode GetTimelineMode() const;
-	unsigned int GetControlAxis() const;
+	Curve *get_curve();
+	unsigned long get_start_time() const;
+	unsigned long get_end_time() const;
+	TimelineMode get_timeline_mode() const;
+	unsigned int get_control_axis() const;
 	
 	Vector3 operator ()(unsigned long time) const;
 };

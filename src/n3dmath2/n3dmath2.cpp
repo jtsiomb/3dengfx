@@ -38,7 +38,7 @@ scalar_t frand(scalar_t range) {
 	return range * (float)rand() / (float)RAND_MAX;
 }
 
-scalar_t Integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samples)  {
+scalar_t integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samples)  {
 	scalar_t h = (high - low) / (scalar_t)samples;
 	scalar_t sum = 0.0;
 	
@@ -49,7 +49,7 @@ scalar_t Integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samp
 	return sum;
 }
 
-scalar_t Gaussian(scalar_t x, scalar_t mean, scalar_t sdev) {
+scalar_t gaussian(scalar_t x, scalar_t mean, scalar_t sdev) {
 	scalar_t exponent = -SQ(x - mean) / (2.0 * SQ(sdev));
 	
 	return 1.0 - -pow(e, exponent) / (sdev * sqrt(two_pi));
@@ -57,7 +57,7 @@ scalar_t Gaussian(scalar_t x, scalar_t mean, scalar_t sdev) {
 
 
 // -- b-spline approximation --
-scalar_t BSpline(const Vector4 &cpvec, scalar_t t) {
+scalar_t bspline(const Vector4 &cpvec, scalar_t t) {
 	Matrix4x4 bspline_mat(	-1,  3, -3,  1,
 							 3, -6,  3,  0,
 							-3,  0,  3,  0,
@@ -67,11 +67,11 @@ scalar_t BSpline(const Vector4 &cpvec, scalar_t t) {
 	scalar_t t_cube = t_square * t;
 	Vector4 params(t_cube, t_square, t, 1.0);
 
-	return DotProduct(params, cpvec.Transformed(bspline_mat) / 6.0);
+	return dot_product(params, cpvec.transformed(bspline_mat) / 6.0);
 }
 
 // -- catmull rom spline interpolation --
-scalar_t CatmullRomSpline(const Vector4 &cpvec, scalar_t t) {
+scalar_t catmull_rom_spline(const Vector4 &cpvec, scalar_t t) {
 	Matrix4x4 crspline_mat(	-1,  3, -3,  1,
 							 2, -5,  4, -1,
 							-1,  0,  1,  0,
@@ -81,14 +81,14 @@ scalar_t CatmullRomSpline(const Vector4 &cpvec, scalar_t t) {
 	scalar_t t_cube = t_square * t;
 	Vector4 params(t_cube, t_square, t, 1.0);
 
-	return DotProduct(params, cpvec.Transformed(crspline_mat) / 2.0);
+	return dot_product(params, cpvec.transformed(crspline_mat) / 2.0);
 }
 
 /* Bezier - (MG)
  * returns a interpolated scalar value
  * given 4 control values 
  */
-scalar_t Bezier(const Vector4 &cp, scalar_t t)
+scalar_t bezier(const Vector4 &cp, scalar_t t)
 {
 	static scalar_t omt, omt3, t3, f;
 	t3 = t * t * t;
@@ -102,7 +102,7 @@ scalar_t Bezier(const Vector4 &cp, scalar_t t)
 /* Bezier - (MG)
  * Vector3 overloaded bezier function
  */
-Vector3 Bezier(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t)
+Vector3 bezier(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t)
 {
 	static scalar_t omt, omt3, t3, f;
 	t3 = t * t * t;
@@ -117,7 +117,7 @@ Vector3 Bezier(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Ve
  * returns a vector tangent to the 
  * Bezier curve at the specified point
  */
-Vector3 BezierTangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t)
+Vector3 bezier_tangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t)
 {
 	static scalar_t omt;
 	omt = 1.0f - t;
@@ -147,40 +147,40 @@ Basis::Basis(const Vector3 &i, const Vector3 &j, const Vector3 &k) {
 Basis::Basis(const Vector3 &dir, bool LeftHanded) {
 	k = dir;
 	j = VECTOR3_J;
-	i = CrossProduct(j, k);
-	j = CrossProduct(k, i);
+	i = cross_product(j, k);
+	j = cross_product(k, i);
 }
 
 
-void Basis::Rotate(scalar_t x, scalar_t y, scalar_t z) {
+void Basis::rotate(scalar_t x, scalar_t y, scalar_t z) {
 	Matrix4x4 RotMat;
-	RotMat.SetRotation(Vector3(x, y, z));
-	i.Transform(RotMat);
-	j.Transform(RotMat);
-	k.Transform(RotMat);
+	RotMat.set_rotation(Vector3(x, y, z));
+	i.transform(RotMat);
+	j.transform(RotMat);
+	k.transform(RotMat);
 }
 
-void Basis::Rotate(const Vector3 &axis, scalar_t angle) {
+void Basis::rotate(const Vector3 &axis, scalar_t angle) {
 	Quaternion q;
-	q.SetRotation(axis, angle);
-	i.Transform(q);
-	j.Transform(q);
-	k.Transform(q);
+	q.set_rotation(axis, angle);
+	i.transform(q);
+	j.transform(q);
+	k.transform(q);
 }
 
-void Basis::Rotate(const Matrix4x4 &mat) {
-	i.Transform(mat);
-	j.Transform(mat);
-	k.Transform(mat);
+void Basis::rotate(const Matrix4x4 &mat) {
+	i.transform(mat);
+	j.transform(mat);
+	k.transform(mat);
 }
 
-void Basis::Rotate(const Quaternion &quat) {
-	i.Transform(quat);
-	j.Transform(quat);
-	k.Transform(quat);
+void Basis::rotate(const Quaternion &quat) {
+	i.transform(quat);
+	j.transform(quat);
+	k.transform(quat);
 }
 
-Matrix3x3 Basis::CreateRotationMatrix() const {
+Matrix3x3 Basis::create_rotation_matrix() const {
 	return Matrix3x3(	i.x, j.x, k.x,
 						i.y, j.y, k.y,
 						i.z, j.z, k.z);
@@ -189,7 +189,7 @@ Matrix3x3 Basis::CreateRotationMatrix() const {
 
 //////////////
 
-size_t SizeOfScalarType() {
+size_t size_of_scalar_type() {
 	static const scalar_t temp = 0.0;
 	return sizeof(temp);
 }

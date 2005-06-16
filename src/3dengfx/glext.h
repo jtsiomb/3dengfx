@@ -29,8 +29,8 @@ extern "C" {
 ** elsewhere herein. All Rights Reserved.
 ** 
 ** Additional Notice Provisions: This software was created using the
-** OpenGL(R) version 1.2.1 Sample Implementation published by SGI, but has
-** not been independently verified as being compliant with the OpenGL(R)
+** open_gl(R) version 1.2.1 Sample Implementation published by SGI, but has
+** not been independently verified as being compliant with the open_gl(R)
 ** version 1.2.1 Specification.
 */
 

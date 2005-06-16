@@ -56,77 +56,77 @@ MotionController::MotionController(Curve *curve, unsigned long start, unsigned l
 	axis_flags = CTRL_XYZ;
 }
 
-void MotionController::SetCurve(Curve *curve) {
+void MotionController::set_curve(Curve *curve) {
 	this->curve = curve;
 }
 
-void MotionController::SetSinFunc(scalar_t freq, scalar_t ampl, scalar_t phase) {
+void MotionController::set_sin_func(scalar_t freq, scalar_t ampl, scalar_t phase) {
 	this->freq = freq;
 	this->ampl = ampl;
 	this->phase = phase;
 }
 
-void MotionController::SetSinFunc(scalar_t (*freq_func)(scalar_t), scalar_t (*ampl_func)(scalar_t)) {
+void MotionController::set_sin_func(scalar_t (*freq_func)(scalar_t), scalar_t (*ampl_func)(scalar_t)) {
 	this->freq_func = freq_func;
 	this->ampl_func = ampl_func;
 }
 
-void MotionController::SetOrigin(scalar_t orig) {
+void MotionController::set_origin(scalar_t orig) {
 	this->orig = Vector3(orig, orig, orig);
 }
 
-void MotionController::SetOrigin(const Vector3 &orig_vec) {
+void MotionController::set_origin(const Vector3 &orig_vec) {
 	orig = orig_vec;
 }
 
-void MotionController::SetSlope(scalar_t slope) {
+void MotionController::set_slope(scalar_t slope) {
 	this->slope = Vector3(slope, slope, slope);
 }
 
-void MotionController::SetSlope(const Vector3 &slope_vec) {
+void MotionController::set_slope(const Vector3 &slope_vec) {
 	slope = slope_vec;
 }
 
-void MotionController::SetTiming(unsigned long start, unsigned long end) {
+void MotionController::set_timing(unsigned long start, unsigned long end) {
 	start_time = start;
 	end_time = end;
 }
 
-void MotionController::SetTimelineMode(TimelineMode tmode) {
+void MotionController::set_timeline_mode(TimelineMode tmode) {
 	time_mode = tmode;
 }
 
-void MotionController::SetControllerType(ControllerClass ctype) {
+void MotionController::set_controller_type(ControllerClass ctype) {
 	ctrl_type = ctype;
 }
 
-void MotionController::SetControlAxis(unsigned int axis_flags) {
+void MotionController::set_control_axis(unsigned int axis_flags) {
 	this->axis_flags = axis_flags;
 }
 
-Curve *MotionController::GetCurve() {
+Curve *MotionController::get_curve() {
 	return curve;
 }
 
-unsigned long MotionController::GetStartTime() const {
+unsigned long MotionController::get_start_time() const {
 	return start_time;
 }
 
-unsigned long MotionController::GetEndTime() const {
+unsigned long MotionController::get_end_time() const {
 	return end_time;
 }
 
-TimelineMode MotionController::GetTimelineMode() const {
+TimelineMode MotionController::get_timeline_mode() const {
 	return time_mode;
 }
 
-unsigned int MotionController::GetControlAxis() const {
+unsigned int MotionController::get_control_axis() const {
 	return axis_flags;
 }
 
 
 Vector3 MotionController::operator ()(unsigned long time) const {
-	time = GetTimelineTime(time, start_time, end_time, time_mode);
+	time = get_timeline_time(time, start_time, end_time, time_mode);
 
 	double (*sinusoidal)(double);
 	sinusoidal = sin;
@@ -135,7 +135,7 @@ Vector3 MotionController::operator ()(unsigned long time) const {
 	case CTRL_CURVE:
 		{
 			scalar_t t = (scalar_t)(time - start_time) / (scalar_t)(end_time - start_time);
-			Vector3 vec = curve->Interpolate(t);
+			Vector3 vec = curve->interpolate(t);
 			if(!(axis_flags & CTRL_X)) vec.x = 0;
 			if(!(axis_flags & CTRL_Y)) vec.y = 0;
 			if(!(axis_flags & CTRL_Z)) vec.z = 0;

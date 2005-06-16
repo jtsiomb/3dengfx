@@ -37,12 +37,12 @@ private:
 	// stack for the iterator-like traversal
 	mutable std::stack<BSTreeNode<T>*> node_stack;
 
-	void RecInsert(BSTreeNode<T> *&tree, BSTreeNode<T> *node);
-	BSTreeNode<T> *RecRemoveNode(BSTreeNode<T> *&tree, T data);
-	void RecTraverse(BSTreeNode<T> *tree, void (*action)(BSTreeNode<T> *node), TraversalOrder order, bool rev) const;
-	BSTreeNode<T> **UtilFindMin(BSTreeNode<T> *&tree);
+	void rec_insert(BSTreeNode<T> *&tree, BSTreeNode<T> *node);
+	BSTreeNode<T> *rec_remove_node(BSTreeNode<T> *&tree, T data);
+	void rec_traverse(BSTreeNode<T> *tree, void (*action)(BSTreeNode<T> *node), TraversalOrder order, bool rev) const;
+	BSTreeNode<T> **util_find_min(BSTreeNode<T> *&tree);
 
-	void CopyInsert(BSTreeNode<T> *node);
+	void copy_insert(BSTreeNode<T> *node);
 
 public:
 
@@ -50,20 +50,20 @@ public:
 	BSTree(const BSTree<T> &tree);
 	~BSTree();
 
-	inline void Insert(BSTreeNode<T> *node);
-	inline void Insert(T data);
+	inline void insert(BSTreeNode<T> *node);
+	inline void insert(T data);
 	
-	inline BSTreeNode<T> *Remove(T data);
-	inline void Erase(T data);
+	inline BSTreeNode<T> *remove(T data);
+	inline void erase(T data);
 
-	BSTreeNode<T> *Find(T data);
+	BSTreeNode<T> *find(T data);
 
-	void Traverse(void (*action)(BSTreeNode<T> *node), TraversalOrder order = TRAVERSE_INORDER) const;
-	void TraverseRev(void (*action)(BSTreeNode<T> *node), TraversalOrder order = TRAVERSE_INORDER) const;
-	int Size() const;
+	void traverse(void (*action)(BSTreeNode<T> *node), TraversalOrder order = TRAVERSE_INORDER) const;
+	void traverse_rev(void (*action)(BSTreeNode<T> *node), TraversalOrder order = TRAVERSE_INORDER) const;
+	int size() const;
 
-	void ResetIterator() const;
-	T *Next() const;
+	void reset_iterator() const;
+	T *next() const;
 };
 
 #include "bstree.inl"	// template definitions

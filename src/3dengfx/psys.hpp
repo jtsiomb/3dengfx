@@ -83,10 +83,10 @@ public:
 	Particle(const Vector3 &pos, const Vector3 &vel, scalar_t friction, scalar_t lifespan);
 	virtual ~Particle();
 
-	virtual bool Alive() const;
+	virtual bool alive() const;
 
-	virtual void Update(const Vector3 &ext_force = Vector3());
-	virtual void Draw() const = 0;
+	virtual void update(const Vector3 &ext_force = Vector3());
+	virtual void draw() const = 0;
 };
 
 /* draws the particle as a textured quad */
@@ -96,10 +96,10 @@ public:
 	Color start_color, end_color;
 	Color color;
 	
-	virtual ParticleVertex GetParticleVertex() const;
+	virtual ParticleVertex get_particle_vertex() const;
 	
-	virtual void Update(const Vector3 &ext_force = Vector3());
-	virtual void Draw() const;
+	virtual void update(const Vector3 &ext_force = Vector3());
+	virtual void draw() const;
 };
 
 /* TODO: draws a 3D object in the position of the particle
@@ -151,17 +151,17 @@ public:
 	ParticleSystem(const char *fname = 0);
 	virtual ~ParticleSystem();
 
-	virtual void SetParams(const ParticleSysParams &psys_params);
-	virtual void SetParticleType(ParticleType ptype);
+	virtual void set_params(const ParticleSysParams &psys_params);
+	virtual void set_particle_type(ParticleType ptype);
 
-	virtual void Update(const Vector3 &ext_force = Vector3());
-	virtual void Draw() const;
+	virtual void update(const Vector3 &ext_force = Vector3());
+	virtual void draw() const;
 };
 
 namespace psys {
-	void SetGlobalTime(unsigned long msec);
+	void set_global_time(unsigned long msec);
 
-	bool LoadParticleSysParams(const char *fname, ParticleSysParams *psp);
+	bool load_particle_sys_params(const char *fname, ParticleSysParams *psp);
 }
 
 

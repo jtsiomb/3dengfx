@@ -56,160 +56,160 @@ Object::Object() {
 
 Object::Object(const TriMesh &mesh) {
 	bvol = 0;
-	SetTriMesh(mesh);
+	set_tri_mesh(mesh);
 }
 
-void Object::SetTriMesh(const TriMesh &mesh) {
+void Object::set_tri_mesh(const TriMesh &mesh) {
 	this->mesh = mesh;
-	UpdateBoundingVolume();
+	update_bounding_volume();
 }
 
-TriMesh *Object::GetTriMeshPtr() {
+TriMesh *Object::get_tri_mesh_ptr() {
 	bvol_valid = false;
 	return &mesh;
 }
 
-TriMesh Object::GetTriMesh() const {
+TriMesh Object::get_tri_mesh() const {
 	return mesh;
 }
 
-unsigned long Object::GetVertexCount() const {
-	return mesh.GetVertexArray()->GetCount();
+unsigned long Object::get_vertex_count() const {
+	return mesh.get_vertex_array()->get_count();
 }
 
-const Vertex *Object::GetVertexData() const {
-	return mesh.GetVertexArray()->GetData();
+const Vertex *Object::get_vertex_data() const {
+	return mesh.get_vertex_array()->get_data();
 }
 
-Vertex *Object::GetModVertexData() {
-	return mesh.GetModVertexArray()->GetModData();
+Vertex *Object::get_mod_vertex_data() {
+	return mesh.get_mod_vertex_array()->get_mod_data();
 }
 
-unsigned long Object::GetTriangleCount() const {
-	return mesh.GetTriangleArray()->GetCount();
+unsigned long Object::get_triangle_count() const {
+	return mesh.get_triangle_array()->get_count();
 }
 
-const Triangle *Object::GetTriangleData() const {
-	return mesh.GetTriangleArray()->GetData();
+const Triangle *Object::get_triangle_data() const {
+	return mesh.get_triangle_array()->get_data();
 }
 
-Triangle *Object::GetModTriangleData() {
-	return mesh.GetModTriangleArray()->GetModData();
+Triangle *Object::get_mod_triangle_data() {
+	return mesh.get_mod_triangle_array()->get_mod_data();
 }
 
-void Object::SetDynamic(bool enable) {
-	const_cast<VertexArray*>(mesh.GetVertexArray())->SetDynamic(enable);
-	const_cast<TriangleArray*>(mesh.GetTriangleArray())->SetDynamic(enable);
-	//const_cast<IndexArray*>(mesh.GetIndexArray())->SetDynamic(enable);
+void Object::set_dynamic(bool enable) {
+	const_cast<VertexArray*>(mesh.get_vertex_array())->set_dynamic(enable);
+	const_cast<TriangleArray*>(mesh.get_triangle_array())->set_dynamic(enable);
+	//const_cast<IndexArray*>(mesh.get_index_array())->set_dynamic(enable);
 }
 
-bool Object::GetDynamic() const {
-	return mesh.GetVertexArray()->GetDynamic();
+bool Object::get_dynamic() const {
+	return mesh.get_vertex_array()->get_dynamic();
 }
 
-void Object::SetMaterial(const Material &mat) {
+void Object::set_material(const Material &mat) {
 	this->mat = mat;
 }
 
-Material *Object::GetMaterialPtr() {
+Material *Object::get_material_ptr() {
 	return &mat;
 }
 
-Material Object::GetMaterial() const {
+Material Object::get_material() const {
 	return mat;
 }
 
-void Object::SetRenderParams(const RenderParams &rp) {
+void Object::set_render_params(const RenderParams &rp) {
 	render_params = rp;
 }
 
-RenderParams Object::GetRenderParams() const {
+RenderParams Object::get_render_params() const {
 	return render_params;
 }
 
-void Object::SetShading(ShadeMode shading_mode) {
+void Object::set_shading(ShadeMode shading_mode) {
 	mat.shading = shading_mode;
 }
 
-void Object::SetBillboarding(bool enable) {
+void Object::set_billboarding(bool enable) {
 	render_params.billboarded = enable;
 }
 
-void Object::SetZWrite(bool enable) {
+void Object::set_zwrite(bool enable) {
 	render_params.zwrite = enable;
 }
 
-void Object::SetBlending(bool enable) {
+void Object::set_blending(bool enable) {
 	render_params.blending = enable;
 }
 
-void Object::SetBlendingMode(BlendingFactor sblend, BlendingFactor dblend) {
+void Object::set_blending_mode(BlendingFactor sblend, BlendingFactor dblend) {
 	render_params.src_blend = sblend;
 	render_params.dest_blend = dblend;
 }
 
-void Object::SetHandleBlending(bool enable) {
+void Object::set_handle_blending(bool enable) {
 	render_params.handle_blending = enable;
 }
 
-void Object::SetWireframe(bool enable) {
+void Object::set_wireframe(bool enable) {
 	mat.wireframe = enable;
 }
 
-void Object::SetGfxProgram(GfxProg *prog) {
+void Object::set_gfx_program(GfxProg *prog) {
 	render_params.gfxprog = prog;
 }
 
-void Object::SetAutoCubeMaps(bool enable) {
+void Object::set_auto_cube_maps(bool enable) {
 	render_params.auto_cube_maps = enable;
 }
 
-void Object::SetHidden(bool enable) {
+void Object::set_hidden(bool enable) {
 	render_params.hidden = enable;
 }
 
-void Object::SetShowNormals(bool enable) {
+void Object::set_show_normals(bool enable) {
 	render_params.show_normals = enable;
 }
 
-void Object::SetShowNormalsScale(scalar_t scale) {
+void Object::set_show_normals_scale(scalar_t scale) {
 	render_params.show_normals_scale = scale;
 }
 
-void Object::SetAutoGlobal(bool enable) {
+void Object::set_auto_global(bool enable) {
 	mat.auto_refl = enable;
 }
 
-void Object::ApplyXForm(unsigned long time) {
-	world_mat = GetPRS(time).GetXFormMatrix();
-	mesh.ApplyXForm(world_mat);
-	ResetXForm(time);
+void Object::apply_xform(unsigned long time) {
+	world_mat = get_prs(time).get_xform_matrix();
+	mesh.apply_xform(world_mat);
+	reset_xform(time);
 }
 
-void Object::CalculateNormals() {
-	mesh.CalculateNormals();
+void Object::calculate_normals() {
+	mesh.calculate_normals();
 }
 
-void Object::NormalizeNormals() {
-	mesh.NormalizeNormals();
+void Object::normalize_normals() {
+	mesh.normalize_normals();
 }
 
-void Object::Render8TexUnits() {}
+void Object::render8tex_units() {}
 
-bool Object::Render(unsigned long time) {
-	world_mat = GetPRS(time).GetXFormMatrix();
+bool Object::render(unsigned long time) {
+	world_mat = get_prs(time).get_xform_matrix();
 
-	if(!bvol_valid) UpdateBoundingVolume();
+	if(!bvol_valid) update_bounding_volume();
 
 	// set the active world-space transformation for the bounding volume ...
-	bvol->SetTransform(world_mat);
+	bvol->set_transform(world_mat);
 	
 	/* if we have the camera that generated the active view matrix available
 	 * chances are it already has the view frustum, so use it directly to test
 	 * the object, otherwise generate one.
 	 */
 	if(engfx_state::view_mat_camera) {
-		if(!bvol->Visible(engfx_state::view_mat_camera->GetFrustum())) return false;
+		if(!bvol->visible(engfx_state::view_mat_camera->get_frustum())) return false;
 	} else {
 		Matrix4x4 view_proj = engfx_state::proj_matrix * engfx_state::view_matrix;
 		
@@ -218,59 +218,59 @@ bool Object::Render(unsigned long time) {
 			frustum[i] = FrustumPlane(view_proj, i);
 		}
 
-		if(!bvol->Visible(frustum)) return false;
+		if(!bvol->visible(frustum)) return false;
 	}
 	
 	
-	SetMatrix(XFORM_WORLD, world_mat);
-	mat.SetGLMaterial();
+	set_matrix(XFORM_WORLD, world_mat);
+	mat.set_glmaterial();
 	
-	//Render8TexUnits();
-	RenderHack(time);
+	//render8tex_units();
+	render_hack(time);
 
 	return true;
 }
 
-void Object::RenderHack(unsigned long time) {
-	//::SetMaterial(mat);
+void Object::render_hack(unsigned long time) {
+	//::set_material(mat);
 	int tex_unit = 0;
 
 	if(mat.tex[TEXTYPE_BUMPMAP]) {
-		SetupBumpLight(time);	// sets the light vector into texcoord[1]
+		setup_bump_light(time);	// sets the light vector into texcoord[1]
 
-		SetTexture(tex_unit, mat.tex[TEXTYPE_BUMPMAP]);
-		EnableTextureUnit(tex_unit);
-		SetTextureCoordIndex(tex_unit, 0);
-		SetTextureUnitColor(tex_unit, TOP_REPLACE, TARG_TEXTURE, TARG_TEXTURE);
-		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV);
+		set_texture(tex_unit, mat.tex[TEXTYPE_BUMPMAP]);
+		enable_texture_unit(tex_unit);
+		set_texture_coord_index(tex_unit, 0);
+		set_texture_unit_color(tex_unit, TOP_REPLACE, TARG_TEXTURE, TARG_TEXTURE);
+		set_texture_unit_alpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV);
 		tex_unit++;
 		
-		SelectTextureUnit(tex_unit);
-		SetTexture(tex_unit, GetNormalCube());
-		EnableTextureUnit(tex_unit);
-		SetTextureCoordIndex(tex_unit, 1);	// tex coord with the light vector (UVW)
-		SetTextureUnitColor(tex_unit, TOP_DOT3, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV);
+		select_texture_unit(tex_unit);
+		set_texture(tex_unit, get_normal_cube());
+		enable_texture_unit(tex_unit);
+		set_texture_coord_index(tex_unit, 1);	// tex coord with the light vector (UVW)
+		set_texture_unit_color(tex_unit, TOP_DOT3, TARG_TEXTURE, TARG_PREV);
+		set_texture_unit_alpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_PREV);
 		tex_unit++;
 	}
 	
 	if(mat.tex[TEXTYPE_DIFFUSE]) {
-		SetTexture(tex_unit, mat.tex[TEXTYPE_DIFFUSE]);
-		EnableTextureUnit(tex_unit);
-		SetTextureCoordIndex(tex_unit, 0);
-		SetTextureUnitColor(tex_unit, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+		set_texture(tex_unit, mat.tex[TEXTYPE_DIFFUSE]);
+		enable_texture_unit(tex_unit);
+		set_texture_coord_index(tex_unit, 0);
+		set_texture_unit_color(tex_unit, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+		set_texture_unit_alpha(tex_unit, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
 		//tex_id = mat.tex[TEXTYPE_DIFFUSE]->tex_id;
 		tex_unit++;
 	}
 	
 	if(mat.tex[TEXTYPE_ENVMAP]) {
-		SetTexture(tex_unit, mat.tex[TEXTYPE_ENVMAP]);
-		EnableTextureUnit(tex_unit);
-		SetTextureUnitColor(tex_unit, TOP_ADD, TARG_TEXTURE, TARG_PREV);
-		SetTextureUnitAlpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_TEXTURE);
+		set_texture(tex_unit, mat.tex[TEXTYPE_ENVMAP]);
+		enable_texture_unit(tex_unit);
+		set_texture_unit_color(tex_unit, TOP_ADD, TARG_TEXTURE, TARG_PREV);
+		set_texture_unit_alpha(tex_unit, TOP_REPLACE, TARG_PREV, TARG_TEXTURE);
 
-		if(mat.tex[TEXTYPE_ENVMAP]->GetType() == TEX_CUBE) {
+		if(mat.tex[TEXTYPE_ENVMAP]->get_type() == TEX_CUBE) {
 			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
 			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
 			glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
@@ -280,11 +280,11 @@ void Object::RenderHack(unsigned long time) {
 
 			Matrix4x4 inv_view = engfx_state::view_matrix;
 			inv_view[0][3] = inv_view[1][3] = inv_view[2][3] = 0.0;
-			inv_view.Transpose();
+			inv_view.transpose();
 
-			SetMatrix(XFORM_TEXTURE, inv_view, tex_unit);
+			set_matrix(XFORM_TEXTURE, inv_view, tex_unit);
 
-			SetTextureAddressing(tex_unit, TEXADDR_CLAMP, TEXADDR_CLAMP);
+			set_texture_addressing(tex_unit, TEXADDR_CLAMP, TEXADDR_CLAMP);
 		} else {
 			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -300,62 +300,62 @@ void Object::RenderHack(unsigned long time) {
 		tex_unit++;
 	}
 
-	::SetZWrite(render_params.zwrite);
-	SetShadingMode(mat.shading);
+	::set_zwrite(render_params.zwrite);
+	set_shading_mode(mat.shading);
 
 	if(render_params.handle_blending) {
 		if(mat.alpha < 1.0 - small_number) {
-			SetAlphaBlending(true);
-			SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+			set_alpha_blending(true);
+			set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
 		}
 	} else {
-		SetAlphaBlending(render_params.blending);
-		SetBlendFunc(render_params.src_blend, render_params.dest_blend);
+		set_alpha_blending(render_params.blending);
+		set_blend_func(render_params.src_blend, render_params.dest_blend);
 	}
 
-	if(mat.wireframe) ::SetWireframe(true);
+	if(mat.wireframe) ::set_wireframe(true);
 
-	if(render_params.gfxprog) ::SetGfxProgram(render_params.gfxprog);
+	if(render_params.gfxprog) ::set_gfx_program(render_params.gfxprog);
 
-	if(mat.two_sided) SetBackfaceCulling(false);
+	if(mat.two_sided) set_backface_culling(false);
 	
-	Draw(*mesh.GetVertexArray(), *mesh.GetIndexArray());
+	draw(*mesh.get_vertex_array(), *mesh.get_index_array());
 
-	if(mat.two_sided) SetBackfaceCulling(true);
+	if(mat.two_sided) set_backface_culling(true);
 
-	if(mat.wireframe) ::SetWireframe(false);
+	if(mat.wireframe) ::set_wireframe(false);
 	if((render_params.handle_blending && mat.alpha < 1.0 - small_number) || 
 			(!render_params.handle_blending && render_params.blending)) {
-		SetAlphaBlending(false);
+		set_alpha_blending(false);
 	}
-	if(render_params.zwrite) ::SetZWrite(true);
-	if(mat.shading == SHADING_FLAT) SetShadingMode(SHADING_GOURAUD);
+	if(render_params.zwrite) ::set_zwrite(true);
+	if(mat.shading == SHADING_FLAT) set_shading_mode(SHADING_GOURAUD);
 
 
 	for(int i=0; i<tex_unit; i++) {
-		DisableTextureUnit(i);
+		disable_texture_unit(i);
 		glDisable(GL_TEXTURE_GEN_S);
 		glDisable(GL_TEXTURE_GEN_T);
 		glDisable(GL_TEXTURE_GEN_R);
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
-		SetMatrix(XFORM_TEXTURE, Matrix4x4::identity_matrix, i);
-		SetTextureAddressing(tex_unit, TEXADDR_WRAP, TEXADDR_WRAP);
+		set_matrix(XFORM_TEXTURE, Matrix4x4::identity_matrix, i);
+		set_texture_addressing(tex_unit, TEXADDR_WRAP, TEXADDR_WRAP);
 	}
 
 	if(render_params.show_normals) {
-		DrawNormals();
+		draw_normals();
 	}
-	if(render_params.gfxprog) ::SetGfxProgram(0);
+	if(render_params.gfxprog) ::set_gfx_program(0);
 }
 
-void Object::DrawNormals() {
-	scalar_t normal_scale = mesh.GetVertexStats().avg_dist * render_params.show_normals_scale;
-	int vcount = mesh.GetVertexArray()->GetCount();
-	const Vertex *vptr = mesh.GetVertexArray()->GetData();
+void Object::draw_normals() {
+	scalar_t normal_scale = mesh.get_vertex_stats().avg_dist * render_params.show_normals_scale;
+	int vcount = mesh.get_vertex_array()->get_count();
+	const Vertex *vptr = mesh.get_vertex_array()->get_data();
 
-	SetLighting(false);
+	set_lighting(false);
 	
 	glBegin(GL_LINES);
 	glColor4f(1.0, 1.0, 1.0, 1.0);
@@ -369,20 +369,20 @@ void Object::DrawNormals() {
 	}
 	glEnd();
 
-	SetLighting(true);
+	set_lighting(true);
 }
 
-void Object::SetupBumpLight(unsigned long time) {
-	Vector3 lpos = engfx_state::bump_light->GetPRS(time).position;
+void Object::setup_bump_light(unsigned long time) {
+	Vector3 lpos = engfx_state::bump_light->get_prs(time).position;
 
-	Matrix4x4 inv_world = world_mat.Inverse();
-	lpos.Transform(inv_world);
+	Matrix4x4 inv_world = world_mat.inverse();
+	lpos.transform(inv_world);
 
-	VertexArray *va = mesh.GetModVertexArray();
-	int vcount = va->GetCount();
-	Vertex *varray = va->GetModData();
-	int tcount = mesh.GetTriangleArray()->GetCount();
-	const Triangle *tptr = mesh.GetTriangleArray()->GetData();
+	VertexArray *va = mesh.get_mod_vertex_array();
+	int vcount = va->get_count();
+	Vertex *varray = va->get_mod_data();
+	int tcount = mesh.get_triangle_array()->get_count();
+	const Triangle *tptr = mesh.get_triangle_array()->get_data();
 
 	
 	Vector3 *utan = new Vector3[vcount];
@@ -428,12 +428,12 @@ void Object::SetupBumpLight(unsigned long time) {
 
 		Vector3 normal = -vptr->normal;
 		Vector3 tan = utan[i];
-		tan = (tan - normal * DotProduct(normal, tan)).Normalized();
-		Vector3 bitan = CrossProduct(normal, tan);
+		tan = (tan - normal * dot_product(normal, tan)).normalized();
+		Vector3 bitan = cross_product(normal, tan);
 
 		Basis tbn(tan, bitan, normal);
-		lvec.Transform(tbn.CreateRotationMatrix());
-		//lvec.Normalize();
+		lvec.transform(tbn.create_rotation_matrix());
+		//lvec.normalize();
 		
 		vptr->tex[1].u = -lvec.z;
 		vptr->tex[1].v = -lvec.y;
@@ -446,8 +446,8 @@ void Object::SetupBumpLight(unsigned long time) {
 }
 
 
-void Object::UpdateBoundingVolume() {
-	VertexStatistics vstat = mesh.GetVertexStats();
+void Object::update_bounding_volume() {
+	VertexStatistics vstat = mesh.get_vertex_stats();
 
 	if(!bvol) {
 		bvol = new BoundingSphere(vstat.centroid, vstat.max_dist);
@@ -456,8 +456,8 @@ void Object::UpdateBoundingVolume() {
 		BoundingSphere *bsph;
 		
 		if((bsph = dynamic_cast<BoundingSphere*>(bvol))) {
-			bsph->SetPosition(vstat.centroid);
-			bsph->SetRadius(vstat.max_dist);
+			bsph->set_position(vstat.centroid);
+			bsph->set_radius(vstat.max_dist);
 			bvol_valid = true;
 		} else {
 			static int dbg;

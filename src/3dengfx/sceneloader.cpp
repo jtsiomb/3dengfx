@@ -53,18 +53,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define CONV_RGBA(c)		Color((c)[0], (c)[1], (c)[2], (c)[3])
 #define CONV_RGB(c)			Color((c)[0], (c)[1], (c)[2])
 
-static bool LoadObjects(Lib3dsFile *file, Scene *scene);
-static bool LoadLights(Lib3dsFile *file, Scene *scene);
-static bool LoadCameras(Lib3dsFile *file, Scene *scene);
-static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat);
-static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes type, XFormNode *node);
-static void ConstructHierarchy(Lib3dsFile *file, Scene *scene);
-//static void FixHierarchy(XFormNode *node);
+static bool load_objects(Lib3dsFile *file, Scene *scene);
+static bool load_lights(Lib3dsFile *file, Scene *scene);
+static bool load_cameras(Lib3dsFile *file, Scene *scene);
+static bool load_material(Lib3dsFile *file, const char *name, Material *mat);
+static bool load_keyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes type, XFormNode *node);
+static void construct_hierarchy(Lib3dsFile *file, Scene *scene);
+//static void fix_hierarchy(XFormNode *node);
 
-static const char *TexPath(const char *path);
-static std::vector<int> *GetFrames(Lib3dsObjectData *o);
-static std::vector<int> *GetFrames(Lib3dsLightData *lt);
-static std::vector<int> *GetFrames(Lib3dsCameraData *cam);
+static const char *tex_path(const char *path);
+static std::vector<int> *get_frames(Lib3dsObjectData *o);
+static std::vector<int> *get_frames(Lib3dsLightData *lt);
+static std::vector<int> *get_frames(Lib3dsCameraData *cam);
 
 #define TPATH_SIZE	256
 
@@ -76,7 +76,7 @@ static std::vector<int> *GetFrames(Lib3dsCameraData *cam);
 
 static char data_path[TPATH_SIZE];
 
-void SetSceneDataPath(const char *path) {
+void set_scene_data_path(const char *path) {
 	if(!path || !*path) {
 		data_path[0] = 0;
 	} else {
@@ -92,7 +92,7 @@ void SetSceneDataPath(const char *path) {
 }
 
 
-Scene *LoadScene(const char *fname) {
+Scene *load_scene(const char *fname) {
 
 	Lib3dsFile *file;
 	if(!(file = lib3ds_file_load(fname))) {
@@ -103,17 +103,17 @@ Scene *LoadScene(const char *fname) {
 
 	Scene *scene = new Scene;
 
-	LoadObjects(file, scene);
-	LoadLights(file, scene);
-	LoadCameras(file, scene);
+	load_objects(file, scene);
+	load_lights(file, scene);
+	load_cameras(file, scene);
 
-	ConstructHierarchy(file, scene);
+	construct_hierarchy(file, scene);
 
 	/*
-	std::list<Object*> *obj_list = scene->GetObjectsList();
+	std::list<Object*> *obj_list = scene->get_objects_list();
 	std::list<Object*>::iterator iter = obj_list->begin();
 	while(iter != obj_list->end()) {
-		FixHierarchy(*iter++);
+		fix_hierarchy(*iter++);
 	}
 	*/
 	
@@ -122,7 +122,7 @@ Scene *LoadScene(const char *fname) {
 	return scene;
 }
 
-static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
+static bool load_objects(Lib3dsFile *file, Scene *scene) {
 	// load meshes
 	unsigned long poly_count = 0;
 	Lib3dsMesh *m = file->meshes;
@@ -142,7 +142,7 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 		Vertex *vptr = varray;
 		for(int i=0; i<(int)m->points; i++) {
 			vptr->pos = CONV_VEC3(m->pointL[i].pos) - node_pos;
-			vptr->pos.Transform(node_rot);
+			vptr->pos.transform(node_rot);
 			
 			if(m->texels) {
 				vptr->tex[0] = vptr->tex[1] = CONV_TEXCOORD(m->texelL[i]);
@@ -155,15 +155,15 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 			poly_count += m->faces;
 			// -------- object ---------
 			Object *obj = new Object;
-			obj->SetDynamic(false);
+			obj->set_dynamic(false);
 
 			obj->name = m->name;
 
-			obj->SetPosition(node_pos - pivot);
-			obj->SetRotation(node_rot);
-			obj->SetScaling(node_scl);
+			obj->set_position(node_pos - pivot);
+			obj->set_rotation(node_rot);
+			obj->set_scaling(node_scl);
 
-			obj->SetPivot(pivot);
+			obj->set_pivot(pivot);
 		
 			// load the polygons
 			Triangle *tarray = new Triangle[m->faces];
@@ -177,22 +177,22 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 			}
 
 			// set the geometry data to the object
-			obj->GetTriMeshPtr()->SetData(varray, m->points, tarray, m->faces);
-			obj->GetTriMeshPtr()->CalculateNormals();
+			obj->get_tri_mesh_ptr()->set_data(varray, m->points, tarray, m->faces);
+			obj->get_tri_mesh_ptr()->calculate_normals();
 		
 			delete [] tarray;
 
 			// load the material
-			LoadMaterial(file, m->faceL[0].material, obj->GetMaterialPtr());
+			load_material(file, m->faceL[0].material, obj->get_material_ptr());
 
 			// load the keyframes (if any)
-			if(LoadKeyframes(file, m->name, LIB3DS_OBJECT_NODE, obj)) {
-				obj->SetPosition(Vector3());
-				obj->SetRotation(Quaternion());
-				obj->SetScaling(Vector3(1, 1, 1));
+			if(load_keyframes(file, m->name, LIB3DS_OBJECT_NODE, obj)) {
+				obj->set_position(Vector3());
+				obj->set_rotation(Quaternion());
+				obj->set_scaling(Vector3(1, 1, 1));
 			}
 
-			scene->AddObject(obj);
+			scene->add_object(obj);
 			
 		} else {
 			// --------- curve ------------
@@ -202,10 +202,10 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 			Vector3 offs = node_pos - pivot;
 			
 			for(int i=0; i<(int)m->points; i++) {
-				curve->AddControlPoint(varray[i].pos + offs);
+				curve->add_control_point(varray[i].pos + offs);
 			}
 
-			scene->AddCurve(curve);
+			scene->add_curve(curve);
 		}
 
 		delete [] varray;
@@ -214,11 +214,11 @@ static bool LoadObjects(Lib3dsFile *file, Scene *scene) {
 		m = m->next;
 	}
 	
-	scene->SetPolyCount(poly_count);
+	scene->set_poly_count(poly_count);
 	return true;
 }
 
-static bool IsPowTwo(unsigned long val) {
+static bool is_pow_two(unsigned long val) {
 	int count_ones = 0;
 	while(val && count_ones <= 1) {
 		if(val & 1) count_ones++;
@@ -227,7 +227,7 @@ static bool IsPowTwo(unsigned long val) {
 	return (count_ones == 1 && !(val & 1)) ? true : false;
 }
 
-static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
+static bool load_material(Lib3dsFile *file, const char *name, Material *mat) {
 	Lib3dsMaterial *m;
 	if(!name || !*name || !(m = lib3ds_file_material_by_name(file, name))) {
 		return false;
@@ -259,44 +259,44 @@ static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 	Texture *tex = 0, *detail = 0, *env = 0, *light = 0, *bump = 0;
 	const char *tpath;
 	
-	tpath = TexPath(m->texture1_map.name);
-	if(tpath && (tex = GetTexture(tpath))) {
-		mat->SetTexture(tex, TEXTYPE_DIFFUSE);
+	tpath = tex_path(m->texture1_map.name);
+	if(tpath && (tex = get_texture(tpath))) {
+		mat->set_texture(tex, TEXTYPE_DIFFUSE);
 	}
 
-	tpath = TexPath(m->texture2_map.name);
-	if(tpath && (detail = GetTexture(tpath))) {
-		mat->SetTexture(detail, TEXTYPE_DETAIL);
+	tpath = tex_path(m->texture2_map.name);
+	if(tpath && (detail = get_texture(tpath))) {
+		mat->set_texture(detail, TEXTYPE_DETAIL);
 	}
 
-	tpath = TexPath(m->reflection_map.name);
-	if(tpath && (env = GetTexture(tpath))) {
-		mat->SetTexture(env, TEXTYPE_ENVMAP);
+	tpath = tex_path(m->reflection_map.name);
+	if(tpath && (env = get_texture(tpath))) {
+		mat->set_texture(env, TEXTYPE_ENVMAP);
 		mat->env_intensity = m->reflection_map.percent;
 	}
 	
-	tpath = TexPath(m->bump_map.name);
-	if(tpath && (bump = GetTexture(tpath))) {
-		mat->SetTexture(bump, TEXTYPE_BUMPMAP);
+	tpath = tex_path(m->bump_map.name);
+	if(tpath && (bump = get_texture(tpath))) {
+		mat->set_texture(bump, TEXTYPE_BUMPMAP);
 	}
 
-	tpath = TexPath(m->self_illum_map.name);
-	if(tpath && (light = GetTexture(tpath))) {
-		mat->SetTexture(light, TEXTYPE_LIGHTMAP);
+	tpath = tex_path(m->self_illum_map.name);
+	if(tpath && (light = get_texture(tpath))) {
+		mat->set_texture(light, TEXTYPE_LIGHTMAP);
 	}
 
 	if(m->autorefl_map.flags & LIB3DS_USE_REFL_MAP) {
 		mat->env_intensity = m->reflection_map.percent;
 		
 		int cube_sz = m->autorefl_map.size;
-		if(!IsPowTwo(cube_sz)) {
+		if(!is_pow_two(cube_sz)) {
 			warning("Material \"%s\" specifies a non power of 2 cube map and won't render correctly!", m->name);
 		}
 		
 		Texture *cube_tex = new Texture(cube_sz, cube_sz, TEX_CUBE);
-		AddTexture(cube_tex);
+		add_texture(cube_tex);
 
-		mat->SetTexture(cube_tex, TEXTYPE_ENVMAP);
+		mat->set_texture(cube_tex, TEXTYPE_ENVMAP);
 		if(m->autorefl_map.flags & LIB3DS_READ_FIRST_FRAME_ONLY ||
 			m->autorefl_map.flags & 0x8 || m->autorefl_map.frame_step == 1000) {
 			mat->auto_refl = false;
@@ -308,7 +308,7 @@ static bool LoadMaterial(Lib3dsFile *file, const char *name, Material *mat) {
 	return true;
 }
 
-static const char *TexPath(const char *path) {
+static const char *tex_path(const char *path) {
 	if(!path || !*path) return 0;
 
 	static char texpath[TPATH_SIZE];
@@ -328,7 +328,7 @@ static const char *TexPath(const char *path) {
 }
 
 
-bool LoadLights(Lib3dsFile *file, Scene *scene) {
+bool load_lights(Lib3dsFile *file, Scene *scene) {
 	Lib3dsLight *lt = file->lights;
 	while(lt) {
 		Light *light;
@@ -336,19 +336,19 @@ bool LoadLights(Lib3dsFile *file, Scene *scene) {
 		if(!lt->spot_light) {
 			light = new PointLight;
 			light->name = lt->name;
-			light->SetPosition(CONV_VEC3(lt->position));
-			light->SetColor(CONV_RGB(lt->color));
-			light->SetIntensity(lt->multiplier);
+			light->set_position(CONV_VEC3(lt->position));
+			light->set_color(CONV_RGB(lt->color));
+			light->set_intensity(lt->multiplier);
 			//TODO: attenuation
 		} else {
 			light = 0;	// TODO: support spotlights at some point
 		}
 
 		if(light) {
-			if(LoadKeyframes(file, lt->name, LIB3DS_LIGHT_NODE, light)) {
-				light->SetPosition(Vector3());
+			if(load_keyframes(file, lt->name, LIB3DS_LIGHT_NODE, light)) {
+				light->set_position(Vector3());
 			}
-			scene->AddLight(light);
+			scene->add_light(light);
 		}
 
 		lt = lt->next;
@@ -357,25 +357,25 @@ bool LoadLights(Lib3dsFile *file, Scene *scene) {
 	return true;
 }
 
-bool LoadCameras(Lib3dsFile *file, Scene *scene) {
+bool load_cameras(Lib3dsFile *file, Scene *scene) {
 	Lib3dsCamera *c = file->cameras;
 	while(c) {
 		TargetCamera *cam = new TargetCamera;
 		cam->name = c->name;
-		cam->SetPosition(CONV_VEC3(c->position));
-		cam->SetTarget(CONV_VEC3(c->target));
-		//cam->SetClippingPlanes(c->near_range, c->far_range);
+		cam->set_position(CONV_VEC3(c->position));
+		cam->set_target(CONV_VEC3(c->target));
+		//cam->set_clipping_planes(c->near_range, c->far_range);
 		
-		//scalar_t angle = atan(1.0 / cam->GetAspect());
-		//cam->SetFOV(sin(angle) * DEG_TO_RAD(c->fov));
-		cam->SetFOV(DEG_TO_RAD(c->fov) / cam->GetAspect());
+		//scalar_t angle = atan(1.0 / cam->get_aspect());
+		//cam->set_fov(sin(angle) * DEG_TO_RAD(c->fov));
+		cam->set_fov(DEG_TO_RAD(c->fov) / cam->get_aspect());
 
-		if(LoadKeyframes(file, c->name, LIB3DS_CAMERA_NODE, cam)) {
-			cam->SetPosition(Vector3());
+		if(load_keyframes(file, c->name, LIB3DS_CAMERA_NODE, cam)) {
+			cam->set_position(Vector3());
 		}
-		//TODO: LoadKeyframes(file, ... hmmm where is the target node?
+		//TODO: load_keyframes(file, ... hmmm where is the target node?
 		
-		scene->AddCamera(cam);
+		scene->add_camera(cam);
 		c = c->next;
 	}
 	return true;
@@ -385,7 +385,7 @@ bool LoadCameras(Lib3dsFile *file, Scene *scene) {
 #define FPS	30
 #define FRAME_TO_TIME(x)	(((x) * 1000) / FPS)
 
-static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes type, XFormNode *node) {
+static bool load_keyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes type, XFormNode *node) {
 	if(!name || !*name) return false;
 	
 	Lib3dsNode *n = lib3ds_file_node_by_name(file, name, type);
@@ -395,7 +395,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 	case LIB3DS_OBJECT_NODE:
 		{
 			Lib3dsObjectData *obj = &n->data.object;
-			std::vector<int> *frames = GetFrames(obj);
+			std::vector<int> *frames = get_frames(obj);
 			if(!frames) return false;
 
 			for(int i=0; i<(int)frames->size(); i++) {
@@ -406,7 +406,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 				Vector3 scl = CONV_VEC3(obj->scl);
 
 				Keyframe key(PRS(pos, rot, scl), FRAME_TO_TIME((*frames)[i]));
-				node->AddKeyframe(key);
+				node->add_keyframe(key);
 			}
 		}
 		break;
@@ -414,7 +414,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 	case LIB3DS_LIGHT_NODE:
 		{
 			Lib3dsLightData *light = &n->data.light;
-			std::vector<int> *frames = GetFrames(light);
+			std::vector<int> *frames = get_frames(light);
 			if(!frames) return false;
 
 			for(int i=0; i<(int)frames->size(); i++) {
@@ -423,7 +423,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 				Vector3 pos = CONV_VEC3(light->pos);
 
 				Keyframe key(PRS(pos, Quaternion()), FRAME_TO_TIME((*frames)[i]));
-				node->AddKeyframe(key);
+				node->add_keyframe(key);
 			}
 		}
 		break;
@@ -431,7 +431,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 	case LIB3DS_CAMERA_NODE:
 		{
 			Lib3dsCameraData *cam = &n->data.camera;
-			std::vector<int> *frames = GetFrames(cam);
+			std::vector<int> *frames = get_frames(cam);
 			if(!frames) return false;
 
 			for(int i=0; i<(int)frames->size(); i++) {
@@ -440,7 +440,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 				Vector3 pos = CONV_VEC3(cam->pos);
 
 				Keyframe key(PRS(pos, Quaternion()), FRAME_TO_TIME((*frames)[i]));
-				node->AddKeyframe(key);
+				node->add_keyframe(key);
 			}
 		}
 		break;
@@ -449,7 +449,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 	case LIB3DS_TARGET_NODE:
 		{
 			Lib3dsCameraData *targ = &n->data.target;
-			std::vector<int> *frames = GetFrames(targ);
+			std::vector<int> *frames = get_frames(targ);
 			if(!frames) return false;
 
 			for(int i=0; i<(int)frames->size(); i++) {
@@ -458,7 +458,7 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 				Vector3 pos = CONV_VEC3(targ->pos);
 
 				Keyframe key(PRS(pos, Quaternion()), FRAME_TO_TIME((*frames)[i]));
-				node->AddKeyframe(key);
+				node->add_keyframe(key);
 			}
 
 		}
@@ -472,8 +472,8 @@ static bool LoadKeyframes(Lib3dsFile *file, const char *name, Lib3dsNodeTypes ty
 	return true;
 }
 
-static void ConstructHierarchy(Lib3dsFile *file, Scene *scene) {
-	std::list<Object*> *list = scene->GetObjectList();
+static void construct_hierarchy(Lib3dsFile *file, Scene *scene) {
+	std::list<Object*> *list = scene->get_object_list();
 	std::list<Object*>::iterator iter = list->begin();
 	while(iter != list->end()) {
 		Object *obj = *iter;
@@ -485,13 +485,13 @@ static void ConstructHierarchy(Lib3dsFile *file, Scene *scene) {
 
 		// get parent
 		if(n->parent) {
-			obj->parent = scene->GetNode(n->parent->name);
+			obj->parent = scene->get_node(n->parent->name);
 		}
 		
 		// get children
 		Lib3dsNode *child = n->childs;
 		while(child) {
-			XFormNode *child_node = scene->GetNode(child->name);
+			XFormNode *child_node = scene->get_node(child->name);
 			if(child_node) {
 				(*iter)->children.push_back(child_node);
 			}
@@ -504,29 +504,29 @@ static void ConstructHierarchy(Lib3dsFile *file, Scene *scene) {
 
 
 /*
-static void FixHierarchy(XFormNode *node) {
+static void fix_hierarchy(XFormNode *node) {
 	if(!node) return;
 
 	if(node->parent) {
 		XFormNode *parent = node->parent;
 		node->parent = 0;
-		PRS prs = node->GetPRS(XFORM_LOCAL_PRS);
+		PRS prs = node->get_prs(XFORM_LOCAL_PRS);
 		node->parent = parent;
 		
-		PRS pprs = node->parent->GetPRS(XFORM_LOCAL_PRS);
+		PRS pprs = node->parent->get_prs(XFORM_LOCAL_PRS);
 
-		Vector3 pos = prs.position.Transformed(pprs.rotation.Conjugate());
+		Vector3 pos = prs.position.transformed(pprs.rotation.conjugate());
 		
-		node->SetPosition(pos);
+		node->set_position(pos);
 	}
 
 	for(int i=0; i<(int)node->children.size(); i++) {
-		FixHierarchy(node->children[i]);
+		fix_hierarchy(node->children[i]);
 	}
 }
 */			
 
-static std::vector<int> *GetFrames(Lib3dsObjectData *o) {
+static std::vector<int> *get_frames(Lib3dsObjectData *o) {
 	static std::vector<int> frames;
 	
 	Lib3dsLin3Key *pos_key = o->pos_track.keyL;
@@ -560,7 +560,7 @@ static std::vector<int> *GetFrames(Lib3dsObjectData *o) {
 	return 0;
 }
 
-static std::vector<int> *GetFrames(Lib3dsLightData *lt) {
+static std::vector<int> *get_frames(Lib3dsLightData *lt) {
 	static std::vector<int> frames;
 	
 	Lib3dsLin3Key *pos_key = lt->pos_track.keyL;
@@ -574,7 +574,7 @@ static std::vector<int> *GetFrames(Lib3dsLightData *lt) {
 	return 0;
 }
 
-static std::vector<int> *GetFrames(Lib3dsCameraData *cam) {
+static std::vector<int> *get_frames(Lib3dsCameraData *cam) {
 	static std::vector<int> frames;
 	
 	Lib3dsLin3Key *pos_key = cam->pos_track.keyL;

@@ -28,17 +28,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "common/err_msg.h"
 
 
-static bool StrToColor(const char *str, Color *col);
+static bool str_to_color(const char *str, Color *col);
 
 
-void dsys::RadialBlur(Texture *tex, float ammount, const Vector2 &origin, bool additive) {
+void dsys::radial_blur(Texture *tex, float ammount, const Vector2 &origin, bool additive) {
 	Vector2 c1(0.0f, 0.0f), c2(1.0f, 1.0f);
 
-	SetAlphaBlending(true);
+	set_alpha_blending(true);
 	if(additive) {
-		SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE);
+		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE);
 	} else {
-		SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
 	}
 	
 	ammount += 1.0f;
@@ -56,14 +56,14 @@ void dsys::RadialBlur(Texture *tex, float ammount, const Vector2 &origin, bool a
 		v2 += origin;
 		
 		float alpha = (float)((quad_count-1) - i) / (float)quad_count;
-		dsys::Overlay(tex, v1, v2, Color(1.0f, 1.0f, 1.0f, alpha), false);
+		dsys::overlay(tex, v1, v2, Color(1.0f, 1.0f, 1.0f, alpha), false);
 		scale += dscale;
 	}
 
-	SetAlphaBlending(false);
+	set_alpha_blending(false);
 }
 
-void dsys::DirBlur(Texture *tex, float ammount, int dir) {
+void dsys::dir_blur(Texture *tex, float ammount, int dir) {
 	Vector2 c1(0.0f, 1.0f), c2(1.0f, 0.0f);
 	
 	ammount *= 0.5f;
@@ -74,8 +74,8 @@ void dsys::DirBlur(Texture *tex, float ammount, int dir) {
 		Vector2 off_vec = dir == BLUR_DIR_X ? Vector2(offs, 0) : Vector2(0, offs);
 
 		float alpha = 1.0f - offs / ammount;
-		dsys::Overlay(tex, c1 + off_vec, c2 + off_vec, Color(1.0f, 1.0f, 1.0f, alpha));
-		//dsys::Overlay(tex, c1 - off_vec, c2 - off_vec, Color(1.0f, 1.0f, 1.0f, alpha));
+		dsys::overlay(tex, c1 + off_vec, c2 + off_vec, Color(1.0f, 1.0f, 1.0f, alpha));
+		//dsys::overlay(tex, c1 - off_vec, c2 - off_vec, Color(1.0f, 1.0f, 1.0f, alpha));
 		offs += offs_inc;
 	}
 }
@@ -84,14 +84,14 @@ void dsys::DirBlur(Texture *tex, float ammount, int dir) {
 static Vector2 *blur_pos;
 static int pos_count;
 
-void dsys::Blur(Texture *tex, float ammount, bool additive) {
+void dsys::blur(Texture *tex, float ammount, bool additive) {
 	//additive = true;
 
-	SetAlphaBlending(true);
+	set_alpha_blending(true);
 	if(additive) {
-		SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE);
+		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE);
 	} else {
-		SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
 	}
 
 	int quad_count = (int)(ammount * 700.0f);
@@ -108,16 +108,16 @@ void dsys::Blur(Texture *tex, float ammount, bool additive) {
 	}
 	
 	for(int i=0; i<quad_count; i++) {
-		float dist = blur_pos[i].LengthSq();
+		float dist = blur_pos[i].length_sq();
 		float alpha = 1.0f / dist;
-		dsys::Overlay(tex, Vector2(0, 0) + blur_pos[i], Vector2(1, 1) + blur_pos[i], Color(1.0f, 1.0f, 1.0f, alpha), false);
+		dsys::overlay(tex, Vector2(0, 0) + blur_pos[i], Vector2(1, 1) + blur_pos[i], Color(1.0f, 1.0f, 1.0f, alpha), false);
 	}
 
-	SetAlphaBlending(false);
+	set_alpha_blending(false);
 }
 */
 
-void dsys::Overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2, const Color &color, GfxProg *pprog, bool handle_blending) {
+void dsys::overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2, const Color &color, GfxProg *pprog, bool handle_blending) {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -127,26 +127,26 @@ void dsys::Overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2,
 	glLoadIdentity();
 	glOrtho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
 
-	SetLighting(false);
-	SetZBuffering(false);
-	SetBackfaceCulling(false);
+	set_lighting(false);
+	set_zbuffering(false);
+	set_backface_culling(false);
 	if(handle_blending) {
-		SetAlphaBlending(true);
-		SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+		set_alpha_blending(true);
+		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
 	}
 
 	if(tex) {
-		EnableTextureUnit(0);
-		DisableTextureUnit(1);
-		SetTextureUnitColor(0, TOP_REPLACE, TARG_TEXTURE, TARG_COLOR);
-		SetTextureUnitAlpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_COLOR);
-		SetTextureCoordIndex(0, 0);
-		SetTextureAddressing(0, TEXADDR_CLAMP, TEXADDR_CLAMP);
-		SetTexture(0, tex);
+		enable_texture_unit(0);
+		disable_texture_unit(1);
+		set_texture_unit_color(0, TOP_REPLACE, TARG_TEXTURE, TARG_COLOR);
+		set_texture_unit_alpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_COLOR);
+		set_texture_coord_index(0, 0);
+		set_texture_addressing(0, TEXADDR_CLAMP, TEXADDR_CLAMP);
+		set_texture(0, tex);
 	}
 
 	if(pprog) {
-		SetGfxProgram(pprog);
+		set_gfx_program(pprog);
 	}
 	
 	glBegin(GL_QUADS);
@@ -162,31 +162,31 @@ void dsys::Overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2,
 	glEnd();
 
 	if(pprog) {
-		SetGfxProgram(0);
+		set_gfx_program(0);
 	}
 	
 	if(tex) {
-		SetTextureAddressing(0, TEXADDR_WRAP, TEXADDR_WRAP);
-		DisableTextureUnit(0);
+		set_texture_addressing(0, TEXADDR_WRAP, TEXADDR_WRAP);
+		disable_texture_unit(0);
 	}
-	if(handle_blending) SetAlphaBlending(false);
-	SetBackfaceCulling(true);
-	SetZBuffering(true);
-	SetLighting(true);
+	if(handle_blending) set_alpha_blending(false);
+	set_backface_culling(true);
+	set_zbuffering(true);
+	set_lighting(true);
 
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 }
 
-void dsys::Negative(const Vector2 &corner1, const Vector2 &corner2) {
-	SetAlphaBlending(true);
-	SetBlendFunc(BLEND_ONE_MINUS_DST_COLOR, BLEND_ZERO);
-	dsys::Overlay(0, corner1, corner2, Color(1.0f, 1.0f, 1.0f, 1.0f), 0, false);
-	SetAlphaBlending(false);
+void dsys::negative(const Vector2 &corner1, const Vector2 &corner2) {
+	set_alpha_blending(true);
+	set_blend_func(BLEND_ONE_MINUS_DST_COLOR, BLEND_ZERO);
+	dsys::overlay(0, corner1, corner2, Color(1.0f, 1.0f, 1.0f, 1.0f), 0, false);
+	set_alpha_blending(false);
 }
 
-void dsys::Flash(unsigned long time, unsigned long when, unsigned long dur, const Color &col) {
+void dsys::flash(unsigned long time, unsigned long when, unsigned long dur, const Color &col) {
 	long start = when - dur/2;
 	long end = when + dur/2;
 	
@@ -198,7 +198,7 @@ void dsys::Flash(unsigned long time, unsigned long when, unsigned long dur, cons
 		
 		scalar_t alpha = cos(pi * (t - wt) / half_dt);
 
-		dsys::Overlay(0, Vector3(0,0), Vector3(1,1), Color(col.r, col.g, col.b, alpha));
+		dsys::overlay(0, Vector3(0,0), Vector3(1,1), Color(col.r, col.g, col.b, alpha));
 	}
 }
 
@@ -211,19 +211,19 @@ using namespace dsys;
 
 static list<ImageFx*> fx_list;
 
-void dsys::AddImageFx(ImageFx *fx) {
+void dsys::add_image_fx(ImageFx *fx) {
 	fx_list.push_back(fx);
 }
 
-void dsys::RemoveImageFx(ImageFx *fx) {
+void dsys::remove_image_fx(ImageFx *fx) {
 	fx_list.erase(find(fx_list.begin(), fx_list.end(), fx));
 }
 
-void dsys::ApplyImageFx(unsigned long time) {
+void dsys::apply_image_fx(unsigned long time) {
 	list<ImageFx*>::iterator iter = fx_list.begin();
 
 	while(iter != fx_list.end()) {
-		(*iter++)->Apply(time);
+		(*iter++)->apply(time);
 	}
 }
 
@@ -235,7 +235,9 @@ ImageFx::ImageFx() {
 	duration = 0;
 }
 
-bool ImageFx::ParseScriptArgs(const char **args) {
+ImageFx::~ImageFx() {}
+
+bool ImageFx::parse_script_args(const char **args) {
 	long t, d;
 
 	if(!args[0] || (t = str_to_time(args[0])) == -1) {
@@ -251,51 +253,56 @@ bool ImageFx::ParseScriptArgs(const char **args) {
 	return true;
 }
 
-void ImageFx::SetTime(unsigned long time) {
+void ImageFx::set_time(unsigned long time) {
 	this->time = time;
 }
 
-void ImageFx::SetDuration(unsigned long dur) {
+void ImageFx::set_duration(unsigned long dur) {
 	duration = dur;
 }
 
 
 // ------------- Negative (inverse video) effect ---------------
 
-void FxNegative::Apply(unsigned long time) {
+FxNegative::~FxNegative() {}
+
+void FxNegative::apply(unsigned long time) {
 	if(time < this->time || time > this->time + duration) return;
 
-	Negative();
+	negative();
 }
 
 // ------------ Screen Flash -------------
+
+FxFlash::~FxFlash() {}
 
 FxFlash::FxFlash() {
 	color = Color(1.0, 1.0, 1.0);
 }
 
-bool FxFlash::ParseScriptArgs(const char **args) {
-	if(!ImageFx::ParseScriptArgs(args)) {
+bool FxFlash::parse_script_args(const char **args) {
+	if(!ImageFx::parse_script_args(args)) {
 		return false;
 	}
 
 	if(args[2]) {
-		if(!StrToColor(args[2], &color)) return false;
+		if(!str_to_color(args[2], &color)) return false;
 	}
 
 	return true;
 }
 
-void FxFlash::SetColor(const Color &col) {
+void FxFlash::set_color(const Color &col) {
 	color = col;
 }
 
-void FxFlash::Apply(unsigned long time) {
-	Flash(time, this->time, duration, color);
+void FxFlash::apply(unsigned long time) {
+	flash(time, this->time, duration, color);
 }
 
 
 // ------------ Image Overlay ------------
+
 
 FxOverlay::FxOverlay() {
 	tex = 0;
@@ -306,8 +313,8 @@ FxOverlay::~FxOverlay() {
 	delete shader;
 }
 
-bool FxOverlay::ParseScriptArgs(const char **args) {
-	if(!ImageFx::ParseScriptArgs(args)) {
+bool FxOverlay::parse_script_args(const char **args) {
+	if(!ImageFx::parse_script_args(args)) {
 		return false;
 	}
 	if(!args[2]) return false;
@@ -318,56 +325,56 @@ bool FxOverlay::ParseScriptArgs(const char **args) {
 		if(reg > 3) return false;
 		tex = dsys::tex[reg];
 	} else {	// or a texture from file?
-		if(!(tex = GetTexture(args[2]))) {
+		if(!(tex = get_texture(args[2]))) {
 			return false;
 		}
 	}
 
 	// check if a shader is specified
 	if(args[3]) {
-		Shader sdr = GetShader(args[3], PROG_PIXEL);
+		Shader sdr = get_shader(args[3], PROG_PIXEL);
 		if(!sdr) {
 			error("failed loading shader %s", args[3]);
 			return false;
 		}
 
 		shader = new GfxProg(0, sdr);
-		shader->Link();
+		shader->link();
 	}
 	return true;
 }
 
-void FxOverlay::SetTexture(Texture *tex) {
+void FxOverlay::set_texture(Texture *tex) {
 	this->tex = tex;
 }
 
-void FxOverlay::SetShader(GfxProg *sdr) {
+void FxOverlay::set_shader(GfxProg *sdr) {
 	shader = sdr;
 }
 
-void FxOverlay::Apply(unsigned long time) {
+void FxOverlay::apply(unsigned long time) {
 	if(time >= this->time && time < this->time + duration) {
 		if(shader) {
 			float fsec = (float)(time - this->time) / 1000.0;
-			shader->SetParameter("time", fsec);
+			shader->set_parameter("time", fsec);
 
 			float t = fsec / ((float)duration / 1000.0f);
-			shader->SetParameter("t", t);
+			shader->set_parameter("t", t);
 
 			float ease = (t < 0.25 || t >= 0.75) ? fabs(sin(t * 2.0 * pi)) : 1.0;
-			shader->SetParameter("ease", ease);
+			shader->set_parameter("ease", ease);
 
 			float ease_sin = sin(t * pi);
-			shader->SetParameter("ease_sin", ease_sin);
+			shader->set_parameter("ease_sin", ease_sin);
 		}
-		Overlay(tex, Vector2(0, 0), Vector2(1, 1), Color(1, 1, 1), shader);
+		overlay(tex, Vector2(0, 0), Vector2(1, 1), Color(1, 1, 1), shader);
 	}
 }
 
 
 
 // just a little helper function to get a color out of an <r,g,b> string
-static bool StrToColor(const char *str, Color *col) {
+static bool str_to_color(const char *str, Color *col) {
 	// get red
 	if(*str++ != '<') return false;
 	if(!isdigit(*str) && *str != '.') return false;

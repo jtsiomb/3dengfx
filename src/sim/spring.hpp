@@ -36,13 +36,13 @@ public:
 
 	SpringPoint(const Vector3 &pos = Vector3(), bool fixed = false);
 
-	virtual void SetFixed(bool fixed);
-	virtual bool IsFixed() const;
+	virtual void set_fixed(bool fixed);
+	virtual bool is_fixed() const;
 
-	virtual void SetWeight(scalar_t weight);
-	virtual scalar_t GetWeight() const;
+	virtual void set_weight(scalar_t weight);
+	virtual scalar_t get_weight() const;
 
-	virtual void Calc();
+	virtual void calc();
 };
 
 
@@ -55,11 +55,11 @@ public:
 	Spring();
 	Spring(SpringConn *end1, SpringConn *end2, scalar_t k, scalar_t len);
 
-	void SetEnds(SpringConn *end1, SpringConn *end2);
-	void SetStiffness(scalar_t stiffness);
-	void SetLength(scalar_t len);
+	void set_ends(SpringConn *end1, SpringConn *end2);
+	void set_stiffness(scalar_t stiffness);
+	void set_length(scalar_t len);
 
-	Vector3 CalcForce(int end) const;
+	Vector3 calc_force(int end) const;
 };
 
 #endif	// _SPRING_HPP_

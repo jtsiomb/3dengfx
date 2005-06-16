@@ -23,6 +23,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 enum TimelineMode {TIME_WRAP, TIME_CLAMP, TIME_FREE, TIME_BOUNCE};
 
-unsigned long GetTimelineTime(unsigned long time, unsigned long start, unsigned long end, TimelineMode mode);
+unsigned long get_timeline_time(unsigned long time, unsigned long start, unsigned long end, TimelineMode mode);
 
 #endif	// _TIMELINE_HPP_

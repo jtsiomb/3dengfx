@@ -40,18 +40,18 @@ public:
 	Light();
 	virtual ~Light();
 	
-	virtual void SetColor(const Color &c, unsigned short color_flags = 0);
-	virtual void SetColor(const Color &amb, const Color &diff, const Color &spec);
-	virtual Color GetColor(unsigned short which) const;
+	virtual void set_color(const Color &c, unsigned short color_flags = 0);
+	virtual void set_color(const Color &amb, const Color &diff, const Color &spec);
+	virtual Color get_color(unsigned short which) const;
 	
-	virtual void SetIntensity(scalar_t intensity);
-	virtual scalar_t GetIntensity() const;
+	virtual void set_intensity(scalar_t intensity);
+	virtual scalar_t get_intensity() const;
 	
-	virtual void SetAttenuation(scalar_t att0, scalar_t att1, scalar_t att2);
-	virtual scalar_t GetAttenuation(int which) const;
-	virtual Vector3 GetAttenuationVector() const;
+	virtual void set_attenuation(scalar_t att0, scalar_t att1, scalar_t att2);
+	virtual scalar_t get_attenuation(int which) const;
+	virtual Vector3 get_attenuation_vector() const;
 	
-	virtual void SetGLLight(int n, unsigned long time = XFORM_LOCAL_PRS) const = 0;
+	virtual void set_gllight(int n, unsigned long time = XFORM_LOCAL_PRS) const = 0;
 };
 
 
@@ -60,7 +60,7 @@ public:
 	PointLight(const Vector3 &pos=Vector3(0,0,0), const Color &col=Color(1.0f, 1.0f, 1.0f));
 	virtual ~PointLight();
 
-	void SetGLLight(int n, unsigned long time = XFORM_LOCAL_PRS) const;
+	void set_gllight(int n, unsigned long time = XFORM_LOCAL_PRS) const;
 };
 	
 

@@ -40,7 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * AddVertex
  * adds a vertex and returns its index
  */
-unsigned long ScalarField::AddVertex(const Vertex &vert)
+unsigned long ScalarField::add_vertex(const Vertex &vert)
 {
 	verts.push_back(vert);
 	return verts.size() - 1;
@@ -50,7 +50,7 @@ unsigned long ScalarField::AddVertex(const Vertex &vert)
  * Clear
  * clears std::vector's that hold mesh data and resets edges table
  */
-void ScalarField::Clear()
+void ScalarField::clear()
 {
 	verts.erase(verts.begin(), verts.end());
 	tris.erase(tris.begin(), tris.end());
@@ -66,9 +66,9 @@ void ScalarField::Clear()
  * EvaluateAll
  * Evaluates all values with the external Evaluate function (if specified)
  */
-void ScalarField::EvaluateAll(scalar_t t)
+void ScalarField::evaluate_all(scalar_t t)
 {
-	if (! Evaluate)
+	if (!evaluate)
 	{
 		return;
 	}
@@ -79,7 +79,7 @@ void ScalarField::EvaluateAll(scalar_t t)
 		{
 			for (unsigned long x=0; x<dimensions; x++)
 			{
-				SetValue(x, y, z, Evaluate(GetPosition(x, y, z), t));
+				set_value(x, y, z, evaluate(get_position(x, y, z), t));
 			}
 		}
 	}
@@ -89,165 +89,165 @@ void ScalarField::EvaluateAll(scalar_t t)
 /*
  * ProcesssCell
  */
-void ScalarField::ProcessCell(int x, int y, int z, scalar_t isolevel)
+void ScalarField::process_cell(int x, int y, int z, scalar_t isolevel)
 {
 	unsigned char cube_index = 0;
-	if (GetValue(x, y, z, 0) < isolevel) cube_index |= 1;
-	if (GetValue(x, y, z, 1) < isolevel) cube_index |= 2;
-	if (GetValue(x, y, z, 2) < isolevel) cube_index |= 4;
-	if (GetValue(x, y, z, 3) < isolevel) cube_index |= 8;
-	if (GetValue(x, y, z, 4) < isolevel) cube_index |= 16;
-	if (GetValue(x, y, z, 5) < isolevel) cube_index |= 32;
-	if (GetValue(x, y, z, 6) < isolevel) cube_index |= 64;
-	if (GetValue(x, y, z, 7) < isolevel) cube_index |= 128;
+	if (get_value(x, y, z, 0) < isolevel) cube_index |= 1;
+	if (get_value(x, y, z, 1) < isolevel) cube_index |= 2;
+	if (get_value(x, y, z, 2) < isolevel) cube_index |= 4;
+	if (get_value(x, y, z, 3) < isolevel) cube_index |= 8;
+	if (get_value(x, y, z, 4) < isolevel) cube_index |= 16;
+	if (get_value(x, y, z, 5) < isolevel) cube_index |= 32;
+	if (get_value(x, y, z, 6) < isolevel) cube_index |= 64;
+	if (get_value(x, y, z, 7) < isolevel) cube_index |= 128;
 
 	int edge_index = cube_edge_flags[cube_index];
 
 	scalar_t p , val1, val2;
 	Vector3 vec1, vec2;
 
-	if ( (edge_index & 1) && (GetEdge(x, y, z, 0) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 1) && (get_edge(x, y, z, 0) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 0);
-		val2 = GetValue(x, y, z, 1);
+		val1 = get_value(x, y, z, 0);
+		val2 = get_value(x, y, z, 1);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 0);
-		vec2 = GetPosition(x, y, z, 1);
+		vec1 = get_position(x, y, z, 0);
+		vec2 = get_position(x, y, z, 1);
 
-		SetEdge(x, y, z, 0, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 0, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 2) && (GetEdge(x, y, z, 1) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 2) && (get_edge(x, y, z, 1) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 1);
-		val2 = GetValue(x, y, z, 2);
+		val1 = get_value(x, y, z, 1);
+		val2 = get_value(x, y, z, 2);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 1);
-		vec2 = GetPosition(x, y, z, 2);
+		vec1 = get_position(x, y, z, 1);
+		vec2 = get_position(x, y, z, 2);
 
-		SetEdge(x, y, z, 1, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 1, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 4) && (GetEdge(x, y, z, 2) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 4) && (get_edge(x, y, z, 2) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 2);
-		val2 = GetValue(x, y, z, 3);
+		val1 = get_value(x, y, z, 2);
+		val2 = get_value(x, y, z, 3);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 2);
-		vec2 = GetPosition(x, y, z, 3);
+		vec1 = get_position(x, y, z, 2);
+		vec2 = get_position(x, y, z, 3);
 
-		SetEdge(x, y, z, 2, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 2, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 8) && (GetEdge(x, y, z, 3) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 8) && (get_edge(x, y, z, 3) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 3);
-		val2 = GetValue(x, y, z, 0);
+		val1 = get_value(x, y, z, 3);
+		val2 = get_value(x, y, z, 0);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 0);
-		vec2 = GetPosition(x, y, z, 1);
+		vec1 = get_position(x, y, z, 0);
+		vec2 = get_position(x, y, z, 1);
 
-		SetEdge(x, y, z, 3, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 3, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 16) && (GetEdge(x, y, z, 4) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 16) && (get_edge(x, y, z, 4) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 4);
-		val2 = GetValue(x, y, z, 5);
+		val1 = get_value(x, y, z, 4);
+		val2 = get_value(x, y, z, 5);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 4);
-		vec2 = GetPosition(x, y, z, 5);
+		vec1 = get_position(x, y, z, 4);
+		vec2 = get_position(x, y, z, 5);
 
-		SetEdge(x, y, z, 4, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 4, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 32) && (GetEdge(x, y, z, 5) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 32) && (get_edge(x, y, z, 5) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 5);
-		val2 = GetValue(x, y, z, 6);
+		val1 = get_value(x, y, z, 5);
+		val2 = get_value(x, y, z, 6);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 5);
-		vec2 = GetPosition(x, y, z, 6);
+		vec1 = get_position(x, y, z, 5);
+		vec2 = get_position(x, y, z, 6);
 
-		SetEdge(x, y, z, 5, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 5, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 64) && (GetEdge(x, y, z, 6) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 64) && (get_edge(x, y, z, 6) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 6);
-		val2 = GetValue(x, y, z, 7);
+		val1 = get_value(x, y, z, 6);
+		val2 = get_value(x, y, z, 7);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 6);
-		vec2 = GetPosition(x, y, z, 7);
+		vec1 = get_position(x, y, z, 6);
+		vec2 = get_position(x, y, z, 7);
 
-		SetEdge(x, y, z, 6, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 6, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 128) && (GetEdge(x, y, z, 7) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 128) && (get_edge(x, y, z, 7) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 7);
-		val2 = GetValue(x, y, z, 4);
+		val1 = get_value(x, y, z, 7);
+		val2 = get_value(x, y, z, 4);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 7);
-		vec2 = GetPosition(x, y, z, 4);
+		vec1 = get_position(x, y, z, 7);
+		vec2 = get_position(x, y, z, 4);
 
-		SetEdge(x, y, z, 7, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 7, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 256) && (GetEdge(x, y, z, 8) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 256) && (get_edge(x, y, z, 8) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 0);
-		val2 = GetValue(x, y, z, 4);
+		val1 = get_value(x, y, z, 0);
+		val2 = get_value(x, y, z, 4);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 0);
-		vec2 = GetPosition(x, y, z, 4);
+		vec1 = get_position(x, y, z, 0);
+		vec2 = get_position(x, y, z, 4);
 
-		SetEdge(x, y, z, 8, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 8, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 512) && (GetEdge(x, y, z, 9) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 512) && (get_edge(x, y, z, 9) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 1);
-		val2 = GetValue(x, y, z, 5);
+		val1 = get_value(x, y, z, 1);
+		val2 = get_value(x, y, z, 5);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 1);
-		vec2 = GetPosition(x, y, z, 5);
+		vec1 = get_position(x, y, z, 1);
+		vec2 = get_position(x, y, z, 5);
 
-		SetEdge(x, y, z, 9, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 9, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 1024) && (GetEdge(x, y, z, 10) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 1024) && (get_edge(x, y, z, 10) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 2);
-		val2 = GetValue(x, y, z, 6);
+		val1 = get_value(x, y, z, 2);
+		val2 = get_value(x, y, z, 6);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 2);
-		vec2 = GetPosition(x, y, z, 6);
+		vec1 = get_position(x, y, z, 2);
+		vec2 = get_position(x, y, z, 6);
 
-		SetEdge(x, y, z, 10, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 10, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
-	if ( (edge_index & 2048) && (GetEdge(x, y, z, 11) == EDGE_NOT_ASSOCIATED) )
+	if ( (edge_index & 2048) && (get_edge(x, y, z, 11) == EDGE_NOT_ASSOCIATED) )
 	{
-		val1 = GetValue(x, y, z, 3);
-		val2 = GetValue(x, y, z, 7);
+		val1 = get_value(x, y, z, 3);
+		val2 = get_value(x, y, z, 7);
 		p = (isolevel - val1) / (val2 - val1);
 		
-		vec1 = GetPosition(x, y, z, 3);
-		vec2 = GetPosition(x, y, z, 7);
+		vec1 = get_position(x, y, z, 3);
+		vec2 = get_position(x, y, z, 7);
 
-		SetEdge(x, y, z, 11, AddVertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
+		set_edge(x, y, z, 11, add_vertex( Vertex( vec1 + p * (vec2 - vec1) ) ) );
 	}
 
 	// Add triangles
@@ -255,41 +255,41 @@ void ScalarField::ProcessCell(int x, int y, int z, scalar_t isolevel)
 
 	if (tri_table[cube_index][0] != -1)
 	{
-		p1 = GetEdge(x, y, z, tri_table[cube_index][0]);
-		p2 = GetEdge(x, y, z, tri_table[cube_index][1]);
-		p3 = GetEdge(x, y, z, tri_table[cube_index][2]);
+		p1 = get_edge(x, y, z, tri_table[cube_index][0]);
+		p2 = get_edge(x, y, z, tri_table[cube_index][1]);
+		p3 = get_edge(x, y, z, tri_table[cube_index][2]);
 		tris.push_back(Triangle(p2, p1, p3));
 	}
 
 	if (tri_table[cube_index][3] != -1)
 	{
-		p1 = GetEdge(x, y, z, tri_table[cube_index][3]);
-		p2 = GetEdge(x, y, z, tri_table[cube_index][4]);
-		p3 = GetEdge(x, y, z, tri_table[cube_index][5]);
+		p1 = get_edge(x, y, z, tri_table[cube_index][3]);
+		p2 = get_edge(x, y, z, tri_table[cube_index][4]);
+		p3 = get_edge(x, y, z, tri_table[cube_index][5]);
 		tris.push_back(Triangle(p2, p1, p3));
 	}
 
 	if (tri_table[cube_index][6] != -1)
 	{
-		p1 = GetEdge(x, y, z, tri_table[cube_index][6]);
-		p2 = GetEdge(x, y, z, tri_table[cube_index][7]);
-		p3 = GetEdge(x, y, z, tri_table[cube_index][8]);
+		p1 = get_edge(x, y, z, tri_table[cube_index][6]);
+		p2 = get_edge(x, y, z, tri_table[cube_index][7]);
+		p3 = get_edge(x, y, z, tri_table[cube_index][8]);
 		tris.push_back(Triangle(p2, p1, p3));
 	}
 
 	if (tri_table[cube_index][9] != -1)
 	{
-		p1 = GetEdge(x, y, z, tri_table[cube_index][9]);
-		p2 = GetEdge(x, y, z, tri_table[cube_index][10]);
-		p3 = GetEdge(x, y, z, tri_table[cube_index][11]);
+		p1 = get_edge(x, y, z, tri_table[cube_index][9]);
+		p2 = get_edge(x, y, z, tri_table[cube_index][10]);
+		p3 = get_edge(x, y, z, tri_table[cube_index][11]);
 		tris.push_back(Triangle(p2, p1, p3));
 	}
 
 	if (tri_table[cube_index][12] != -1)
 	{
-		p1 = GetEdge(x, y, z, tri_table[cube_index][12]);
-		p2 = GetEdge(x, y, z, tri_table[cube_index][13]);
-		p3 = GetEdge(x, y, z, tri_table[cube_index][14]);
+		p1 = get_edge(x, y, z, tri_table[cube_index][12]);
+		p2 = get_edge(x, y, z, tri_table[cube_index][13]);
+		p3 = get_edge(x, y, z, tri_table[cube_index][14]);
 		tris.push_back(Triangle(p2, p1, p3));
 	}
 }
@@ -298,7 +298,7 @@ void ScalarField::ProcessCell(int x, int y, int z, scalar_t isolevel)
  * GetValueIndex
  * returns the index to the values array for the specified coords
  */
-unsigned long ScalarField::GetValueIndex(int x, int y, int z)
+unsigned long ScalarField::get_value_index(int x, int y, int z)
 {
 	return x + y * dimensions + z * dimensions * dimensions;
 }
@@ -315,8 +315,8 @@ ScalarField::ScalarField()
 	edges_x = edges_y = edges_z = 0;
 	dimensions = 0;
 	from = to = cell_size =  Vector3(0, 0, 0);
-	Evaluate = 0;
-	GetNormal = 0;
+	evaluate = 0;
+	get_normal = 0;
 }
 
 ScalarField::ScalarField(unsigned long dimensions, const Vector3 &from, const Vector3 &to)
@@ -329,10 +329,10 @@ ScalarField::ScalarField(unsigned long dimensions, const Vector3 &from, const Ve
 	values = 0;
 	edges_x = edges_y = edges_z = 0;
 
-	Evaluate = 0;
-	GetNormal = 0;
+	evaluate = 0;
+	get_normal = 0;
 
-	SetDimensions(dimensions);
+	set_dimensions(dimensions);
 }
 
 ScalarField::~ScalarField()
@@ -347,7 +347,7 @@ ScalarField::~ScalarField()
 		delete [] edges_z;
 }
 
-void ScalarField::SetDimensions(unsigned long dimensions)
+void ScalarField::set_dimensions(unsigned long dimensions)
 {
 	this->dimensions = dimensions;
 	if (values)
@@ -366,52 +366,52 @@ void ScalarField::SetDimensions(unsigned long dimensions)
 	edges_y = new unsigned long [edges_per_dim];
 	edges_z = new unsigned long [edges_per_dim];
 
-	Clear();
+	clear();
 }
 
 // Get / Set
-void ScalarField::SetValue(int x, int y, int z, scalar_t value)
+void ScalarField::set_value(int x, int y, int z, scalar_t value)
 {
-	values[GetValueIndex(x, y, z)] = value;
+	values[get_value_index(x, y, z)] = value;
 }
 
-scalar_t ScalarField::GetValue(int x, int y, int z)
+scalar_t ScalarField::get_value(int x, int y, int z)
 {
-	return values[GetValueIndex(x, y, z)];
+	return values[get_value_index(x, y, z)];
 }
 
 
 // get / set relative to cell
-void ScalarField::SetValue(int cx, int cy, int cz, int vert_index, scalar_t value)
+void ScalarField::set_value(int cx, int cy, int cz, int vert_index, scalar_t value)
 {
-	if (vert_index == 0) SetValue(cx + 0, cy + 0, cz + 1, value);
-	else if (vert_index == 1) SetValue(cx + 1, cy + 0, cz + 1, value);
-	else if (vert_index == 2) SetValue(cx + 1, cy + 0, cz + 0, value);
-	else if (vert_index == 3) SetValue(cx + 0, cy + 0, cz + 0, value);
-	else if (vert_index == 4) SetValue(cx + 0, cy + 1, cz + 1, value);
-	else if (vert_index == 5) SetValue(cx + 1, cy + 1, cz + 1, value);
-	else if (vert_index == 6) SetValue(cx + 1, cy + 1, cz + 0, value);
-	else if (vert_index == 7) SetValue(cx + 0, cy + 1, cz + 0, value);
+	if (vert_index == 0) set_value(cx + 0, cy + 0, cz + 1, value);
+	else if (vert_index == 1) set_value(cx + 1, cy + 0, cz + 1, value);
+	else if (vert_index == 2) set_value(cx + 1, cy + 0, cz + 0, value);
+	else if (vert_index == 3) set_value(cx + 0, cy + 0, cz + 0, value);
+	else if (vert_index == 4) set_value(cx + 0, cy + 1, cz + 1, value);
+	else if (vert_index == 5) set_value(cx + 1, cy + 1, cz + 1, value);
+	else if (vert_index == 6) set_value(cx + 1, cy + 1, cz + 0, value);
+	else if (vert_index == 7) set_value(cx + 0, cy + 1, cz + 0, value);
 }
 
 
-scalar_t ScalarField::GetValue(int cx, int cy, int cz, int vert_index)
+scalar_t ScalarField::get_value(int cx, int cy, int cz, int vert_index)
 {
-	if (vert_index == 0) return GetValue(cx + 0, cy + 0, cz + 1);
-	if (vert_index == 1) return GetValue(cx + 1, cy + 0, cz + 1);
-	if (vert_index == 2) return GetValue(cx + 1, cy + 0, cz + 0);
-	if (vert_index == 3) return GetValue(cx + 0, cy + 0, cz + 0);
-	if (vert_index == 4) return GetValue(cx + 0, cy + 1, cz + 1);
-	if (vert_index == 5) return GetValue(cx + 1, cy + 1, cz + 1);
-	if (vert_index == 6) return GetValue(cx + 1, cy + 1, cz + 0);
-	if (vert_index == 7) return GetValue(cx + 0, cy + 1, cz + 0);
+	if (vert_index == 0) return get_value(cx + 0, cy + 0, cz + 1);
+	if (vert_index == 1) return get_value(cx + 1, cy + 0, cz + 1);
+	if (vert_index == 2) return get_value(cx + 1, cy + 0, cz + 0);
+	if (vert_index == 3) return get_value(cx + 0, cy + 0, cz + 0);
+	if (vert_index == 4) return get_value(cx + 0, cy + 1, cz + 1);
+	if (vert_index == 5) return get_value(cx + 1, cy + 1, cz + 1);
+	if (vert_index == 6) return get_value(cx + 1, cy + 1, cz + 0);
+	if (vert_index == 7) return get_value(cx + 0, cy + 1, cz + 0);
 
 	return 0;
 }
 
 // edges are addressed relatively to a cell (cx, cy, cz)
 // and the cell's edge number
-void ScalarField::SetEdge(int cx, int cy, int cz, int edge, unsigned long index)
+void ScalarField::set_edge(int cx, int cy, int cz, int edge, unsigned long index)
 {
 	unsigned long d = dimensions;
 	unsigned long d2 = dimensions * dimensions;
@@ -442,7 +442,7 @@ void ScalarField::SetEdge(int cx, int cy, int cz, int edge, unsigned long index)
 		edges_y[cx + 0 + (cy + 0) * d + (cz + 0) * d2] =  index;
 }
 
-unsigned long ScalarField::GetEdge(int cx, int cy, int cz, int edge)
+unsigned long ScalarField::get_edge(int cx, int cy, int cz, int edge)
 {
 	unsigned long d = dimensions;
 	unsigned long d2 = dimensions * dimensions;
@@ -464,7 +464,7 @@ unsigned long ScalarField::GetEdge(int cx, int cy, int cz, int edge)
 }
 
 // Position in space
-Vector3 ScalarField::GetPosition(int x, int y, int z)
+Vector3 ScalarField::get_position(int x, int y, int z)
 {
 	scalar_t vx, vy, vz;
 	vx = from.x + cell_size.x * x;
@@ -474,30 +474,30 @@ Vector3 ScalarField::GetPosition(int x, int y, int z)
 	return Vector3(vx, vy, vz);
 }
 
-Vector3 ScalarField::GetPosition(int cx, int cy, int cz, int vert_index)
+Vector3 ScalarField::get_position(int cx, int cy, int cz, int vert_index)
 {
-	if (vert_index == 0) return GetPosition(cx + 0, cy + 0, cz + 1);
-	if (vert_index == 1) return GetPosition(cx + 1, cy + 0, cz + 1);
-	if (vert_index == 2) return GetPosition(cx + 1, cy + 0, cz + 0);
-	if (vert_index == 3) return GetPosition(cx + 0, cy + 0, cz + 0);
-	if (vert_index == 4) return GetPosition(cx + 0, cy + 1, cz + 1);
-	if (vert_index == 5) return GetPosition(cx + 1, cy + 1, cz + 1);
-	if (vert_index == 6) return GetPosition(cx + 1, cy + 1, cz + 0);
-	if (vert_index == 7) return GetPosition(cx + 0, cy + 1, cz + 0);
+	if (vert_index == 0) return get_position(cx + 0, cy + 0, cz + 1);
+	if (vert_index == 1) return get_position(cx + 1, cy + 0, cz + 1);
+	if (vert_index == 2) return get_position(cx + 1, cy + 0, cz + 0);
+	if (vert_index == 3) return get_position(cx + 0, cy + 0, cz + 0);
+	if (vert_index == 4) return get_position(cx + 0, cy + 1, cz + 1);
+	if (vert_index == 5) return get_position(cx + 1, cy + 1, cz + 1);
+	if (vert_index == 6) return get_position(cx + 1, cy + 1, cz + 0);
+	if (vert_index == 7) return get_position(cx + 0, cy + 1, cz + 0);
 
 	return Vector3(0, 0, 0);
 }
 
-void ScalarField::SetFromTo(const Vector3 &from, const Vector3 &to)
+void ScalarField::set_from_to(const Vector3 &from, const Vector3 &to)
 {
 	this->from = from;
 	this->to = to;
 	this->cell_size = (to - from) / (dimensions - 1);
 }
 
-void ScalarField::DrawField(bool full)
+void ScalarField::draw_field(bool full)
 {
-	SetLighting(false);
+	set_lighting(false);
 		
 	if (full)
 	{
@@ -553,38 +553,38 @@ void ScalarField::DrawField(bool full)
 		}
 		glEnd();
 	}
-	SetLighting(true);
+	set_lighting(true);
 }
 
-Vector3 ScalarField::GetFrom()
+Vector3 ScalarField::get_from()
 {
 	return this->from;
 }
 
-Vector3 ScalarField::GetTo()
+Vector3 ScalarField::get_to()
 {
 	return this->to;
 }
 
 // Evaluators
-void ScalarField::SetEvaluator(scalar_t (* Evaluate) (const Vector3 &vec, scalar_t t))
+void ScalarField::set_evaluator(scalar_t (*evaluate) (const Vector3 &vec, scalar_t t))
 {
-	this->Evaluate = Evaluate;
+	this->evaluate = evaluate;
 }
 	
-void ScalarField::SetNormalEvaluator(Vector3 (* GetNormal) (const Vector3 &vec, scalar_t t))
+void ScalarField::set_normal_evaluator(Vector3 (*get_normal) (const Vector3 &vec, scalar_t t))
 {
-	this->GetNormal = GetNormal;
+	this->get_normal = get_normal;
 }
 
 // last but not least
-void ScalarField::Triangulate(TriMesh *mesh, scalar_t isolevel, scalar_t t, bool calc_normals)
+void ScalarField::triangulate(TriMesh *mesh, scalar_t isolevel, scalar_t t, bool calc_normals)
 {
 	// Reset mesh and edges table
-	Clear();
+	clear();
 
 	// Evaluate
-	EvaluateAll(t);
+	evaluate_all(t);
 
 	// triangulate
 	for (unsigned long z=0; z<dimensions-1; z++)
@@ -593,7 +593,7 @@ void ScalarField::Triangulate(TriMesh *mesh, scalar_t isolevel, scalar_t t, bool
 		{
 			for (unsigned long x=0; x<dimensions-1; x++)
 			{
-				ProcessCell(x, y, z, isolevel);
+				process_cell(x, y, z, isolevel);
 			}
 		}
 	}
@@ -613,22 +613,22 @@ void ScalarField::Triangulate(TriMesh *mesh, scalar_t isolevel, scalar_t t, bool
 	}
 
 	// calculate normals, if given a funciton
-	if (calc_normals == true && GetNormal != 0)
+	if (calc_normals == true && get_normal != 0)
 	{
 		for (unsigned long i=0; i<verts.size(); i++)
 		{
-			varray[i].normal = GetNormal(varray[i].pos, t);
+			varray[i].normal = get_normal(varray[i].pos, t);
 		}
 	}
 	
-	mesh->SetData(varray, verts.size(), tarray, tris.size());
+	mesh->set_data(varray, verts.size(), tarray, tris.size());
 
 	delete [] varray;
 	delete [] tarray;
 
 	// calculate normals without external function, if needed
-	if (calc_normals == true && GetNormal == 0)
+	if (calc_normals == true && get_normal == 0)
 	{
-		mesh->CalculateNormals();
+		mesh->calculate_normals();
 	}
 }

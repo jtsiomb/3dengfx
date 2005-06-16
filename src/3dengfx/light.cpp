@@ -36,7 +36,7 @@ Light::Light() {
 
 Light::~Light() {}
 
-void Light::SetColor(const Color &c, unsigned short color_flags) {
+void Light::set_color(const Color &c, unsigned short color_flags) {
 	if(color_flags & LIGHTCOL_AMBIENT) {
 		ambient_color = c;
 	}
@@ -51,13 +51,13 @@ void Light::SetColor(const Color &c, unsigned short color_flags) {
 }
 
 
-void Light::SetColor(const Color &amb, const Color &diff, const Color &spec) {
+void Light::set_color(const Color &amb, const Color &diff, const Color &spec) {
 	ambient_color = amb;
 	diffuse_color = diff;
 	specular_color = spec;
 }
 
-Color Light::GetColor(unsigned short which) const {
+Color Light::get_color(unsigned short which) const {
 	switch(which) {
 	case LIGHTCOL_AMBIENT:
 		return ambient_color;
@@ -71,51 +71,51 @@ Color Light::GetColor(unsigned short which) const {
 	}
 }
 
-void Light::SetIntensity(scalar_t intensity) {
+void Light::set_intensity(scalar_t intensity) {
 	this->intensity = intensity;
 }
 
-scalar_t Light::GetIntensity() const {
+scalar_t Light::get_intensity() const {
 	return intensity;
 }
 
-void Light::SetAttenuation(scalar_t att0, scalar_t att1, scalar_t att2) {
+void Light::set_attenuation(scalar_t att0, scalar_t att1, scalar_t att2) {
 	attenuation[0] = att0;
 	attenuation[1] = att1;
 	attenuation[2] = att2;
 }
 
-scalar_t Light::GetAttenuation(int which) const {
+scalar_t Light::get_attenuation(int which) const {
 	return attenuation[which];
 }
 
-Vector3 Light::GetAttenuationVector() const {
+Vector3 Light::get_attenuation_vector() const {
 	return Vector3(attenuation[0], attenuation[1], attenuation[2]);
 }
 
 
 PointLight::PointLight(const Vector3 &pos, const Color &col) {
-	SetPosition(pos);
+	set_position(pos);
 	diffuse_color = specular_color = col;
 }
 
 PointLight::~PointLight() {}
 
-void PointLight::SetGLLight(int n, unsigned long time) const {
+void PointLight::set_gllight(int n, unsigned long time) const {
 	int light_num = GL_LIGHT0 + n;
 	
 	Vector4 pos;
 	if(time == XFORM_LOCAL_PRS) {
 		pos = (Vector4)local_prs.position;
 	} else {
-		pos = (Vector4)GetPRS(time).position;
+		pos = (Vector4)get_prs(time).position;
 	}
 	
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	Matrix4x4 test = engfx_state::view_matrix;
-	test.Translate(pos);
-	LoadMatrixGL(test);
+	test.translate(pos);
+	load_matrix_gl(test);
 
 	Color amb = ambient_color * intensity;
 	Color dif = diffuse_color * intensity;
@@ -138,5 +138,5 @@ void PointLight::SetGLLight(int n, unsigned long time) const {
 	
 	glPopMatrix();
 
-	if(!engfx_state::bump_light) SetBumpLight(this);
+	if(!engfx_state::bump_light) set_bump_light(this);
 }

@@ -36,8 +36,8 @@ public:
 	Ray();
 	Ray(const Vector3 &origin, const Vector3 &dir);
 	
-	void Enter(scalar_t new_ior);
-	void Leave();
+	void enter(scalar_t new_ior);
+	void leave();
 };
 
 #endif	// _N3DMATH2_RAY_HPP_

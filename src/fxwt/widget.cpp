@@ -39,39 +39,39 @@ static int press_y[5] = {-1, -1, -1, -1, -1};
 
 DrawableWidget *fxwt::root_win = 0;
 
-void fxwt::WidgetInit() {
-	SetDisplayHandler(WidgetDisplayHandler);
-	SetKeyboardHandler(WidgetKeyboardHandler);
-	SetMotionHandler(WidgetMotionHandler);
-	SetButtonHandler(WidgetButtonHandler);
+void fxwt::widget_init() {
+	set_display_handler(widget_display_handler);
+	set_keyboard_handler(widget_keyboard_handler);
+	set_motion_handler(widget_motion_handler);
+	set_button_handler(widget_button_handler);
 
-	const GraphicsInitParameters *gip = GetGraphicsInitParameters();
+	const GraphicsInitParameters *gip = get_graphics_init_parameters();
 	screenx = gip->x;
 	screeny = gip->y;
 	
 	root_win = new DrawableWidget;
-	root_win->SetParent(0);
-	root_win->SetSize(Vector2(1, 1), false);
+	root_win->set_parent(0);
+	root_win->set_size(Vector2(1, 1), false);
 }
 		
-void fxwt::WidgetDisplayHandler() {
-	root_win->DispHandler();
+void fxwt::widget_display_handler() {
+	root_win->disp_handler();
 }
 
-void fxwt::WidgetKeyboardHandler(int key) {
-	root_win->KeybHandler(key);
+void fxwt::widget_keyboard_handler(int key) {
+	root_win->keyb_handler(key);
 }
 
-void fxwt::WidgetMotionHandler(int x, int y) {
+void fxwt::widget_motion_handler(int x, int y) {
 	Vector2 pos((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
-	root_win->MotionHandler(pos);
+	root_win->motion_handler(pos);
 
 	// generate drag events
 	for(int i=0; i<3; i++) {
-		if(MouseButtonPressed(i)) {
+		if(mouse_button_pressed(i)) {
 			if(press_x[i] != x || press_y[i] != y) {
 				Vector2 press_pos((scalar_t)press_x[i] / (scalar_t)screenx, (scalar_t)press_y[i] / (scalar_t)screeny);
-				root_win->DragHandler(pos - press_pos);
+				root_win->drag_handler(pos - press_pos);
 
 				press_x[i] = x;
 				press_y[i] = y;
@@ -81,23 +81,23 @@ void fxwt::WidgetMotionHandler(int x, int y) {
 	}
 }
 
-void fxwt::WidgetButtonHandler(int bn, int press, int x, int y) {
+void fxwt::widget_button_handler(int bn, int press, int x, int y) {
 	Vector2 pos((scalar_t)x / (scalar_t)screenx, (scalar_t)y / (scalar_t)screeny);
-	root_win->ButtonHandler(bn, press, pos);
+	root_win->button_handler(bn, press, pos);
 	
 	if(press) {
 		press_x[bn] = x;
 		press_y[bn] = y;
 	} else {
 		if(x == press_x[bn] && y == press_y[bn]) {
-			root_win->ClickHandler(bn, pos);
+			root_win->click_handler(bn, pos);
 		}
 		press_x[bn] = press_y[bn] = -1;
 	}
 }
 
-void fxwt::Redraw() {
-	root_win->DispHandler();
+void fxwt::redraw() {
+	root_win->disp_handler();
 }
 
 Widget::Widget() {
@@ -113,159 +113,159 @@ Widget::Widget() {
 
 Widget::~Widget() {}
 
-void Widget::DispHandler() {
+void Widget::disp_handler() {
 	if(handlers.display) handlers.display();
 	
 	for(size_t i=0; i<children.size(); i++) {
-		children[i]->DispHandler();
+		children[i]->disp_handler();
 	}
 }
 
 
-void Widget::KeybHandler(int key) {
+void Widget::keyb_handler(int key) {
 	if(handlers.keyboard) handlers.keyboard(key);
 	
 	for(size_t i=0; i<children.size(); i++) {
-		if(children[i]->HasFocus()) {
-			children[i]->KeybHandler(key);
+		if(children[i]->has_focus()) {
+			children[i]->keyb_handler(key);
 		}
 	}
 }
 
-void Widget::MotionHandler(const Vector2 &pos) {
+void Widget::motion_handler(const Vector2 &pos) {
 	if(handlers.motion) handlers.motion(pos);
 
 	for(size_t i=0; i<children.size(); i++) {
-		if(children[i]->HitTest(pos)) {
-			if(!children[i]->HasFocus()) children[i]->FocusHandler(true);
-			children[i]->MotionHandler(pos);
+		if(children[i]->hit_test(pos)) {
+			if(!children[i]->has_focus()) children[i]->focus_handler(true);
+			children[i]->motion_handler(pos);
 		} else {
-			if(children[i]->HasFocus()) children[i]->FocusHandler(false);
+			if(children[i]->has_focus()) children[i]->focus_handler(false);
 		}
 	}
 }
 
-void Widget::ButtonHandler(int bn, bool press, const Vector2 &pos) {
+void Widget::button_handler(int bn, bool press, const Vector2 &pos) {
 	if(handlers.button) handlers.button(bn, press, pos);
 	
 	for(size_t i=0; i<children.size(); i++) {
-		if(children[i]->HitTest(pos)) {
-			children[i]->ButtonHandler(bn, press, pos);
+		if(children[i]->hit_test(pos)) {
+			children[i]->button_handler(bn, press, pos);
 		}
 	}
 }
 
-void Widget::FocusHandler(bool has_focus) {
+void Widget::focus_handler(bool has_focus) {
 	focus = has_focus;
 }
 
-void Widget::ClickHandler(int bn, const Vector2 &pos) {
+void Widget::click_handler(int bn, const Vector2 &pos) {
 	if(handlers.click) handlers.click(bn, pos);
 
 	for(size_t i=0; i<children.size(); i++) {
-		if(children[i]->HitTest(pos)) {
-			children[i]->ClickHandler(bn, pos);
+		if(children[i]->hit_test(pos)) {
+			children[i]->click_handler(bn, pos);
 		}
 	}
 }
 
-void Widget::DragHandler(const Vector2 &rel_pos) {
+void Widget::drag_handler(const Vector2 &rel_pos) {
 	if(movable) {
-		SetPosition(pos + rel_pos);
+		set_position(pos + rel_pos);
 	} else {
-		Vector2 mpos = GetMousePosNormalized();
+		Vector2 mpos = get_mouse_pos_normalized();
 		for(size_t i=0; i<children.size(); i++) {
-			if(children[i]->HitTest(mpos)) {
-				children[i]->DragHandler(rel_pos);
+			if(children[i]->hit_test(mpos)) {
+				children[i]->drag_handler(rel_pos);
 			}
 		}
 	}
 }
 
-void Widget::SetParent(Widget *w) {
+void Widget::set_parent(Widget *w) {
 	parent = w;
 }
 
-void Widget::AddWidget(Widget *w) {
-	w->SetParent(this);
+void Widget::add_widget(Widget *w) {
+	w->set_parent(this);
 	children.push_back(w);
 }
 
-Vector2 Widget::ToLocalPos(const Vector2 &p) const {
+Vector2 Widget::to_local_pos(const Vector2 &p) const {
 	return Vector2();
 }
 
-Vector2 Widget::ToGlobalPos(const Vector2 &p) const {
-	Vector2 par_space_pos = p * GetSize() + pos;
+Vector2 Widget::to_global_pos(const Vector2 &p) const {
+	Vector2 par_space_pos = p * get_size() + pos;
 	if(parent) {
-		return par_space_pos * parent->GetSize() + parent->GetPosition();
+		return par_space_pos * parent->get_size() + parent->get_position();
 	}
 	return par_space_pos;
 }
 
-void Widget::SetPosition(const Vector2 &pos) {
+void Widget::set_position(const Vector2 &pos) {
 	this->pos = pos;
 }
 
-Vector2 Widget::GetPosition() const {
-	return ToGlobalPos(Vector2(0, 0));
+Vector2 Widget::get_position() const {
+	return to_global_pos(Vector2(0, 0));
 }
 
-void Widget::SetSize(const Vector2 &sz, bool relative) {
+void Widget::set_size(const Vector2 &sz, bool relative) {
 	size = sz;
 	sz_relative = relative;
 }
 
-Vector2 Widget::GetSize() const {
+Vector2 Widget::get_size() const {
 	if(sz_relative) {
-		return size * (parent ? parent->GetSize() : Vector2(1, 1));
+		return size * (parent ? parent->get_size() : Vector2(1, 1));
 	}
 	return size;
 }
 
-void Widget::SetMovable(bool enable) {
+void Widget::set_movable(bool enable) {
 	movable = enable;
 }
 
-bool Widget::GetMovable() const {
+bool Widget::get_movable() const {
 	return movable;
 }
 
-bool Widget::HasFocus() const {
+bool Widget::has_focus() const {
 	return focus;
 }
 
-bool Widget::HitTest(const Vector2 &global_pt) const {
-	Vector2 pos = GetPosition();
-	Vector2 pos2 = pos + GetSize();
+bool Widget::hit_test(const Vector2 &global_pt) const {
+	Vector2 pos = get_position();
+	Vector2 pos2 = pos + get_size();
 	return global_pt.x >= pos.x && global_pt.y >= pos.y && global_pt.x < pos2.x && global_pt.y < pos2.y;
 }
 
-void Widget::SetDisplayHandler(void (*disp_handler)()) {
+void Widget::set_display_handler(void (*disp_handler)()) {
 	handlers.display = disp_handler;
 }
 
-void Widget::SetKeyHandler(void (*keyb_handler)(int)) {
+void Widget::set_key_handler(void (*keyb_handler)(int)) {
 	handlers.keyboard = keyb_handler;
 }
 
-void Widget::SetMotionHandler(void (*motion_handler)(const Vector2&)) {
+void Widget::set_motion_handler(void (*motion_handler)(const Vector2&)) {
 	handlers.motion = motion_handler;
 }
 
-void Widget::SetButtonHandler(void (*bn_handler)(int, bool, const Vector2&)) {
+void Widget::set_button_handler(void (*bn_handler)(int, bool, const Vector2&)) {
 	handlers.button = bn_handler;
 }
 
-void Widget::SetFocusHandler(void (*focus_handler)(bool)) {
+void Widget::set_focus_handler(void (*focus_handler)(bool)) {
 	handlers.focus = focus_handler;
 }
 
-void Widget::SetClickHandler(void (*click_handler)(int, const Vector2&)) {
+void Widget::set_click_handler(void (*click_handler)(int, const Vector2&)) {
 	handlers.click = click_handler;
 }
 
-void Widget::SetDragHandler(void (*drag_handler)(const Vector2&)) {
+void Widget::set_drag_handler(void (*drag_handler)(const Vector2&)) {
 	handlers.drag = drag_handler;
 }
 
@@ -279,40 +279,40 @@ DrawableWidget::DrawableWidget(const Color &col, Texture *tex, GfxProg *sdr) {
 
 DrawableWidget::~DrawableWidget() {}
 
-void DrawableWidget::DispHandler() {
-	if(visible) Draw();
-	if(visible || this == root_win)	Widget::DispHandler();
+void DrawableWidget::disp_handler() {
+	if(visible) draw();
+	if(visible || this == root_win)	Widget::disp_handler();
 }
 
-void DrawableWidget::SetColor(const Color &col) {
+void DrawableWidget::set_color(const Color &col) {
 	color = col;
 }
 
-void DrawableWidget::SetTexture(Texture *tex) {
+void DrawableWidget::set_texture(Texture *tex) {
 	this->tex = tex;
 }
 
-void DrawableWidget::SetShader(GfxProg *sdr) {
+void DrawableWidget::set_shader(GfxProg *sdr) {
 	shader = sdr;
 }
 
-void DrawableWidget::SetVisible(bool vis) {
+void DrawableWidget::set_visible(bool vis) {
 	visible = vis;
 }
 
-void DrawableWidget::SetBorder(scalar_t border) {
+void DrawableWidget::set_border(scalar_t border) {
 	this->border = border;
 }
 
-void DrawableWidget::Draw() const {
-	Vector2 pos = GetPosition();
+void DrawableWidget::draw() const {
+	Vector2 pos = get_position();
 	static const Color bcol(0.05, 0.05, 0.05, 0.0);
 
 	if(border == 0.0) {
-		dsys::Overlay(tex, pos, pos + GetSize(), color, shader);
+		dsys::overlay(tex, pos, pos + get_size(), color, shader);
 	} else {
 		Vector2 boff(border, border);
-		dsys::Overlay(tex, pos, pos + GetSize(), color + bcol, shader);
-		dsys::Overlay(tex, pos + boff, pos + GetSize() - boff, color, shader);
+		dsys::overlay(tex, pos, pos + get_size(), color + bcol, shader);
+		dsys::overlay(tex, pos + boff, pos + get_size() - boff, color, shader);
 	}
 }

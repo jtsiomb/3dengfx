@@ -38,7 +38,7 @@ public:
 	friend inline Vector2 operator -(const Vector2 &vec);
 	
 	// binary vector (op) vector operations
-	friend inline scalar_t DotProduct(const Vector2 &v1, const Vector2 &v2);
+	friend inline scalar_t dot_product(const Vector2 &v1, const Vector2 &v2);
 	
 	friend inline Vector2 operator +(const Vector2 &v1, const Vector2 &v2);
 	friend inline Vector2 operator -(const Vector2 &v1, const Vector2 &v2);	
@@ -66,16 +66,16 @@ public:
 	friend inline void operator *=(Vector2 &vec, scalar_t scalar);
 	friend inline void operator /=(Vector2 &vec, scalar_t scalar);
 	
-	inline scalar_t Length() const;
-	inline scalar_t LengthSq() const;
-	void Normalize();
-	Vector2 Normalized() const;
+	inline scalar_t length() const;
+	inline scalar_t length_sq() const;
+	void normalize();
+	Vector2 normalized() const;
 
-	void Transform(const Matrix3x3 &mat);
-	Vector2 Transformed(const Matrix3x3 &mat) const;
+	void transform(const Matrix3x3 &mat);
+	Vector2 transformed(const Matrix3x3 &mat) const;
 			
-	Vector2 Reflection(const Vector2 &normal) const;
-	Vector2 Refraction(const Vector2 &normal, scalar_t src_ior, scalar_t dst_ior) const;
+	Vector2 reflection(const Vector2 &normal) const;
+	Vector2 refraction(const Vector2 &normal, scalar_t src_ior, scalar_t dst_ior) const;
 	
 	friend std::ostream &operator <<(std::ostream &out, const Vector2 &vec);
 };
@@ -94,8 +94,8 @@ public:
 	friend inline Vector3 operator -(const Vector3 &vec);
 	
 	// binary vector (op) vector operations
-	friend inline scalar_t DotProduct(const Vector3 &v1, const Vector3 &v2);
-	friend inline Vector3 CrossProduct(const Vector3 &v1, const Vector3 &v2);
+	friend inline scalar_t dot_product(const Vector3 &v1, const Vector3 &v2);
+	friend inline Vector3 cross_product(const Vector3 &v1, const Vector3 &v2);
 	
 	friend inline Vector3 operator +(const Vector3 &v1, const Vector3 &v2);
 	friend inline Vector3 operator -(const Vector3 &v1, const Vector3 &v2);	
@@ -123,20 +123,20 @@ public:
 	friend inline void operator *=(Vector3 &vec, scalar_t scalar);
 	friend inline void operator /=(Vector3 &vec, scalar_t scalar);
 	
-	inline scalar_t Length() const;
-	inline scalar_t LengthSq() const;
-	void Normalize();
-	Vector3 Normalized() const;
+	inline scalar_t length() const;
+	inline scalar_t length_sq() const;
+	void normalize();
+	Vector3 normalized() const;
 	
-	void Transform(const Matrix3x3 &mat);
-	Vector3 Transformed(const Matrix3x3 &mat) const;
-	void Transform(const Matrix4x4 &mat);
-	Vector3 Transformed(const Matrix4x4 &mat) const;
-	void Transform(const Quaternion &quat);
-	Vector3 Transformed(const Quaternion &quat) const;
+	void transform(const Matrix3x3 &mat);
+	Vector3 transformed(const Matrix3x3 &mat) const;
+	void transform(const Matrix4x4 &mat);
+	Vector3 transformed(const Matrix4x4 &mat) const;
+	void transform(const Quaternion &quat);
+	Vector3 transformed(const Quaternion &quat) const;
 	
-	Vector3 Reflection(const Vector3 &normal) const;
-	Vector3 Refraction(const Vector3 &normal, scalar_t src_ior, scalar_t dst_ior) const;
+	Vector3 reflection(const Vector3 &normal) const;
+	Vector3 refraction(const Vector3 &normal, scalar_t src_ior, scalar_t dst_ior) const;
 	
 	friend std::ostream &operator <<(std::ostream &out, const Vector3 &vec);
 };
@@ -155,8 +155,8 @@ public:
 	friend inline Vector4 operator -(const Vector4 &vec);
 		
 	// binary vector (op) vector operations
-	friend inline scalar_t DotProduct(const Vector4 &v1, const Vector4 &v2);
-	friend inline Vector4 CrossProduct(const Vector4 &v1, const Vector4 &v2, const Vector4 &v3);
+	friend inline scalar_t dot_product(const Vector4 &v1, const Vector4 &v2);
+	friend inline Vector4 cross_product(const Vector4 &v1, const Vector4 &v2, const Vector4 &v3);
 	
 	friend inline Vector4 operator +(const Vector4 &v1, const Vector4 &v2);
 	friend inline Vector4 operator -(const Vector4 &v1, const Vector4 &v2);	
@@ -184,16 +184,16 @@ public:
 	friend inline void operator *=(Vector4 &vec, scalar_t scalar);
 	friend inline void operator /=(Vector4 &vec, scalar_t scalar);
 	
-	inline scalar_t Length() const;
-	inline scalar_t LengthSq() const;
-	void Normalize();
-	Vector4 Normalized() const;
+	inline scalar_t length() const;
+	inline scalar_t length_sq() const;
+	void normalize();
+	Vector4 normalized() const;
 
-	void Transform(const Matrix4x4 &mat);
-	Vector4 Transformed(const Matrix4x4 &mat) const;
+	void transform(const Matrix4x4 &mat);
+	Vector4 transformed(const Matrix4x4 &mat) const;
 		
-	Vector4 Reflection(const Vector4 &normal) const;
-	Vector4 Refraction(const Vector4 &normal, scalar_t src_ior, scalar_t dst_ior) const;
+	Vector4 reflection(const Vector4 &normal) const;
+	Vector4 refraction(const Vector4 &normal, scalar_t src_ior, scalar_t dst_ior) const;
 	
 	friend std::ostream &operator <<(std::ostream &out, const Vector4 &vec);
 };

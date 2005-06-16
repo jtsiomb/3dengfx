@@ -48,16 +48,16 @@ protected:
 	std::vector <Triangle>	tris;
 
 	// Evaluators
-	scalar_t		(* Evaluate) (const Vector3 &vec, scalar_t t);
-	Vector3			(* GetNormal) (const Vector3 &vec, scalar_t t);
+	scalar_t		(* evaluate) (const Vector3 &vec, scalar_t t);
+	Vector3			(* get_normal) (const Vector3 &vec, scalar_t t);
 
 	// private methods
-	unsigned long AddVertex(const Vertex &vert);	// adds a vertex and returns its index
-	void Clear();				// clears the std::vectors that hold mesh data
-	void EvaluateAll(scalar_t t);
-	void ProcessCell(int x, int y, int z, scalar_t isolevel);
+	unsigned long add_vertex(const Vertex &vert);	// adds a vertex and returns its index
+	void clear();				// clears the std::vectors that hold mesh data
+	void evaluate_all(scalar_t t);
+	void process_cell(int x, int y, int z, scalar_t isolevel);
 
-	unsigned long GetValueIndex(int x, int y, int z);
+	unsigned long get_value_index(int x, int y, int z);
 
 public:
 
@@ -66,37 +66,37 @@ public:
 	ScalarField(unsigned long dimensions, const Vector3 &from, const Vector3 &to);
 	~ScalarField();
 
-	void SetDimensions(unsigned long dimensions);
+	void set_dimensions(unsigned long dimensions);
 	
 	// draw the 3d grid.
 	// if full, draws everything. If not, draws the bounding volume
-	void DrawField(bool full);
+	void draw_field(bool full);
 
 	// Get / Set
-	void SetValue(int x, int y, int z, scalar_t value);
-	scalar_t GetValue(int x, int y, int z);
+	void set_value(int x, int y, int z, scalar_t value);
+	scalar_t get_value(int x, int y, int z);
 
 	// get / set relative to cell
-	void SetValue(int cx, int cy, int cz, int vert_index, scalar_t value);
-	scalar_t GetValue(int cx, int cy, int cz, int vert_index);
+	void set_value(int cx, int cy, int cz, int vert_index, scalar_t value);
+	scalar_t get_value(int cx, int cy, int cz, int vert_index);
 	
 	// edges are only addressed relative to a cell
-	void SetEdge(int cx, int cy, int cz, int edge, unsigned long index);
-	unsigned long GetEdge(int cx, int cy, int cz, int edge);
+	void set_edge(int cx, int cy, int cz, int edge, unsigned long index);
+	unsigned long get_edge(int cx, int cy, int cz, int edge);
 
 	// Position in space
-	Vector3 GetPosition(int x, int y, int z);
-	Vector3 GetPosition(int cx, int cy, int cz, int vert_index);
-	void SetFromTo(const Vector3 &from, const Vector3 &to);
-	Vector3 GetFrom();
-	Vector3 GetTo();
+	Vector3 get_position(int x, int y, int z);
+	Vector3 get_position(int cx, int cy, int cz, int vert_index);
+	void set_from_to(const Vector3 &from, const Vector3 &to);
+	Vector3 get_from();
+	Vector3 get_to();
 
 	// Evaluators
-	void SetEvaluator(scalar_t (* Evaluate) (const Vector3 &vec, scalar_t t));
-	void SetNormalEvaluator(Vector3	(* GetNormal) (const Vector3 &vec, scalar_t t));
+	void set_evaluator(scalar_t (*evaluate) (const Vector3 &vec, scalar_t t));
+	void set_normal_evaluator(Vector3	(*get_normal) (const Vector3 &vec, scalar_t t));
 	
 	// last but not least 
-	void Triangulate(TriMesh *mesh, scalar_t isolevel, scalar_t t, bool calc_normals);
+	void triangulate(TriMesh *mesh, scalar_t isolevel, scalar_t t, bool calc_normals);
 };
 
 #endif // ndef _SCALAR_FIELD_HEADER_

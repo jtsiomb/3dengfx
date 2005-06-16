@@ -31,20 +31,20 @@ namespace dsys {
 	enum {BLUR_DIR_X, BLUR_DIR_Y};
 	
 	// effects
-	void RadialBlur(Texture *tex, float ammount, const Vector2 &origin = Vector2(0.5f, 0.5f), bool additive = false);
-	void DirBlur(Texture *tex, float ammount, int dir);
-	//void Blur(Texture *tex, float ammount, bool additive = false);
-	void Overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2, const Color &color, GfxProg *pprog=0, bool handle_blending = true);
-	void Negative(const Vector2 &corner1 = Vector2(0,0), const Vector2 &corner2 = Vector2(1,1));
-	void Flash(unsigned long time, unsigned long when, unsigned long dur, const Color &col = Color(1,1,1));
+	void radial_blur(Texture *tex, float ammount, const Vector2 &origin = Vector2(0.5f, 0.5f), bool additive = false);
+	void dir_blur(Texture *tex, float ammount, int dir);
+	//void blur(Texture *tex, float ammount, bool additive = false);
+	void overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2, const Color &color, GfxProg *pprog=0, bool handle_blending = true);
+	void negative(const Vector2 &corner1 = Vector2(0,0), const Vector2 &corner2 = Vector2(1,1));
+	void flash(unsigned long time, unsigned long when, unsigned long dur, const Color &col = Color(1,1,1));
 	
 	// integration with the scripting system
 	
 	class ImageFx;
 
-	void AddImageFx(ImageFx *fx);
-	void RemoveImageFx(ImageFx *fx);
-	void ApplyImageFx(unsigned long time);
+	void add_image_fx(ImageFx *fx);
+	void remove_image_fx(ImageFx *fx);
+	void apply_image_fx(unsigned long time);
 
 	class ImageFx {
 	protected:
@@ -52,17 +52,19 @@ namespace dsys {
 
 	public:
 		ImageFx();
-		virtual bool ParseScriptArgs(const char **args);
+		virtual ~ImageFx();
+		virtual bool parse_script_args(const char **args);
 
-		virtual void SetTime(unsigned long time);
-		virtual void SetDuration(unsigned long dur);
+		virtual void set_time(unsigned long time);
+		virtual void set_duration(unsigned long dur);
 
-		virtual void Apply(unsigned long time) = 0;
+		virtual void apply(unsigned long time) = 0;
 	};
 
 	class FxNegative : public ImageFx {
 	public:
-		virtual void Apply(unsigned long time);
+		virtual ~FxNegative();
+		virtual void apply(unsigned long time);
 	};
 
 	class FxFlash : public ImageFx {
@@ -71,10 +73,11 @@ namespace dsys {
 
 	public:
 		FxFlash();
-		virtual bool ParseScriptArgs(const char **args);
+		virtual ~FxFlash();
+		virtual bool parse_script_args(const char **args);
 		
-		virtual void SetColor(const Color &col);
-		virtual void Apply(unsigned long time);
+		virtual void set_color(const Color &col);
+		virtual void apply(unsigned long time);
 	};
 
 	class FxOverlay : public ImageFx {
@@ -85,11 +88,11 @@ namespace dsys {
 	public:
 		FxOverlay();
 		virtual ~FxOverlay();
-		virtual bool ParseScriptArgs(const char **args);
+		virtual bool parse_script_args(const char **args);
 
-		virtual void SetTexture(Texture *tex);
-		virtual void SetShader(GfxProg *sdr);
-		virtual void Apply(unsigned long time);
+		virtual void set_texture(Texture *tex);
+		virtual void set_shader(GfxProg *sdr);
+		virtual void apply(unsigned long time);
 	};
 }
 

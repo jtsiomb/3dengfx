@@ -21,25 +21,25 @@ BSTree<T>::BSTree() {
 template <class T>
 BSTree<T>::BSTree(const BSTree<T> &tree) {
 	elem_count = tree.elem_count;
-	tree.Traverse(CopyInsert, TRAVERSE_PREORDER);
+	tree.traverse(copy_insert, TRAVERSE_PREORDER);
 }
 
 template <class T>
 BSTree<T>::~BSTree() {
-	while(root) Erase(root->data);
+	while(root) erase(root->data);
 }
 
 template <class T>
-void BSTree<T>::CopyInsert(BSTreeNode<T> *node) {
+void BSTree<T>::copy_insert(BSTreeNode<T> *node) {
 	BSTreeNode<T> *newnode = new BSTreeNode<T>;
 	*newnode = *node;
 	newnode->left = newnode->right = 0;
 
-	RecInsert(root, newnode);
+	rec_insert(root, newnode);
 }
 
 template <class T>
-void BSTree<T>::RecInsert(BSTreeNode<T> *&tree, BSTreeNode<T> *node) {
+void BSTree<T>::rec_insert(BSTreeNode<T> *&tree, BSTreeNode<T> *node) {
 	if(!tree) {
 		tree = node;
 		node->left = node->right = 0;
@@ -47,43 +47,43 @@ void BSTree<T>::RecInsert(BSTreeNode<T> *&tree, BSTreeNode<T> *node) {
 		return;
 	}
 	if(*node < *tree) {
-		RecInsert(tree->left, node);
+		rec_insert(tree->left, node);
 		return;
 	}
 	if(*tree < *node) {
-		RecInsert(tree->right, node);
+		rec_insert(tree->right, node);
 		return;
 	}
 }
 
 template <class T>
-inline void BSTree<T>::Insert(BSTreeNode<T> *node) {
-	RecInsert(root, node);
+inline void BSTree<T>::insert(BSTreeNode<T> *node) {
+	rec_insert(root, node);
 }
 
 template <class T>
-inline void BSTree<T>::Insert(T data) {
+inline void BSTree<T>::insert(T data) {
 	BSTreeNode<T> *node = new BSTreeNode<T>;
 	node->data = data;
 	
-	RecInsert(root, node);
+	rec_insert(root, node);
 }
 
 template <class T>
-BSTreeNode<T> **BSTree<T>::UtilFindMin(BSTreeNode<T> *&tree) {
+BSTreeNode<T> **BSTree<T>::util_find_min(BSTreeNode<T> *&tree) {
 	if(!tree) return 0;
 	if(!tree->left) return &tree;
-	return UtilFindMin(tree->left);
+	return util_find_min(tree->left);
 }
 
 template <class T>
-BSTreeNode<T> *BSTree<T>::RecRemoveNode(BSTreeNode<T> *&tree, T data) {
+BSTreeNode<T> *BSTree<T>::rec_remove_node(BSTreeNode<T> *&tree, T data) {
 	if(!tree) return 0;
 	// find the node
 	BSTreeNode<T> tmp;
 	tmp.data = data;
-	if(tmp < *tree) return RecRemoveNode(tree->left, data);
-	if(*tree < tmp) return RecRemoveNode(tree->right, data);
+	if(tmp < *tree) return rec_remove_node(tree->left, data);
+	if(*tree < tmp) return rec_remove_node(tree->right, data);
 	
 	// found it
 	if(!tree->left && !tree->right) {
@@ -97,14 +97,14 @@ BSTreeNode<T> *BSTree<T>::RecRemoveNode(BSTreeNode<T> *&tree, T data) {
 		return tmp;
 	}
 	// else both subtrees exist		
-	BSTreeNode<T> **min = UtilFindMin(tree->right);
+	BSTreeNode<T> **min = util_find_min(tree->right);
 	tree->data = (*min)->data;
-	return RecRemoveNode(*min, (*min)->data);
+	return rec_remove_node(*min, (*min)->data);
 }
 
 template <class T>
-inline BSTreeNode<T> *BSTree<T>::Remove(T data) {
-	BSTreeNode<T> *node = RecRemoveNode(root, data);
+inline BSTreeNode<T> *BSTree<T>::remove(T data) {
+	BSTreeNode<T> *node = rec_remove_node(root, data);
 	if(node) {
 		elem_count--;
 		return node;
@@ -113,8 +113,8 @@ inline BSTreeNode<T> *BSTree<T>::Remove(T data) {
 }
 
 template <class T>
-inline void BSTree<T>::Erase(T data) {
-	BSTreeNode<T> *node = RecRemoveNode(root, data);
+inline void BSTree<T>::erase(T data) {
+	BSTreeNode<T> *node = rec_remove_node(root, data);
 	if(node) {
 		elem_count--;
 		delete node;
@@ -122,7 +122,7 @@ inline void BSTree<T>::Erase(T data) {
 }
 
 template <class T>
-BSTreeNode<T> *BSTree<T>::Find(T data) {
+BSTreeNode<T> *BSTree<T>::find(T data) {
 	BSTreeNode<T> *node = root;
 	BSTreeNode<T> tmp;
 	tmp.data = data;
@@ -143,41 +143,41 @@ BSTreeNode<T> *BSTree<T>::Find(T data) {
 
 
 template <class T>
-void BSTree<T>::RecTraverse(BSTreeNode<T> *tree, void (*action)(BSTreeNode<T> *node), TraversalOrder order, bool rev) const {
+void BSTree<T>::rec_traverse(BSTreeNode<T> *tree, void (*action)(BSTreeNode<T> *node), TraversalOrder order, bool rev) const {
 	if(!tree) return;
 
 	if(order == TRAVERSE_PREORDER) action(tree);
-	RecTraverse(rev ? tree->right : tree->left, action, order, rev);
+	rec_traverse(rev ? tree->right : tree->left, action, order, rev);
 	if(order == TRAVERSE_INORDER) action(tree);
-	RecTraverse(rev ? tree->left : tree->right, action, order, rev);
+	rec_traverse(rev ? tree->left : tree->right, action, order, rev);
 	if(order == TRAVERSE_POSTORDER) action(tree);
 }
 
 template <class T>
-inline void BSTree<T>::Traverse(void (*action)(BSTreeNode<T> *node), TraversalOrder order) const {
-	RecTraverse(root, action, order, false);
+inline void BSTree<T>::traverse(void (*action)(BSTreeNode<T> *node), TraversalOrder order) const {
+	rec_traverse(root, action, order, false);
 }
 
 template <class T>
-inline void BSTree<T>::TraverseRev(void (*action)(BSTreeNode<T> *node), TraversalOrder order) const {
-	RecTraverse(root, action, order, true);
+inline void BSTree<T>::traverse_rev(void (*action)(BSTreeNode<T> *node), TraversalOrder order) const {
+	rec_traverse(root, action, order, true);
 }
 
 template <class T>
-int BSTree<T>::Size() const {
+int BSTree<T>::size() const {
 	return elem_count;
 }
 
 
 template <class T>
-void BSTree<T>::ResetIterator() const {
+void BSTree<T>::reset_iterator() const {
 	while(!node_stack.empty()) node_stack.pop();
 
 	node_stack.push(root);
 }
 
 template <class T>
-T *BSTree<T>::Next() const {
+T *BSTree<T>::next() const {
 	if(node_stack.empty()) return 0;
 
 	BSTreeNode<T> *next = 0;
@@ -204,6 +204,6 @@ T *BSTree<T>::Next() const {
 	if(top->visit_count == 1) {
 		return &top->data;
 	} else {
-		return Next();
+		return next();
 	}
 }

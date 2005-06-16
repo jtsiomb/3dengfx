@@ -36,12 +36,12 @@ namespace fxwt {
 	public:
 		Label(const char *text = 0);
 		
-		void SetText(const char *text);
-		void SetTextSize(scalar_t sz);
-		static void SetDefaultTextSize(scalar_t sz);
-		void SetTextColor(const Color &col);
+		void set_text(const char *text);
+		void set_text_size(scalar_t sz);
+		static void set_default_text_size(scalar_t sz);
+		void set_text_color(const Color &col);
 		
-		virtual void Draw() const;
+		virtual void draw() const;
 	};
 
 }

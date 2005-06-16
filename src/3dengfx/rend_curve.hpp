@@ -43,23 +43,23 @@ private:
 public:
 	RendCurve(Curve *curve = 0);
 
-	void SetCurve(Curve *curve);
-	Curve *GetCurve();
+	void set_curve(Curve *curve);
+	Curve *get_curve();
 
-	void SetWidth(scalar_t width);
-	scalar_t GetWidth() const;
+	void set_width(scalar_t width);
+	scalar_t get_width() const;
 
-	void SetBlendingMode(BlendingFactor sblend, BlendingFactor dblend);
+	void set_blending_mode(BlendingFactor sblend, BlendingFactor dblend);
 
-	void SetStroke(bool enable);
+	void set_stroke(bool enable);
 
-	void SetDetail(int detail);
+	void set_detail(int detail);
 
-	void SetMaterial(const Material &mat);
-	Material *GetMaterialPtr();
-	Material GetMaterial() const;
+	void set_material(const Material &mat);
+	Material *get_material_ptr();
+	Material get_material() const;
 
-	bool Render(unsigned long time = XFORM_LOCAL_PRS);
+	bool render(unsigned long time = XFORM_LOCAL_PRS);
 };
 
 #endif	// _REND_CURVE_HPP_

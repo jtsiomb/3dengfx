@@ -60,22 +60,22 @@ namespace fxwt {
 
 	enum TextRenderMode {TEXT_TRANSPARENT, TEXT_OPAQUE};
 	
-	bool TextInit();
-	void TextClose();
+	bool text_init();
+	void text_close();
 
-	void SetTextRenderMode(TextRenderMode mode);
+	void set_text_render_mode(TextRenderMode mode);
 
-	void SetFontSize(int sz);
-	int GetFontSize();
+	void set_font_size(int sz);
+	int get_font_size();
 
-	bool SetFont(Font fnt);
-	bool SetFont(FontStyle fstyle);
+	bool set_font(Font fnt);
+	bool set_font(FontStyle fstyle);
 
-	const char *GetFontName(Font fnt);
+	const char *get_font_name(Font fnt);
 
-	Texture *GetText(const char *text_str);
+	Texture *get_text(const char *text_str);
 
-	void PrintText(const char *text_str, const Vector2 &pos, scalar_t size, const Color &col = Color(1,1,1));
+	void print_text(const char *text_str, const Vector2 &pos, scalar_t size, const Color &col = Color(1,1,1));
 }
 
 #endif	/* _TEXT_HPP_ */

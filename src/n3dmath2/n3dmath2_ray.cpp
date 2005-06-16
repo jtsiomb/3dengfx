@@ -34,12 +34,12 @@ Ray::Ray(const Vector3 &origin, const Vector3 &dir) {
 	ior = 1.0;
 }
 
-void Ray::Enter(scalar_t new_ior) {
+void Ray::enter(scalar_t new_ior) {
 	ior = new_ior;
 	ior_stack.push(ior);
 }
 
-void Ray::Leave() {
+void Ray::leave() {
 	ior_stack.pop();
 	ior = ior_stack.empty() ? 1.0 : ior_stack.top();
 }

@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "gfxprog.hpp"
 
-Shader AddShaderFile(const char *fname, int sdr_type);
-Shader AddShaderString(const char *code, int sdr_type, const char *name = 0);
-Shader GetShader(const char *name, int sdr_type);
-void DestroyShaders();
+Shader add_shader_file(const char *fname, int sdr_type);
+Shader add_shader_string(const char *code, int sdr_type, const char *name = 0);
+Shader get_shader(const char *name, int sdr_type);
+void destroy_shaders();

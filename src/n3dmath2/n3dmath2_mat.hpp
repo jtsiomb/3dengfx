@@ -55,30 +55,30 @@ public:
 	inline scalar_t *operator [](int index);
 	inline const scalar_t *operator [](int index) const;
 	
-	inline void ResetIdentity();
+	inline void reset_identity();
 	
-	void Translate(const Vector2 &trans);
-	void SetTranslation(const Vector2 &trans);
+	void translate(const Vector2 &trans);
+	void set_translation(const Vector2 &trans);
 	
-	void Rotate(scalar_t angle);						// 2d rotation
-	void Rotate(const Vector3 &euler_angles);			// 3d rotation with euler angles
-	void Rotate(const Vector3 &axis, scalar_t angle);	// 3d axis/angle rotation
-	void SetRotation(scalar_t angle);
-	void SetRotation(const Vector3 &euler_angles);
-	void SetRotation(const Vector3 &axis, scalar_t angle);
+	void rotate(scalar_t angle);						// 2d rotation
+	void rotate(const Vector3 &euler_angles);			// 3d rotation with euler angles
+	void rotate(const Vector3 &axis, scalar_t angle);	// 3d axis/angle rotation
+	void set_rotation(scalar_t angle);
+	void set_rotation(const Vector3 &euler_angles);
+	void set_rotation(const Vector3 &axis, scalar_t angle);
 	
-	void Scale(const Vector3 &scale_vec);
-	void SetScaling(const Vector3 &scale_vec);
+	void scale(const Vector3 &scale_vec);
+	void set_scaling(const Vector3 &scale_vec);
 	
-	void SetColumnVector(const Vector3 &vec, unsigned int col_index);
-	void SetRowVector(const Vector3 &vec, unsigned int row_index);
-	Vector3 GetColumnVector(unsigned int col_index) const;
-	Vector3 GetRowVector(unsigned int row_index) const;
+	void set_column_vector(const Vector3 &vec, unsigned int col_index);
+	void set_row_vector(const Vector3 &vec, unsigned int row_index);
+	Vector3 get_column_vector(unsigned int col_index) const;
+	Vector3 get_row_vector(unsigned int row_index) const;
 
-	void Transpose();
-	Matrix3x3 Transposed() const;	
-	scalar_t Determinant() const;
-	Matrix3x3 Inverse() const;
+	void transpose();
+	Matrix3x3 transposed() const;	
+	scalar_t determinant() const;
+	Matrix3x3 inverse() const;
 	
 	friend std::ostream &operator <<(std::ostream &out, const Matrix3x3 &mat);
 };
@@ -119,31 +119,31 @@ public:
 	inline scalar_t *operator [](int index);
 	inline const scalar_t *operator [](int index) const;
 	
-	inline void ResetIdentity();
+	inline void reset_identity();
 	
-	void Translate(const Vector3 &trans);
-	void SetTranslation(const Vector3 &trans);
+	void translate(const Vector3 &trans);
+	void set_translation(const Vector3 &trans);
 	
-	void Rotate(const Vector3 &euler_angles);			// 3d rotation with euler angles
-	void Rotate(const Vector3 &axis, scalar_t angle);	// 3d axis/angle rotation
-	void SetRotation(const Vector3 &euler_angles);
-	void SetRotation(const Vector3 &axis, scalar_t angle);
+	void rotate(const Vector3 &euler_angles);			// 3d rotation with euler angles
+	void rotate(const Vector3 &axis, scalar_t angle);	// 3d axis/angle rotation
+	void set_rotation(const Vector3 &euler_angles);
+	void set_rotation(const Vector3 &axis, scalar_t angle);
 	
-	void Scale(const Vector4 &scale_vec);
-	void SetScaling(const Vector4 &scale_vec);
+	void scale(const Vector4 &scale_vec);
+	void set_scaling(const Vector4 &scale_vec);
 	
-	void SetColumnVector(const Vector4 &vec, unsigned int col_index);
-	void SetRowVector(const Vector4 &vec, unsigned int row_index);
-	Vector4 GetColumnVector(unsigned int col_index) const;
-	Vector4 GetRowVector(unsigned int row_index) const;
+	void set_column_vector(const Vector4 &vec, unsigned int col_index);
+	void set_row_vector(const Vector4 &vec, unsigned int row_index);
+	Vector4 get_column_vector(unsigned int col_index) const;
+	Vector4 get_row_vector(unsigned int row_index) const;
 	
-	void Transpose();
-	Matrix4x4 Transposed() const;
-	scalar_t Determinant() const;
-	Matrix4x4 Adjoint() const;
-	Matrix4x4 Inverse() const;
+	void transpose();
+	Matrix4x4 transposed() const;
+	scalar_t determinant() const;
+	Matrix4x4 adjoint() const;
+	Matrix4x4 inverse() const;
 	
-	const scalar_t *OpenGLMatrix() const;
+	const scalar_t *opengl_matrix() const;
 		
 	friend std::ostream &operator <<(std::ostream &out, const Matrix4x4 &mat);
 };

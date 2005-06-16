@@ -22,12 +22,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "textures.hpp"
 
-void AddTexture(Texture *texture, const char *fname = 0);
-void RemoveTexture(Texture *texture);
-Texture *FindTexture(const char *fname);
+void add_texture(Texture *texture, const char *fname = 0);
+void remove_texture(Texture *texture);
+Texture *find_texture(const char *fname);
 
-Texture *GetTexture(const char *fname);
-void DestroyTextures();
+Texture *get_texture(const char *fname);
+void destroy_textures();
 
 
 enum CubeMapIndex {
@@ -39,8 +39,8 @@ enum CubeMapIndex {
 	CUBE_MAP_INDEX_NZ
 };
 
-Texture *MakeCubeMap(Texture **tex_array);
+Texture *make_cube_map(Texture **tex_array);
 
-Texture *GetNormalCube();
+Texture *get_normal_cube();
 
 #endif	// _TEXMAN_HPP_

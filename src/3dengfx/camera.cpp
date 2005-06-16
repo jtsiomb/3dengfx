@@ -26,95 +26,95 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Camera::Camera(const Vector3 &translation, const Quaternion &rot) 
 	: BaseCamera(translation, rot) {}
 
-void Camera::Activate(unsigned long msec) const {
-	PRS prs = GetPRS(msec);
+void Camera::activate(unsigned long msec) const {
+	PRS prs = get_prs(msec);
 
-	engfx_state::view_matrix = prs.rotation.Inverse().GetRotationMatrix();
-	engfx_state::view_matrix.Translate(-prs.position);
+	engfx_state::view_matrix = prs.rotation.inverse().get_rotation_matrix();
+	engfx_state::view_matrix.translate(-prs.position);
 
 	// TODO: this does not work...
 	Matrix4x4 flip_matrix;
-	if(flip.x) flip_matrix[0][0] = -1;
-	if(flip.y) flip_matrix[1][1] = -1;
-	if(flip.z) flip_matrix[2][2] = -1;
-	SetMatrix(XFORM_VIEW, flip_matrix * engfx_state::view_matrix);
+	if(flip_view.x) flip_matrix[0][0] = -1;
+	if(flip_view.y) flip_matrix[1][1] = -1;
+	if(flip_view.z) flip_matrix[2][2] = -1;
+	set_matrix(XFORM_VIEW, flip_matrix * engfx_state::view_matrix);
 
-	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
-	SetMatrix(XFORM_PROJECTION, proj);
+	Matrix4x4 proj = create_projection_matrix(fov, aspect, near_clip, far_clip);
+	set_matrix(XFORM_PROJECTION, proj);
 
 	engfx_state::view_mat_camera = this;
 
-	const_cast<Camera*>(this)->SetupFrustum(proj * engfx_state::view_matrix);
+	const_cast<Camera*>(this)->setup_frustum(proj * engfx_state::view_matrix);
 }
 
 
 TargetCamera::TargetCamera(const Vector3 &trans, const Vector3 &target) : Camera(trans) {
-	SetTarget(target);
+	set_target(target);
 }
 
 TargetCamera::~TargetCamera() {}
 
-void TargetCamera::SetTarget(const Vector3 &target) {
-	this->target.SetPosition(target);
+void TargetCamera::set_target(const Vector3 &target) {
+	this->target.set_position(target);
 }
 
-Vector3 TargetCamera::GetTarget(unsigned long msec) const {
-	return target.GetPRS(msec).position;
+Vector3 TargetCamera::get_target(unsigned long msec) const {
+	return target.get_prs(msec).position;
 }
 
-void TargetCamera::Activate(unsigned long msec) const {
-	PRS prs = GetPRS(msec);
+void TargetCamera::activate(unsigned long msec) const {
+	PRS prs = get_prs(msec);
 
-	Vector3 targ = target.GetPRS(msec).position;
+	Vector3 targ = target.get_prs(msec).position;
 
 	Vector3 pvec = prs.position - targ;
-	pvec.Transform(prs.rotation.GetRotationMatrix());
+	pvec.transform(prs.rotation.get_rotation_matrix());
 	Vector3 pos = targ + pvec;
 
-	Vector3 n = (targ - pos).Normalized();
-	Vector3 u = CrossProduct(up, n).Normalized();
+	Vector3 n = (targ - pos).normalized();
+	Vector3 u = cross_product(up, n).normalized();
 	Vector3 v;
 	
-	if(flip.y) {
-		v = CrossProduct(u, n);
-		SetFrontFace(ORDER_CCW);
+	if(flip_view.y) {
+		v = cross_product(u, n);
+		set_front_face(ORDER_CCW);
 	} else {
-		v = CrossProduct(n, u);
-		SetFrontFace(ORDER_CW);
+		v = cross_product(n, u);
+		set_front_face(ORDER_CW);
 	}
 
-	scalar_t tx = -DotProduct(u, pos);
-	scalar_t ty = -DotProduct(v, pos);
-	scalar_t tz = -DotProduct(n, pos);
+	scalar_t tx = -dot_product(u, pos);
+	scalar_t ty = -dot_product(v, pos);
+	scalar_t tz = -dot_product(n, pos);
 	
 	Matrix4x4 cam_matrix = Matrix4x4(u.x, u.y, u.z, tx,
 									v.x, v.y, v.z, ty,
 									n.x, n.y, n.z, tz,
 									0.0, 0.0, 0.0, 1.0);
 
-	SetMatrix(XFORM_VIEW, cam_matrix);
+	set_matrix(XFORM_VIEW, cam_matrix);
 	
-	Matrix4x4 proj = CreateProjectionMatrix(fov, aspect, near_clip, far_clip);
-	SetMatrix(XFORM_PROJECTION, proj);
+	Matrix4x4 proj = create_projection_matrix(fov, aspect, near_clip, far_clip);
+	set_matrix(XFORM_PROJECTION, proj);
 
 	engfx_state::view_mat_camera = this;
 
-	const_cast<TargetCamera*>(this)->SetupFrustum(proj * engfx_state::view_matrix);
+	const_cast<TargetCamera*>(this)->setup_frustum(proj * engfx_state::view_matrix);
 }
 
 
-void TargetCamera::Zoom(scalar_t factor, unsigned long msec) {
-	Vector3 pos = GetPRS(msec).position;
-	Vector3 targ = GetTarget(msec);
+void TargetCamera::zoom(scalar_t factor, unsigned long msec) {
+	Vector3 pos = get_prs(msec).position;
+	Vector3 targ = get_target(msec);
 
 	Vector3 dist_vec = (pos - targ) * factor;
 
-	SetPosition(targ + dist_vec, msec);
+	set_position(targ + dist_vec, msec);
 }
 
-void TargetCamera::Roll(scalar_t angle, unsigned long msec) {
-	Vector3 axis = target.GetPRS(msec).position - GetPRS(msec).position;
-	Quaternion q(axis.Normalized(), fmod(angle, two_pi));
+void TargetCamera::roll(scalar_t angle, unsigned long msec) {
+	Vector3 axis = target.get_prs(msec).position - get_prs(msec).position;
+	Quaternion q(axis.normalized(), fmod(angle, two_pi));
 	up = Vector3(0, 1, 0);
-	up.Transform(q);
+	up.transform(q);
 }

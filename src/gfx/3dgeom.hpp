@@ -76,7 +76,7 @@ public:
 
 	Triangle(Index v1 = 0, Index v2 = 0, Index v3 = 0);
 
-	void CalculateNormal(const Vertex *vbuffer, bool normalize=false);
+	void calculate_normal(const Vertex *vbuffer, bool normalize=false);
 };
 
 
@@ -88,7 +88,7 @@ public:
 
 	Quad(Index v1 = 0, Index v2 = 0, Index v3 = 0, Index v4 = 0);
 
-	void CalculateNormal(const Vertex *vbuffer, bool normalize=0);
+	void calculate_normal(const Vertex *vbuffer, bool normalize=0);
 };
 
 
@@ -108,7 +108,7 @@ private:
 	unsigned int buffer_object;		// for OGL VBOs
 	bool vbo_in_sync;
 
-	void SyncBufferObject();
+	void sync_buffer_object();
 
 public:
 	GeometryArray(bool dynamic = true);
@@ -118,16 +118,16 @@ public:
 
 	GeometryArray &operator =(const GeometryArray &ga);
 
-	inline void SetData(const DataType *data, unsigned long count);
-	inline const DataType *GetData() const;
-	inline DataType *GetModData();
+	inline void set_data(const DataType *data, unsigned long count);
+	inline const DataType *get_data() const;
+	inline DataType *get_mod_data();
 
-	inline unsigned long GetCount() const;
+	inline unsigned long get_count() const;
 
-	inline void SetDynamic(bool enable);
-	inline bool GetDynamic() const;
+	inline void set_dynamic(bool enable);
+	inline bool get_dynamic() const;
 	
-	inline unsigned int GetBufferObject() const;
+	inline unsigned int get_buffer_object() const;
 };
 
 
@@ -141,7 +141,7 @@ private:
 	unsigned int buffer_object;
 	bool vbo_in_sync;
 
-	void SyncBufferObject();
+	void sync_buffer_object();
 
 public:
 	GeometryArray(bool dynamic = true);
@@ -152,18 +152,18 @@ public:
 
 	GeometryArray &operator =(const GeometryArray &ga);
 
-	void SetData(const Index *data, unsigned long count);
-	inline const Index *GetData() const;
-	inline Index *GetModData();
+	void set_data(const Index *data, unsigned long count);
+	inline const Index *get_data() const;
+	inline Index *get_mod_data();
 
-	inline unsigned long GetCount() const;
+	inline unsigned long get_count() const;
 
-	inline void SetDynamic(bool enable);
-	inline bool GetDynamic() const;
+	inline void set_dynamic(bool enable);
+	inline bool get_dynamic() const;
 
-	inline unsigned int GetBufferObject() const;
+	inline unsigned int get_buffer_object() const;
 	
-	friend void TriToIndexArray(GeometryArray<Index> *ia, const GeometryArray<Triangle> &ta);
+	friend void tri_to_index_array(GeometryArray<Index> *ia, const GeometryArray<Triangle> &ta);
 };
 
 typedef GeometryArray<Vertex> VertexArray;
@@ -193,32 +193,32 @@ public:
 	TriMesh();
 	TriMesh(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount);
 	
-	inline const VertexArray *GetVertexArray() const;
-	inline VertexArray *GetModVertexArray();
+	inline const VertexArray *get_vertex_array() const;
+	inline VertexArray *get_mod_vertex_array();
 	
-	inline const TriangleArray *GetTriangleArray() const;
-	inline TriangleArray *GetModTriangleArray();
+	inline const TriangleArray *get_triangle_array() const;
+	inline TriangleArray *get_mod_triangle_array();
 	
-	const IndexArray *GetIndexArray();
+	const IndexArray *get_index_array();
 	
-	void SetData(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount);	
+	void set_data(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount);	
 		
-	void CalculateNormals();
-	void NormalizeNormals();
-	void InvertWinding();
+	void calculate_normals();
+	void normalize_normals();
+	void invert_winding();
 
-	void ApplyXForm(const Matrix4x4 &xform);
+	void apply_xform(const Matrix4x4 &xform);
 
 	void operator +=(const TriMesh *m2);
 
-	VertexStatistics GetVertexStats() const;
+	VertexStatistics get_vertex_stats() const;
 };
 
 
 /* utility functions
  */
-void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2);
-TriMesh *JoinTriMesh(const TriMesh *m1, const TriMesh *m2);
+void join_tri_mesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2);
+TriMesh *join_tri_mesh(const TriMesh *m1, const TriMesh *m2);
 
 #include "3dgeom.inl"
 

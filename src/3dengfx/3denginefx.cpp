@@ -54,7 +54,7 @@ using std::string;
 #endif	// SINGLE_PRECISION_MATH
 
 
-void (*LoadMatrixGL)(const Matrix4x4 &mat);
+void (*load_matrix_gl)(const Matrix4x4 &mat);
 
 namespace glext {
 #ifdef SINGLE_PRECISION_MATH
@@ -150,7 +150,7 @@ namespace engfx_state {
 
 using namespace engfx_state;
 
-GraphicsInitParameters *LoadGraphicsContextConfig(const char *fname) {
+GraphicsInitParameters *load_graphics_context_config(const char *fname) {
 	static GraphicsInitParameters gip;	
 	gip.x = 640;
 	gip.y = 480;
@@ -162,13 +162,13 @@ GraphicsInitParameters *LoadGraphicsContextConfig(const char *fname) {
 	set_log_filename("3dengfx.log");
 	set_verbosity(2);
 	
-	if(LoadConfigFile(fname) == -1) {
+	if(load_config_file(fname) == -1) {
 		error("%s: could not load config file", __func__);
 		return 0;
 	}
 	
 	const ConfigOption *cfgopt;
-	while((cfgopt = GetNextOption())) {
+	while((cfgopt = get_next_option())) {
 		
 		if(!strcmp(cfgopt->option, "fullscreen")) {
 			if(!strcmp(cfgopt->str_value, "true")) {
@@ -227,16 +227,16 @@ GraphicsInitParameters *LoadGraphicsContextConfig(const char *fname) {
 		}
 	}
 	
-	DestroyConfigParser();
+	destroy_config_parser();
 	
 	return &gip;		
 }
 
-/* ---- GetSystemCapabilities() ----
+/* ---- get_system_capabilities() ----
  * Retrieves information on the graphics subsystem capabilities
  * and returns a SysCaps structure describing them
  */
-SysCaps GetSystemCapabilities() {
+SysCaps get_system_capabilities() {
 	static bool first_call = true;
 	
 	if(!first_call) {
@@ -318,44 +318,44 @@ SysCaps GetSystemCapabilities() {
 	return sys_caps;
 }
 
-const char *GetGLErrorString(GLenum error) {
+const char *get_glerror_string(GLenum error) {
 	if(!error) return gl_error_string[0x506];
 	if(error < 0x500 || error > 0x505) error = 0x507;
 	return gl_error_string[error - 0x500];
 }
 
-/* LoadMatrix_TransposeARB() & LoadMatrix_TransposeManual()
+/* load_matrix_transpose_arb() & load_matrix_transpose_manual()
  * --------------------------------------------------------
  * two functions to handle the transformation matrix loading
  * to OpenGL by either transposing the Matrix4x4 data or using
  * the transposed-loading extension (use through function pointer
  * LoadMatrixGL which is set during initialization to the correct one)
  */
-void LoadMatrix_TransposeARB(const Matrix4x4 &mat) {
-	glLoadTransposeMatrix(mat.OpenGLMatrix());
+void load_matrix_transpose_arb(const Matrix4x4 &mat) {
+	glLoadTransposeMatrix(mat.opengl_matrix());
 }
 
-void LoadMatrix_TransposeManual(const Matrix4x4 &mat) {
+void load_matrix_transpose_manual(const Matrix4x4 &mat) {
 #ifdef SINGLE_PRECISION_MATH
-	glLoadMatrixf(mat.Transposed().OpenGLMatrix());
+	glLoadMatrixf(mat.transposed().opengl_matrix());
 #else
-	glLoadMatrixd(mat.Transposed().OpenGLMatrix());
+	glLoadMatrixd(mat.transposed().opengl_matrix());
 #endif	// SINGLE_PRECISION_MATH
 }
 
 
 //////////////// 3D Engine Initialization ////////////////
 
-static void SignalHandler(int sig) {
+static void signal_handler(int sig) {
 	error("It seems this is the end... caught signal %d, exiting...\n", sig);
-	DestroyGraphicsContext();
+	destroy_graphics_context();
 	exit(-1);
 }
 
-/* ---- CreateGraphicsContext() ----
+/* ---- create_graphics_context() ----
  * initializes the graphics subsystem according to the init parameters
  */
-bool CreateGraphicsContext(const GraphicsInitParameters &gip) {
+bool create_graphics_context(const GraphicsInitParameters &gip) {
 	
 	gparams = gip;
 
@@ -365,29 +365,29 @@ bool CreateGraphicsContext(const GraphicsInitParameters &gip) {
 	set_log_filename("3dengfx.log");
 	set_verbosity(2);
 
-	if(!fxwt::InitGraphics(&gparams)) {
+	if(!fxwt::init_graphics(&gparams)) {
 		return false;
 	}
 
-	signal(SIGSEGV, SignalHandler);
-	signal(SIGILL, SignalHandler);
-	signal(SIGTERM, SignalHandler);
-	signal(SIGFPE, SignalHandler);
-	signal(SIGINT, SignalHandler);
+	signal(SIGSEGV, signal_handler);
+	signal(SIGILL, signal_handler);
+	signal(SIGTERM, signal_handler);
+	signal(SIGFPE, signal_handler);
+	signal(SIGINT, signal_handler);
 
 #if GFX_LIBRARY == GTK
-	fxwt::Init();
+	fxwt::init();
 	return true;
 #else
-	if(!StartGL()) return false;
-	fxwt::Init();
+	if(!start_gl()) return false;
+	fxwt::init();
 	return true;
 #endif	// GTK
 }
 
 /* OpenGL startup after initialization */
-bool StartGL() {
-	SysCaps sys_caps = GetSystemCapabilities();
+bool start_gl() {
+	SysCaps sys_caps = get_system_capabilities();
 	if(sys_caps.max_texture_units < 2) {
 		error("%s: Your system does not meet the minimum requirements (at least 2 texture units)", __func__);
 		return false;
@@ -408,9 +408,9 @@ bool StartGL() {
 		glLoadTransposeMatrix = (PFNGLLOADTRANSPOSEMATRIXDARBPROC)glGetProcAddress("glLoadTransposeMatrixdARB");
 #endif	// SINGLE_PRECISION_MATH
 		
-		LoadMatrixGL = LoadMatrix_TransposeARB;
+		load_matrix_gl = load_matrix_transpose_arb;
 	} else {
-		LoadMatrixGL = LoadMatrix_TransposeManual;
+		load_matrix_gl = load_matrix_transpose_manual;
 	}
 
 	if(sys_caps.vertex_buffers) {
@@ -463,33 +463,33 @@ bool StartGL() {
 	gc_valid = true;
 	set_verbosity(3);
 	
-	SetDefaultStates();
+	set_default_states();
 	return true;
 }
 
-void DestroyGraphicsContext() {
+void destroy_graphics_context() {
 	if(!gc_valid) return;
 	gc_valid = false;
 	info("3d engine shutting down...");
-	DestroyTextures();
-	DestroyShaders();
-	fxwt::DestroyGraphics();
+	destroy_textures();
+	destroy_shaders();
+	fxwt::destroy_graphics();
 }
 
-void SetDefaultStates() {
-	SetPrimitiveType(TRIANGLE_LIST);
-	SetFrontFace(ORDER_CW);
-	SetBackfaceCulling(true);
-	SetZBuffering(true);
-	SetLighting(true);
-	SetAutoNormalize(false);
+void set_default_states() {
+	set_primitive_type(TRIANGLE_LIST);
+	set_front_face(ORDER_CW);
+	set_backface_culling(true);
+	set_zbuffering(true);
+	set_lighting(true);
+	set_auto_normalize(false);
 	
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 1);
 	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 	
-	SetMatrix(XFORM_WORLD, Matrix4x4());
-	SetMatrix(XFORM_VIEW, Matrix4x4());
-	SetMatrix(XFORM_PROJECTION, CreateProjectionMatrix(quarter_pi, 1.333333f, 1.0f, 1000.0f));
+	set_matrix(XFORM_WORLD, Matrix4x4());
+	set_matrix(XFORM_VIEW, Matrix4x4());
+	set_matrix(XFORM_PROJECTION, create_projection_matrix(quarter_pi, 1.333333f, 1.0f, 1000.0f));
 	
 	memset(coord_index, 0, MAX_TEXTURES * sizeof(int));
 
@@ -506,56 +506,56 @@ void SetDefaultStates() {
 	}
 }
 
-const GraphicsInitParameters *GetGraphicsInitParameters() {
+const GraphicsInitParameters *get_graphics_init_parameters() {
 	return &gparams;
 }
 
-void Clear(const Color &color) {
+void clear(const Color &color) {
 	glClearColor(color.r, color.g, color.b, color.a);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void ClearZBuffer(scalar_t zval) {
+void clear_zbuffer(scalar_t zval) {
 	glClearDepth(zval);
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
-void ClearStencil(unsigned char sval) {
+void clear_stencil(unsigned char sval) {
 	glClearStencil(sval);
 	glClear(GL_STENCIL_BUFFER_BIT);
 }
 
-void ClearZBufferStencil(scalar_t zval, unsigned char sval) {
+void clear_zbuffer_stencil(scalar_t zval, unsigned char sval) {
 	glClearDepth(zval);
 	glClearStencil(sval);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void Flip() {
-	fxwt::SwapBuffers();
+void flip() {
+	fxwt::swap_buffers();
 }
 
-void LoadXFormMatrices() {
+void load_xform_matrices() {
 	for(int i=0; i<sys_caps.max_texture_units; i++) {
-		SelectTextureUnit(i);
+		select_texture_unit(i);
 		glMatrixMode(GL_TEXTURE);
-		LoadMatrixGL(tex_matrix[i]);
+		load_matrix_gl(tex_matrix[i]);
 	}
 	
 	glMatrixMode(GL_PROJECTION);
-	LoadMatrixGL(proj_matrix);
+	load_matrix_gl(proj_matrix);
 	
 	Matrix4x4 modelview = view_matrix * world_matrix;
 	glMatrixMode(GL_MODELVIEW);
-	LoadMatrixGL(modelview);
+	load_matrix_gl(modelview);
 }
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-void Draw(const VertexArray &varray) {
-	LoadXFormMatrices();
+void draw(const VertexArray &varray) {
+	load_xform_matrices();
 
-	bool use_vbo = !varray.GetDynamic() && sys_caps.vertex_buffers;
+	bool use_vbo = !varray.get_dynamic() && sys_caps.vertex_buffers;
 	
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -563,33 +563,33 @@ void Draw(const VertexArray &varray) {
 	
 	if(use_vbo) {
 		Vertex v;
-		glBindBuffer(GL_ARRAY_BUFFER_ARB, varray.GetBufferObject());
+		glBindBuffer(GL_ARRAY_BUFFER_ARB, varray.get_buffer_object());
 		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.pos - (char*)&v));
 		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.normal - (char*)&v));
 		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.color - (char*)&v));
 
 		for(int i=0; i<MAX_TEXTURES; i++) {
-			SelectTextureUnit(i);
+			select_texture_unit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
 			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
 		}
 	} else {
-		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->pos);
-		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->normal);
-		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->color);
+		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->pos);
+		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->normal);
+		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->color);
 
 		for(int i=0; i<MAX_TEXTURES; i++) {
-			SelectTextureUnit(i);
+			select_texture_unit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
-			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->tex[coord_index[i]]);
+			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->tex[coord_index[i]]);
 		}
 	}
 	
-	glDrawArrays(primitive_type, 0, varray.GetCount());
+	glDrawArrays(primitive_type, 0, varray.get_count());
 	
 	if(use_vbo) glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	
@@ -598,16 +598,16 @@ void Draw(const VertexArray &varray) {
 	glDisableClientState(GL_NORMAL_ARRAY);
 	
 	for(int i=0; i<MAX_TEXTURES; i++) {
-		SelectTextureUnit(i);
+		select_texture_unit(i);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 }
 
-void Draw(const VertexArray &varray, const IndexArray &iarray) {
-	LoadXFormMatrices();
+void draw(const VertexArray &varray, const IndexArray &iarray) {
+	load_xform_matrices();
 	
-	bool use_vbo = !varray.GetDynamic() && sys_caps.vertex_buffers;
-	bool use_ibo = false;//!iarray.GetDynamic() && sys_caps.vertex_buffers;
+	bool use_vbo = !varray.get_dynamic() && sys_caps.vertex_buffers;
+	bool use_ibo = false;//!iarray.get_dynamic() && sys_caps.vertex_buffers;
 	
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -615,37 +615,37 @@ void Draw(const VertexArray &varray, const IndexArray &iarray) {
 	
 	if(use_vbo) {
 		Vertex v;
-		glBindBuffer(GL_ARRAY_BUFFER_ARB, varray.GetBufferObject());
+		glBindBuffer(GL_ARRAY_BUFFER_ARB, varray.get_buffer_object());
 		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.pos - (char*)&v));
 		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.normal - (char*)&v));
 		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.color - (char*)&v));
 
 		for(int i=0; i<MAX_TEXTURES; i++) {
-			SelectTextureUnit(i);
+			select_texture_unit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
 			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
 		}
 	} else {
-		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->pos);
-		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->normal);
-		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->color);
+		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->pos);
+		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->normal);
+		glColorPointer(4, GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->color);
 
 		for(int i=0; i<MAX_TEXTURES; i++) {
-			SelectTextureUnit(i);
+			select_texture_unit(i);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
-			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), &varray.GetData()->tex[coord_index[i]]);
+			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->tex[coord_index[i]]);
 		}
 	}
 
 	if(use_ibo) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, iarray.GetBufferObject());
-		glDrawElements(primitive_type, iarray.GetCount(), GL_UNSIGNED_SHORT, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, iarray.get_buffer_object());
+		glDrawElements(primitive_type, iarray.get_count(), GL_UNSIGNED_SHORT, 0);
 	} else {
-		glDrawElements(primitive_type, iarray.GetCount(), GL_UNSIGNED_SHORT, iarray.GetData());
+		glDrawElements(primitive_type, iarray.get_count(), GL_UNSIGNED_SHORT, iarray.get_data());
 	}
 	
 	if(use_ibo) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
@@ -656,35 +656,35 @@ void Draw(const VertexArray &varray, const IndexArray &iarray) {
 	glDisableClientState(GL_NORMAL_ARRAY);
 	
 	for(int i=0; i<MAX_TEXTURES; i++) {
-		SelectTextureUnit(i);
+		select_texture_unit(i);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 }
 
 
-/* DrawLine(start_vertex, end_vertex, start_width, end_width)
+/* draw_line(start_vertex, end_vertex, start_width, end_width)
  * Draws a line as a cylindrically billboarded elongated quad.
  */
-void DrawLine(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2) {	
+void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2) {	
 	if(w2 < 0.0) w2 = w1;
 
 	Vector3 p1 = v1.pos;
 	Vector3 p2 = v2.pos;
 
-	Vector3 cam_pos = Vector3(0,0,0).Transformed(inv_view_matrix);
+	Vector3 cam_pos = Vector3(0,0,0).transformed(inv_view_matrix);
 	
 	Vector3 vec = p2 - p1;
-	scalar_t len = vec.Length();
+	scalar_t len = vec.length();
 	
 	Basis basis;
-	basis.k = -(cam_pos - ((p2 + p1) / 2)).Normalized();
+	basis.k = -(cam_pos - ((p2 + p1) / 2)).normalized();
 	basis.j = vec / len;
-	basis.i = CrossProduct(basis.j, basis.k).Normalized();
-	basis.k = CrossProduct(basis.i, basis.j).Normalized();
+	basis.i = cross_product(basis.j, basis.k).normalized();
+	basis.k = cross_product(basis.i, basis.j).normalized();
 
-	world_matrix.SetTranslation(p1);
-	world_matrix = world_matrix * Matrix4x4(basis.CreateRotationMatrix());
-	LoadXFormMatrices();
+	world_matrix.set_translation(p1);
+	world_matrix = world_matrix * Matrix4x4(basis.create_rotation_matrix());
+	load_xform_matrices();
 
 	Vertex quad[] = {
 		Vertex(Vector3(-w1, 0, 0), 0.0, v1.tex[0].u),
@@ -693,28 +693,28 @@ void DrawLine(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2) {
 		Vertex(Vector3(w1, 0, 0), 1.0, v1.tex[0].u)
 	};
 
-	SetLighting(false);
-	SetPrimitiveType(QUAD_LIST);
-	Draw(VertexArray(quad, 4));
-	SetPrimitiveType(TRIANGLE_LIST);
-	SetLighting(true);
+	set_lighting(false);
+	set_primitive_type(QUAD_LIST);
+	draw(VertexArray(quad, 4));
+	set_primitive_type(TRIANGLE_LIST);
+	set_lighting(true);
 }
 
-void DrawPoint(const Vertex &pt, scalar_t size) {
+void draw_point(const Vertex &pt, scalar_t size) {
 
 	Vector3 p = pt.pos;
 	
-	Vector3 cam_pos = Vector3(0,0,0).Transformed(inv_view_matrix);
+	Vector3 cam_pos = Vector3(0,0,0).transformed(inv_view_matrix);
 
 	Basis basis;
-	basis.k = -(cam_pos - p).Normalized();
+	basis.k = -(cam_pos - p).normalized();
 	basis.j = Vector3(0, 1, 0);
-	basis.i = CrossProduct(basis.j, basis.k).Normalized();
-	basis.j = CrossProduct(basis.k, basis.i).Normalized();
+	basis.i = cross_product(basis.j, basis.k).normalized();
+	basis.j = cross_product(basis.k, basis.i).normalized();
 
-	world_matrix.SetTranslation(p);
-	world_matrix = world_matrix * Matrix4x4(basis.CreateRotationMatrix());
-	LoadXFormMatrices();
+	world_matrix.set_translation(p);
+	world_matrix = world_matrix * Matrix4x4(basis.create_rotation_matrix());
+	load_xform_matrices();
 
 	Vertex quad[] = {
 		Vertex(Vector3(-size, -size, 0), 0.0, 0.0, pt.color),
@@ -723,16 +723,16 @@ void DrawPoint(const Vertex &pt, scalar_t size) {
 		Vertex(Vector3(size, -size, 0), 1.0, 0.0, pt.color)
 	};
 
-	SetLighting(false);
-	SetPrimitiveType(QUAD_LIST);
-	Draw(VertexArray(quad, 4));
-	SetPrimitiveType(TRIANGLE_LIST);
-	SetLighting(true);
+	set_lighting(false);
+	set_primitive_type(QUAD_LIST);
+	draw(VertexArray(quad, 4));
+	set_primitive_type(TRIANGLE_LIST);
+	set_lighting(true);
 
 }
 
 
-void DrawFullQuad(const Vector2 &corner1, const Vector2 &corner2, const Color &color) {
+void draw_full_quad(const Vector2 &corner1, const Vector2 &corner2, const Color &color) {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -759,17 +759,17 @@ void DrawFullQuad(const Vector2 &corner1, const Vector2 &corner2, const Color &c
 	glPopMatrix();
 }
 
-int GetTextureUnitCount() {
+int get_texture_unit_count() {
 	return sys_caps.max_texture_units;
 }
 
 //////////////////// render states /////////////////////
 
-void SetPrimitiveType(PrimitiveType pt) {
+void set_primitive_type(PrimitiveType pt) {
 	primitive_type = pt;
 }
 
-void SetBackfaceCulling(bool enable) {
+void set_backface_culling(bool enable) {
 	if(enable) {
 		glEnable(GL_CULL_FACE);
 	} else {
@@ -777,11 +777,11 @@ void SetBackfaceCulling(bool enable) {
 	}
 }
 
-void SetFrontFace(FaceOrder order) {
+void set_front_face(FaceOrder order) {
 	glFrontFace(order);
 }
 
-void SetAutoNormalize(bool enable) {
+void set_auto_normalize(bool enable) {
 	if(enable) {
 		glEnable(GL_NORMALIZE);
 	} else {
@@ -789,19 +789,19 @@ void SetAutoNormalize(bool enable) {
 	}
 }
 
-void SetColorWrite(bool red, bool green, bool blue, bool alpha) {
+void set_color_write(bool red, bool green, bool blue, bool alpha) {
 	glColorMask(red, green, blue, alpha);
 }
 
-void SetWireframe(bool enable) {
-	//SetPrimitiveType(enable ? LINE_LIST : TRIANGLE_LIST);
+void set_wireframe(bool enable) {
+	//set_primitive_type(enable ? LINE_LIST : TRIANGLE_LIST);
 	glPolygonMode(GL_FRONT, enable ? GL_LINE : GL_FILL);
 }
 	
 
 ///////////////// blending states ///////////////
 
-void SetAlphaBlending(bool enable) {
+void set_alpha_blending(bool enable) {
 	if(enable) {
 		glEnable(GL_BLEND);
 	} else {
@@ -809,13 +809,13 @@ void SetAlphaBlending(bool enable) {
 	}
 }
 
-void SetBlendFunc(BlendingFactor src, BlendingFactor dest) {
+void set_blend_func(BlendingFactor src, BlendingFactor dest) {
 	glBlendFunc(src, dest);
 }
 
 ///////////////// zbuffer states ////////////////
 
-void SetZBuffering(bool enable) {
+void set_zbuffering(bool enable) {
 	if(enable) {
 		glEnable(GL_DEPTH_TEST);
 	} else {
@@ -823,16 +823,16 @@ void SetZBuffering(bool enable) {
 	}
 }
 
-void SetZWrite(bool enable) {
+void set_zwrite(bool enable) {
 	glDepthMask(enable);
 }
 
-void SetZFunc(CmpFunc func) {
+void set_zfunc(CmpFunc func) {
 	glDepthFunc(func);
 }
 
 /////////////// stencil states //////////////////
-void SetStencilBuffering(bool enable) {
+void set_stencil_buffering(bool enable) {
 	if(enable) {
 		glEnable(GL_STENCIL_TEST);
 	} else {
@@ -840,39 +840,39 @@ void SetStencilBuffering(bool enable) {
 	}
 }
 
-void SetStencilPassOp(StencilOp sop) {
+void set_stencil_pass_op(StencilOp sop) {
 	stencil_pass = sop;
 	glStencilOp(stencil_fail, stencil_pzfail, stencil_pass);
 }
 
-void SetStencilFailOp(StencilOp sop) {
+void set_stencil_fail_op(StencilOp sop) {
 	stencil_fail = sop;
 	glStencilOp(stencil_fail, stencil_pzfail, stencil_pass);
 }
 
-void SetStencilPassZFailOp(StencilOp sop) {
+void set_stencil_pass_zfail_op(StencilOp sop) {
 	stencil_pzfail = sop;
 	glStencilOp(stencil_fail, stencil_pzfail, stencil_pass);
 }
 
-void SetStencilOp(StencilOp fail, StencilOp spass_zfail, StencilOp pass) {
+void set_stencil_op(StencilOp fail, StencilOp spass_zfail, StencilOp pass) {
 	stencil_fail = fail;
 	stencil_pzfail = spass_zfail;
 	stencil_pass = pass;
 	glStencilOp(stencil_fail, stencil_pzfail, stencil_pass);
 }
 
-void SetStencilFunc(CmpFunc func) {
+void set_stencil_func(CmpFunc func) {
 	glStencilFunc(func, stencil_ref, 0xffffffff);
 }
 
-void SetStencilReference(unsigned int ref) {
+void set_stencil_reference(unsigned int ref) {
 	stencil_ref = ref;
 }
 
 ///////////// texture & material states //////////////
 
-void SetPointSprites(bool enable) {
+void set_point_sprites(bool enable) {
 	if(enable) {
 		glEnable(GL_POINT_SPRITE_ARB);
 	} else {
@@ -880,7 +880,7 @@ void SetPointSprites(bool enable) {
 	}
 }
 
-void SetTextureFiltering(int tex_unit, TextureFilteringType tex_filter) {
+void set_texture_filtering(int tex_unit, TextureFilteringType tex_filter) {
 	
 	int min_filter;
 	
@@ -906,32 +906,32 @@ void SetTextureFiltering(int tex_unit, TextureFilteringType tex_filter) {
 	}
 }
 
-void SetTextureAddressing(int tex_unit, TextureAddressing uaddr, TextureAddressing vaddr) {
+void set_texture_addressing(int tex_unit, TextureAddressing uaddr, TextureAddressing vaddr) {
 	glTexParameteri(ttype[tex_unit], GL_TEXTURE_WRAP_S, uaddr);
 	glTexParameteri(ttype[tex_unit], GL_TEXTURE_WRAP_T, vaddr);
 }
 
-void SetTextureBorderColor(int tex_unit, const Color &color) {
+void set_texture_border_color(int tex_unit, const Color &color) {
 	float col[] = {color.r, color.g, color.b, color.a};
 	glTexParameterfv(ttype[tex_unit], GL_TEXTURE_BORDER_COLOR, col);
 }
 
-void SetTexture(int tex_unit, const Texture *tex) {
-	SelectTextureUnit(tex_unit);
-	glBindTexture(tex->GetType(), tex->tex_id);
-	ttype[tex_unit] = tex->GetType();
+void set_texture(int tex_unit, const Texture *tex) {
+	select_texture_unit(tex_unit);
+	glBindTexture(tex->get_type(), tex->tex_id);
+	ttype[tex_unit] = tex->get_type();
 }
 
-void SetMipMapping(bool enable) {
+void set_mip_mapping(bool enable) {
 	mipmapping = enable;
 }
 
-void SetMaterial(const Material &mat) {
-	mat.SetGLMaterial();
+void set_material(const Material &mat) {
+	mat.set_glmaterial();
 }
 
 
-void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face) {
+void set_render_target(Texture *tex, CubeMapFace cube_map_face) {
 	static std::stack<Texture*> rt_stack;
 	static std::stack<CubeMapFace> face_stack;
 	
@@ -942,47 +942,47 @@ void SetRenderTarget(Texture *tex, CubeMapFace cube_map_face) {
 	if(tex == prev) return;
 
 	if(prev) {
-		SetTexture(0, prev);
-		glCopyTexSubImage2D(prev->GetType() == TEX_CUBE ? prev_face : GL_TEXTURE_2D, 0, 0, 0, 0, 0, prev->width, prev->height);
+		set_texture(0, prev);
+		glCopyTexSubImage2D(prev->get_type() == TEX_CUBE ? prev_face : GL_TEXTURE_2D, 0, 0, 0, 0, 0, prev->width, prev->height);
 	}
 	
 	if(!tex) {
 		rt_stack.pop();
-		if(prev->GetType() == TEX_CUBE) face_stack.pop();
+		if(prev->get_type() == TEX_CUBE) face_stack.pop();
 
 		if(rt_stack.empty()) {
-			SetViewport(0, 0, gparams.x, gparams.y);
+			set_viewport(0, 0, gparams.x, gparams.y);
 		} else {
-			SetViewport(0, 0, rt_stack.top()->width, rt_stack.top()->height);
+			set_viewport(0, 0, rt_stack.top()->width, rt_stack.top()->height);
 		}
 	} else {
-		SetViewport(0, 0, tex->width, tex->height);
+		set_viewport(0, 0, tex->width, tex->height);
 
 		rt_stack.push(tex);
-		if(tex->GetType() == TEX_CUBE) face_stack.push(cube_map_face);
+		if(tex->get_type() == TEX_CUBE) face_stack.push(cube_map_face);
 	}
 }
 
 // multitexturing interface
 
-void SelectTextureUnit(int tex_unit) {
+void select_texture_unit(int tex_unit) {
 	glext::glActiveTexture(GL_TEXTURE0 + tex_unit);
 	glext::glClientActiveTexture(GL_TEXTURE0 + tex_unit);
 }
 
-void EnableTextureUnit(int tex_unit) {
-	SelectTextureUnit(tex_unit);
+void enable_texture_unit(int tex_unit) {
+	select_texture_unit(tex_unit);
 	glEnable(ttype[tex_unit]);
 }
 
-void DisableTextureUnit(int tex_unit) {
-	SelectTextureUnit(tex_unit);
+void disable_texture_unit(int tex_unit) {
+	select_texture_unit(tex_unit);
 	glDisable(ttype[tex_unit]);
 }
 
-void SetTextureUnitColor(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3) {
+void set_texture_unit_color(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3) {
 	
-	SelectTextureUnit(tex_unit);
+	select_texture_unit(tex_unit);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, op);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, arg1);
@@ -992,9 +992,9 @@ void SetTextureUnitColor(int tex_unit, TextureBlendFunction op, TextureBlendArgu
 	}
 }
 
-void SetTextureUnitAlpha(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3) {
+void set_texture_unit_alpha(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3) {
 	
-	SelectTextureUnit(tex_unit);
+	select_texture_unit(tex_unit);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, op);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, arg1);
@@ -1004,30 +1004,30 @@ void SetTextureUnitAlpha(int tex_unit, TextureBlendFunction op, TextureBlendArgu
 	}
 }
 
-void SetTextureCoordIndex(int tex_unit, int index) {
+void set_texture_coord_index(int tex_unit, int index) {
 	coord_index[tex_unit] = index;
 }
 
-void SetTextureConstant(int tex_unit, const Color &col) {
+void set_texture_constant(int tex_unit, const Color &col) {
 	float color[] = {col.r, col.g, col.b, col.a};
-	SelectTextureUnit(tex_unit);
+	select_texture_unit(tex_unit);
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color);
 }
 
-//void SetTextureTransformState(int sttex_unitage, TexTransformState TexXForm);
-//void SetTextureCoordGenerator(int stage, TexGen tgen);
+//void set_texture_transform_state(int sttex_unitage, TexTransformState TexXForm);
+//void set_texture_coord_generator(int stage, TexGen tgen);
 
-void SetPointSpriteCoords(int tex_unit, bool enable) {
-	SelectTextureUnit(tex_unit);
+void set_point_sprite_coords(int tex_unit, bool enable) {
+	select_texture_unit(tex_unit);
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, enable ? GL_TRUE : GL_FALSE);
 }
 
 
 // programmable interface
-void SetGfxProgram(GfxProg *prog) {
+void set_gfx_program(GfxProg *prog) {
 	if(prog) {
 		if(!prog->linked) {
-			prog->Link();
+			prog->link();
 			if(!prog->linked) return;
 		}
 		glUseProgramObject(prog->prog);
@@ -1042,7 +1042,7 @@ void SetGfxProgram(GfxProg *prog) {
 }
 
 // lighting states
-void SetLighting(bool enable) {
+void set_lighting(bool enable) {
 	if(enable) {
 		glEnable(GL_LIGHTING);
 	} else {
@@ -1050,21 +1050,21 @@ void SetLighting(bool enable) {
 	}
 }
 
-void SetAmbientLight(const Color &ambient_color) {
+void set_ambient_light(const Color &ambient_color) {
 	float col[] = {ambient_color.r, ambient_color.g, ambient_color.b, ambient_color.a};
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, col);
 }
 
-void SetShadingMode(ShadeMode mode) {
+void set_shading_mode(ShadeMode mode) {
 	glShadeModel(mode);
 }
 
-void SetBumpLight(const Light *light) {
+void set_bump_light(const Light *light) {
 	bump_light = light;
 }
 
 // transformation matrices
-void SetMatrix(TransformType xform_type, const Matrix4x4 &mat, int num) {
+void set_matrix(TransformType xform_type, const Matrix4x4 &mat, int num) {
 	switch(xform_type) {
 	case XFORM_WORLD:
 		world_matrix = mat;
@@ -1072,7 +1072,7 @@ void SetMatrix(TransformType xform_type, const Matrix4x4 &mat, int num) {
 		
 	case XFORM_VIEW:
 		view_matrix = mat;
-		inv_view_matrix = view_matrix.Inverse();
+		inv_view_matrix = view_matrix.inverse();
 		view_mat_camera = 0;
 		break;
 		
@@ -1086,7 +1086,7 @@ void SetMatrix(TransformType xform_type, const Matrix4x4 &mat, int num) {
 	}
 }
 
-Matrix4x4 GetMatrix(TransformType xform_type, int num) {
+Matrix4x4 get_matrix(TransformType xform_type, int num) {
 	switch(xform_type) {
 	case XFORM_WORLD:
 		return world_matrix;
@@ -1103,11 +1103,11 @@ Matrix4x4 GetMatrix(TransformType xform_type, int num) {
 	}
 }
 
-void SetViewport(unsigned int x, unsigned int y, unsigned int xsize, unsigned int ysize) {
+void set_viewport(unsigned int x, unsigned int y, unsigned int xsize, unsigned int ysize) {
 	glViewport(x, y, xsize, ysize);
 }
 
-Matrix4x4 CreateProjectionMatrix(scalar_t vfov, scalar_t aspect, scalar_t near_clip, scalar_t far_clip) {
+Matrix4x4 create_projection_matrix(scalar_t vfov, scalar_t aspect, scalar_t near_clip, scalar_t far_clip) {
 	
 	scalar_t hfov = vfov * aspect;
 	scalar_t w = 1.0f / (scalar_t)tan(hfov * 0.5f);
@@ -1115,7 +1115,7 @@ Matrix4x4 CreateProjectionMatrix(scalar_t vfov, scalar_t aspect, scalar_t near_c
 	scalar_t q = far_clip / (far_clip - near_clip);
 	
 	Matrix4x4 mat;
-	//mat.SetScaling(Vector4(w, h, q, 0));
+	//mat.set_scaling(Vector4(w, h, q, 0));
 	mat[0][0] = w;
 	mat[1][1] = h;
 	mat[2][2] = q;
@@ -1128,7 +1128,7 @@ Matrix4x4 CreateProjectionMatrix(scalar_t vfov, scalar_t aspect, scalar_t near_c
 
 // ---- misc ----
 
-bool ScreenCapture(char *fname, enum image_file_format fmt) {
+bool screen_capture(char *fname, enum image_file_format fmt) {
 	static int scr_num;
 	static const char *suffix[] = {"png", "jpg", "tga", "oug1", "oug2"};
 	int x = gparams.x;

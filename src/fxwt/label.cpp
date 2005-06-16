@@ -33,32 +33,32 @@ Label::Label(const char *text) {
 	text_size = def_text_size;
 	text_color = Color(0, 0, 0);
 
-	SetColor(Color(0,0,0,0));
-	SetSize(Vector2(0, 0));
+	set_color(Color(0,0,0,0));
+	set_size(Vector2(0, 0));
 }
 
-void Label::SetText(const char *text) {
+void Label::set_text(const char *text) {
 	this->text = text;
 }
 
-void Label::SetTextSize(scalar_t sz) {
+void Label::set_text_size(scalar_t sz) {
 	text_size = sz;
 }
 
-void Label::SetDefaultTextSize(scalar_t sz) {
+void Label::set_default_text_size(scalar_t sz) {
 	def_text_size = sz;
 }
 
-void Label::SetTextColor(const Color &col) {
+void Label::set_text_color(const Color &col) {
 	text_color = col;
 }
 
-void Label::Draw() const {
-	DrawableWidget::Draw();
+void Label::draw() const {
+	DrawableWidget::draw();
 
-	SetFontSize(24);
-	SetFont(FONT_SERIF);
-	SetTextRenderMode(TEXT_TRANSPARENT);
+	set_font_size(24);
+	set_font(FONT_SERIF);
+	set_text_render_mode(TEXT_TRANSPARENT);
 
-	PrintText(text.c_str(), GetPosition(), text_size, text_color);
+	print_text(text.c_str(), get_position(), text_size, text_color);
 }

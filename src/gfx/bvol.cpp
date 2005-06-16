@@ -31,36 +31,36 @@ BoundingVolume::BoundingVolume() {
 
 BoundingVolume::~BoundingVolume() {}
 
-void BoundingVolume::SetTransform(const Matrix4x4 &transform) {
+void BoundingVolume::set_transform(const Matrix4x4 &transform) {
 	this->transform = transform;
 }
 
 BoundingSphere::BoundingSphere(const Vector3 &pos, scalar_t rad) {
-	SetPosition(pos);
-	SetRadius(rad);
+	set_position(pos);
+	set_radius(rad);
 }
 
-bool BoundingSphere::RayHit(const Ray &ray) const {
+bool BoundingSphere::ray_hit(const Ray &ray) const {
 	Sphere sph = *this;
-	Vector3 new_pos = sph.GetPosition();
-	sph.SetPosition(new_pos.Transformed(transform));
+	Vector3 new_pos = sph.get_position();
+	sph.set_position(new_pos.transformed(transform));
 	
-	if(!sph.CheckIntersection(ray)) return false;
+	if(!sph.check_intersection(ray)) return false;
 	if(!children.size()) return true;
 	
 	for(size_t i=0; i<children.size(); i++) {
-		if(children[i]->RayHit(ray)) return true;
+		if(children[i]->ray_hit(ray)) return true;
 	}
 
 	return false;
 }
 
-bool BoundingSphere::Visible(const FrustumPlane *frustum) const {
-	Vector3 new_pos = pos.Transformed(transform);
+bool BoundingSphere::visible(const FrustumPlane *frustum) const {
+	Vector3 new_pos = pos.transformed(transform);
 	
 	for(int i=0; i<6; i++) {
 		Vector3 normal(frustum[i].a, frustum[i].b, frustum[i].c);
-		scalar_t dist = DotProduct(new_pos, normal) + frustum[i].d;
+		scalar_t dist = dot_product(new_pos, normal) + frustum[i].d;
 
 		if(fabs(dist) < radius) break;
 		if(dist < -radius) return false;
@@ -70,7 +70,7 @@ bool BoundingSphere::Visible(const FrustumPlane *frustum) const {
 	if(!children.size()) return true;
 
 	for(size_t i=0; i<children.size(); i++) {
-		if(children[i]->Visible(frustum)) return true;
+		if(children[i]->visible(frustum)) return true;
 	}
 	return false;
 }

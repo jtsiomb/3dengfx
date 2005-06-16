@@ -31,13 +31,13 @@ inline bool Keyframe::operator <(const Keyframe &key) const {
 
 // ------------- XFormNode -------------
 
-inline Keyframe *XFormNode::GetNearestKey(unsigned long time) {
-	return GetNearestKey(0, key_count > 0 ? key_count - 1 : 0, time);
+inline Keyframe *XFormNode::get_nearest_key(unsigned long time) {
+	return get_nearest_key(0, key_count > 0 ? key_count - 1 : 0, time);
 }
-inline const Keyframe *XFormNode::GetNearestKey(unsigned long time) const {
-	return GetNearestKey(0, key_count > 0 ? key_count - 1 : 0, time);
+inline const Keyframe *XFormNode::get_nearest_key(unsigned long time) const {
+	return get_nearest_key(0, key_count > 0 ? key_count - 1 : 0, time);
 }
 
-inline const Keyframe *XFormNode::GetNearestKey(int start, int end, unsigned long time) const {
-	return const_cast<XFormNode*>(this)->GetNearestKey(start, end, time);
+inline const Keyframe *XFormNode::get_nearest_key(int start, int end, unsigned long time) const {
+	return const_cast<XFormNode*>(this)->get_nearest_key(start, end, time);
 }

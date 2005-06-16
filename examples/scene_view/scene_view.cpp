@@ -10,10 +10,10 @@
 
 using namespace std;
 
-bool Init();
-void CleanUp();
-void UpdateGfx();
-bool AssignShaders();
+bool init();
+void clean_up();
+void update_gfx();
+bool assign_shaders();
 
 Scene *scene;
 Camera *cam;
@@ -57,18 +57,18 @@ int main(int argc, char **argv) {
 
 	if(!scene_file) scene_file = "scene.3ds";
 	
-	if(!Init()) {
+	if(!init()) {
 		return -1;
 	}
 
-	return fxwt::MainLoop();
+	return fxwt::main_loop();
 }
 
-bool Init() {
+bool init() {
 	const char *cfg_file = loc_get_path("3dengfx.conf", LOC_FILE_CONFIG);
 	
 	GraphicsInitParameters *gip;
-	if(!cfg_file || !(gip = LoadGraphicsContextConfig(cfg_file))) {
+	if(!cfg_file || !(gip = load_graphics_context_config(cfg_file))) {
 		warning("couldn't %s the config file \"3dengfx.conf\", using defaults\n", cfg_file ? "load" : "locate");
 		
 		static GraphicsInitParameters init;
@@ -82,36 +82,36 @@ bool Init() {
 		gip = &init;
 	}
 	
-	if(!CreateGraphicsContext(*gip)) {
+	if(!create_graphics_context(*gip)) {
 		return false;
 	}
 	
-	fxwt::SetWindowTitle(title_str);
+	fxwt::set_window_title(title_str);
 
-	fxwt::SetDisplayHandler(UpdateGfx);
-	fxwt::SetIdleHandler(UpdateGfx);
-	fxwt::SetKeyboardHandler(KeyHandler);
-	fxwt::SetMotionHandler(MotionHandler);
-	fxwt::SetButtonHandler(BnHandler);
-	atexit(CleanUp);
+	fxwt::set_display_handler(update_gfx);
+	fxwt::set_idle_handler(update_gfx);
+	fxwt::set_keyboard_handler(key_handler);
+	fxwt::set_motion_handler(motion_handler);
+	fxwt::set_button_handler(bn_handler);
+	atexit(clean_up);
 
-	if(data_dir) SetSceneDataPath(data_dir);
-	if(!(scene = LoadScene(scene_file))) {
+	if(data_dir) set_scene_data_path(data_dir);
+	if(!(scene = load_scene(scene_file))) {
 		return false;
 	}
 
-	if(!(cam = scene->GetActiveCamera())) {
+	if(!(cam = scene->get_active_camera())) {
 		cam = new TargetCamera(Vector3(0, 0, -100), Vector3(0, 0, 0));
-		scene->AddCamera(cam);
+		scene->add_camera(cam);
 	}
-	cam_list = scene->GetCameraList();
+	cam_list = scene->get_camera_list();
 	cam_iter = cam_list->begin();
 
 	cam_light = new PointLight;
-	cam_light->SetIntensity(0.85);
+	cam_light->set_intensity(0.85);
 
-	fxwt::SetFontSize(20);
-	fxwt::SetFont(fxwt::FONT_SERIF);
+	fxwt::set_font_size(20);
+	fxwt::set_font(fxwt::FONT_SERIF);
 
 	timer_reset(&timer);
 	timer_start(&timer);
@@ -120,24 +120,24 @@ bool Init() {
 	return true;
 }
 
-void UpdateGfx() {
+void update_gfx() {
 	unsigned long time = timer_getmsec(&timer);
 
-	scene->Render(time);
+	scene->render(time);
 
-	fxwt::PrintText("3dengfx scene viewer", Vector2(0.01, 0.01), 0.045);
+	fxwt::print_text("3dengfx scene viewer", Vector2(0.01, 0.01), 0.045);
 
-	Flip();
+	flip();
 
 	if(fps_frame_proc(&fps, timer_getmsec(&timer))) {
 		stringstream buf;
-		buf << title_str << " [frame-polygons: " << scene->GetFramePolyCount() << " fps: " << fps_get_frame_rate(&fps) << "]";
-		fxwt::SetWindowTitle(buf.str().c_str());
+		buf << title_str << " [frame-polygons: " << scene->get_frame_poly_count() << " fps: " << fps_get_frame_rate(&fps) << "]";
+		fxwt::set_window_title(buf.str().c_str());
 	}
 }
 
-void CleanUp() {
+void clean_up() {
 	delete scene;
 	if(!cam_light_on) delete cam_light;
-	DestroyGraphicsContext();
+	destroy_graphics_context();
 }

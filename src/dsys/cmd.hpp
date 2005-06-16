@@ -29,9 +29,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "script.h"
 
 namespace cmd {
-	void RegisterCommands();
+	void register_commands();
 
-	bool Command(CommandType cmd_id, const char *pname, const char **args);
+	bool command(CommandType cmd_id, const char *pname, const char **args);
 }
 
 #endif	// _CMD_HPP_

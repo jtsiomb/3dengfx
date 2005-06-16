@@ -24,10 +24,10 @@ struct ConfigOption {
 	unsigned short flags;
 };
 
-void SetParserState(enum ParserState state, int value);
-int LoadConfigFile(const char *fname);
-const struct ConfigOption *GetNextOption();
-void DestroyConfigParser();
+void set_parser_state(enum ParserState state, int value);
+int load_config_file(const char *fname);
+const struct ConfigOption *get_next_option();
+void destroy_config_parser();
 
 
 #ifdef __cplusplus

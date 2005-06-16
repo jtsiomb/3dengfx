@@ -50,33 +50,33 @@ protected:
 
 	mutable FrustumPlane frustum[6];
 
-	struct {bool x, y, z;} flip;
+	struct {bool x, y, z;} flip_view;
 
-	virtual void SetupFrustum(const Matrix4x4 &m);
+	virtual void setup_frustum(const Matrix4x4 &m);
 	
 public:
 	BaseCamera(const Vector3 &trans = Vector3(0,0,0), const Quaternion &rot = Quaternion());
 	virtual ~BaseCamera();
 	
-	virtual void SetUpVector(const Vector3 &up);
+	virtual void set_up_vector(const Vector3 &up);
 	
-	virtual void SetFOV(scalar_t angle);
-	virtual scalar_t GetFOV() const;
+	virtual void set_fov(scalar_t angle);
+	virtual scalar_t get_fov() const;
 
-	virtual void SetAspect(scalar_t aspect);
-	virtual scalar_t GetAspect() const;
+	virtual void set_aspect(scalar_t aspect);
+	virtual scalar_t get_aspect() const;
 	
-	virtual void SetClippingPlanes(scalar_t near_clip, scalar_t far_clip);
-	virtual void SetClippingPlane(scalar_t val, ClipPlane which);
-	virtual scalar_t GetClippingPlane(ClipPlane which) const;
+	virtual void set_clipping_planes(scalar_t near_clip, scalar_t far_clip);
+	virtual void set_clipping_plane(scalar_t val, ClipPlane which);
+	virtual scalar_t get_clipping_plane(ClipPlane which) const;
 
-	virtual void Zoom(scalar_t zoom_factor, unsigned long msec = XFORM_LOCAL_PRS);
-	virtual void Pan(const Vector2 &dir, unsigned long msec = XFORM_LOCAL_PRS);
-	virtual void Roll(scalar_t angle, unsigned long msec = XFORM_LOCAL_PRS);
+	virtual void zoom(scalar_t zoom_factor, unsigned long msec = XFORM_LOCAL_PRS);
+	virtual void pan(const Vector2 &dir, unsigned long msec = XFORM_LOCAL_PRS);
+	virtual void roll(scalar_t angle, unsigned long msec = XFORM_LOCAL_PRS);
 
-	virtual void Flip(bool x, bool y, bool z);
+	virtual void flip(bool x, bool y, bool z);
 
-	virtual const FrustumPlane *GetFrustum() const;
+	virtual const FrustumPlane *get_frustum() const;
 };
 
 #endif	// _BASE_CAM_HPP_

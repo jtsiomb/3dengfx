@@ -35,14 +35,14 @@ namespace dsys {
 	protected:
 		Scene *scene;
 
-		virtual void DrawPart();
+		virtual void draw_part();
 
 	public:
 		ScenePart(const char *name = 0, Scene *scene = 0);
 		ScenePart(const char *name, const char *scene_file);
 		virtual ~ScenePart();
 
-		void SetScene(Scene *scene);
+		void set_scene(Scene *scene);
 	};
 }
 

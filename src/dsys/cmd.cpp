@@ -35,66 +35,66 @@ using namespace dsys;
 using namespace cmd;
 
 // command handler prototypes
-static bool StartPart(const char *pname, const char **args);
-static bool EndPart(const char *pname, const char **args);
-static bool RenamePart(const char *pname, const char **args);
-static bool SetRenderTarget(const char *pname, const char **args);
-static bool SetClear(const char *pname, const char **args);
-static bool End(const char *unused, const char **args);
-static bool Effect(const char *fxname, const char **args);
+static bool start_part(const char *pname, const char **args);
+static bool end_part(const char *pname, const char **args);
+static bool rename_part(const char *pname, const char **args);
+static bool set_render_target(const char *pname, const char **args);
+static bool set_clear(const char *pname, const char **args);
+static bool end(const char *unused, const char **args);
+static bool effect(const char *fxname, const char **args);
 
 static bool (*ftbl[64])(const char*, const char**);
 
-void cmd::RegisterCommands() {
-	ftbl[CMD_START_PART] = StartPart;
-	ftbl[CMD_END_PART] = EndPart;
-	ftbl[CMD_RENAME_PART] = RenamePart;
-	ftbl[CMD_SET_RTARGET] = SetRenderTarget;
-	ftbl[CMD_SET_CLEAR] = SetClear;
-	ftbl[CMD_END] = End;
-	ftbl[CMD_FX] = Effect;
+void cmd::register_commands() {
+	ftbl[CMD_START_PART] = start_part;
+	ftbl[CMD_END_PART] = end_part;
+	ftbl[CMD_RENAME_PART] = rename_part;
+	ftbl[CMD_SET_RTARGET] = set_render_target;
+	ftbl[CMD_SET_CLEAR] = set_clear;
+	ftbl[CMD_END] = end;
+	ftbl[CMD_FX] = effect;
 }
 
-bool cmd::Command(CommandType cmd_id, const char *pname, const char **args) {
+bool cmd::command(CommandType cmd_id, const char *pname, const char **args) {
 	assert(ftbl[cmd_id]);
 
 	return ftbl[cmd_id](pname, args);
 }
 
-static bool StartPart(const char *pname, const char **args) {
-	Part *part = GetPart(pname);
+static bool start_part(const char *pname, const char **args) {
+	Part *part = get_part(pname);
 	if(part) {
 		info("start_part(%s)", pname);
-		StartPart(part);
+		start_part(part);
 		return true;
 	}
 	return false;
 }
 
-static bool EndPart(const char *pname, const char **args) {
-	Part *part = GetPart(pname);
+static bool end_part(const char *pname, const char **args) {
+	Part *part = get_part(pname);
 	if(part) {
 		info("end_part(%s)", pname);
-		StopPart(part);
+		stop_part(part);
 		return true;
 	}
 	return false;
 }
 
-static bool RenamePart(const char *pname, const char **args) {
-	Part *part = GetPart(pname);
+static bool rename_part(const char *pname, const char **args) {
+	Part *part = get_part(pname);
 	if(part && args[0]) {
 		info("rename_part(%s, %s)", pname, args[0]);
-		RemovePart(part);
-		part->SetName(args[0]);
-		AddPart(part);
+		remove_part(part);
+		part->set_name(args[0]);
+		add_part(part);
 		return true;
 	}
 	return false;
 }
 
-static bool SetRenderTarget(const char *pname, const char **args) {
-	Part *part = GetPart(pname);
+static bool set_render_target(const char *pname, const char **args) {
+	Part *part = get_part(pname);
 	if(part && args[0]) {
 		int tnum;
 
@@ -109,14 +109,14 @@ static bool SetRenderTarget(const char *pname, const char **args) {
 		}
 
 		info("set_rtarg(%s, %s)", pname, args[0]);
-		part->SetTarget((RenderTarget)tnum);
+		part->set_target((RenderTarget)tnum);
 		return true;
 	}
 	return false;
 }
 
-static bool SetClear(const char *pname, const char **args) {
-	Part *part = GetPart(pname);
+static bool set_clear(const char *pname, const char **args) {
+	Part *part = get_part(pname);
 	if(part && args[0]) {
 		bool enable;
 		if(!strcmp(args[0], "true")) {
@@ -128,21 +128,21 @@ static bool SetClear(const char *pname, const char **args) {
 		}
 
 		info("set_clear(%s, %s)", pname, enable ? "true" : "false");
-		part->SetClear(enable);
+		part->set_clear(enable);
 		return true;
 	}
 	return false;
 }
 
-static bool End(const char *unused, const char **args) {
+static bool end(const char *unused, const char **args) {
 	if(unused && *unused) return false;
 
 	info("end");
-	EndDemo();
+	end_demo();
 	return true;
 }
 
-static bool Effect(const char *fxname, const char **args) {
+static bool effect(const char *fxname, const char **args) {
 	ImageFx *fx;
 	
 	if(!strcmp(fxname, "neg")) {
@@ -156,14 +156,14 @@ static bool Effect(const char *fxname, const char **args) {
 		return false;
 	}
 
-	if(!fx->ParseScriptArgs(args)) {
+	if(!fx->parse_script_args(args)) {
 		error("fx(%s): invalid syntax", fxname);
 		delete fx;
 		return false;
 	}
 
 	info("fx(%s)", fxname);
-	AddImageFx(fx);
+	add_image_fx(fx);
 
 	return true;
 }

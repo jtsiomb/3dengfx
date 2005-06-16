@@ -38,14 +38,14 @@ using std::string;
 using namespace glext;
 static HashTable<string, Shader> *shaders;
 
-static void InitSdrMan() {
+static void init_sdr_man() {
 	if(shaders) return;
 	shaders = new HashTable<string, Shader>;
-	shaders->SetHashFunction(StringHash);
+	shaders->set_hash_function(string_hash);
 	shaders->SetDataDestructor(glDeleteObject);
 }
 
-static inline bool CheckShaderCaps(int sdr_type, const char *name) {
+static inline bool check_shader_caps(int sdr_type, const char *name) {
 	if(!engfx_state::sys_caps.prog.shader_obj) {
 		error("Failed loading GLSL shader %s: system lacks GLSL capability", name);
 		return false;
@@ -64,7 +64,7 @@ static inline bool CheckShaderCaps(int sdr_type, const char *name) {
 	return true;
 }
 
-Shader AddShaderFile(const char *fname, int sdr_type) {
+Shader add_shader_file(const char *fname, int sdr_type) {
 	FILE *fp = fopen(fname, "r");
 	if(!fp) {
 		error("Failed loading GLSL shader %s: %s\n", fname, strerror(errno));
@@ -80,16 +80,16 @@ Shader AddShaderFile(const char *fname, int sdr_type) {
 	source[src_size] = 0;
 	fclose(fp);
 
-	Shader sdr = AddShaderString(source, sdr_type, fname);
+	Shader sdr = add_shader_string(source, sdr_type, fname);
 	delete [] source;
 
 	return sdr;
 }
 
-Shader AddShaderString(const char *code, int sdr_type, const char *name) {
-	if(!shaders) InitSdrMan();
+Shader add_shader_string(const char *code, int sdr_type, const char *name) {
+	if(!shaders) init_sdr_man();
 	
-	if(!CheckShaderCaps(sdr_type, name)) return 0;
+	if(!check_shader_caps(sdr_type, name)) return 0;
 
 	Shader sdr = glCreateShaderObject(sdr_type);
 	glShaderSource(sdr, 1, &code, 0);
@@ -114,7 +114,7 @@ Shader AddShaderString(const char *code, int sdr_type, const char *name) {
 			info("%s compiled successfully", name);
 		}
 
-		shaders->Insert(name ? name : tmpnam(0), sdr);
+		shaders->insert(name ? name : tmpnam(0), sdr);
 	} else {
 		if(info_len) {
 			error("%s compile failed: %s", name, info_str);
@@ -131,16 +131,16 @@ Shader AddShaderString(const char *code, int sdr_type, const char *name) {
 }
 
 
-Shader GetShader(const char *name, int sdr_type) {
-	if(!shaders) InitSdrMan();
+Shader get_shader(const char *name, int sdr_type) {
+	if(!shaders) init_sdr_man();
 	
-	Pair<string, Shader> *res = shaders->Find(name);
+	Pair<string, Shader> *res = shaders->find(name);
 	if(res) return res->val;
 
-	return AddShaderFile(name, sdr_type);
+	return add_shader_file(name, sdr_type);
 }
 
-void DestroyShaders() {
+void destroy_shaders() {
 	info("Shutting down shader manager, destroying all shaders...");
 	delete shaders;
 	shaders = 0;

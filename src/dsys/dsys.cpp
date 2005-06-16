@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using namespace dsys;
 using std::cerr;
 
-static int ExecuteScript(DemoScript *ds, unsigned long time);
+static int execute_script(DemoScript *ds, unsigned long time);
 
 Texture *dsys::tex[4];
 unsigned int dsys::rtex_size_x, dsys::rtex_size_y;
@@ -50,7 +50,7 @@ static DemoScript *ds;
 
 static bool demo_running = false;
 
-static int BestTexSize(int n) {
+static int best_tex_size(int n) {
 	int i;
 	for(i=64; i<2048; i*=2) {
 		if(i*2 > n) return i;
@@ -59,12 +59,12 @@ static int BestTexSize(int n) {
 	return 2048;
 }
 
-bool dsys::Init() {
-	int scrx = GetGraphicsInitParameters()->x;
-	int scry = GetGraphicsInitParameters()->y;
+bool dsys::init() {
+	int scrx = get_graphics_init_parameters()->x;
+	int scry = get_graphics_init_parameters()->y;
 
-	rtex_size_x = BestTexSize(scrx);
-	rtex_size_y = BestTexSize(scry);
+	rtex_size_x = best_tex_size(scrx);
+	rtex_size_y = best_tex_size(scry);
 
 	for(int i=0; i<4; i++) {
 		tex[i] = new Texture(rtex_size_x, rtex_size_y);
@@ -72,62 +72,62 @@ bool dsys::Init() {
 
 	strcpy(script_fname, "demoscript");
 
-	cmd::RegisterCommands();
+	cmd::register_commands();
 
 	return true;
 }
 
-void dsys::CleanUp() {
+void dsys::clean_up() {
 	for(int i=0; i<4; i++) {
 		if(tex[i]) delete tex[i];
 		tex[i] = 0;
 	}
 }
 
-void dsys::SetDemoScript(const char *fname) {
+void dsys::set_demo_script(const char *fname) {
 	strcpy(script_fname, fname);
 }
 
 
-void dsys::AddPart(Part *part) {
-	parts.Insert(part);
+void dsys::add_part(Part *part) {
+	parts.insert(part);
 }
 
-void dsys::RemovePart(Part *part) {
-	parts.Remove(part);
+void dsys::remove_part(Part *part) {
+	parts.remove(part);
 }
 
-void dsys::StartPart(Part *part) {
-	running.Insert(part);
-	part->Start();
+void dsys::start_part(Part *part) {
+	running.insert(part);
+	part->start();
 }
 
-void dsys::StopPart(Part *part) {
-	part->Stop();
-	running.Remove(part);
+void dsys::stop_part(Part *part) {
+	part->stop();
+	running.remove(part);
 }
 
 class _KeyPart : public dsys::Part {
 protected:
-	virtual void DrawPart() {}	// must implement the pure virtuals of the parent
+	virtual void draw_part() {}	// must implement the pure virtuals of the parent
 };
 
-Part *dsys::GetPart(const char *pname) {
+Part *dsys::get_part(const char *pname) {
 	_KeyPart key;
-	key.SetName(pname);
-	BSTreeNode<Part*> *node = parts.Find(&key);
+	key.set_name(pname);
+	BSTreeNode<Part*> *node = parts.find(&key);
 	return node ? node->data : 0;
 }
 
-Part *dsys::GetRunning(const char *pname) {
+Part *dsys::get_running(const char *pname) {
 	_KeyPart key;
-	key.SetName(pname);
-	BSTreeNode<Part*> *node = running.Find(&key);
+	key.set_name(pname);
+	BSTreeNode<Part*> *node = running.find(&key);
 	return node ? node->data : 0;
 }
 
 
-bool dsys::StartDemo() {
+bool dsys::start_demo() {
 	if(!(ds = open_script(script_fname))) {
 		return false;
 	}
@@ -137,7 +137,7 @@ bool dsys::StartDemo() {
 	return true;
 }
 
-void dsys::EndDemo() {
+void dsys::end_demo() {
 	if(demo_running) {
 		close_script(ds);
 		demo_running = false;
@@ -145,37 +145,37 @@ void dsys::EndDemo() {
 }
 
 
-static void UpdateNode(BSTreeNode<Part*> *node) {
-	node->data->UpdateGraphics();
+static void update_node(BSTreeNode<Part*> *node) {
+	node->data->update_graphics();
 }
 
-int dsys::UpdateGraphics() {
+int dsys::update_graphics() {
 	if(!demo_running) return 1;
 
 	unsigned long time = timer_getmsec(&timer);
 
 	int res;
-	while((res = ExecuteScript(ds, time)) != 1) {
+	while((res = execute_script(ds, time)) != 1) {
 		if(res == EOF) {
-			EndDemo();
+			end_demo();
 			return -1;
 		}
 	}
 
 	// update graphics
-	Clear(Color(0.0f, 0.0f, 0.0f));
-	ClearZBufferStencil(1.0f, 0);
+	clear(Color(0.0f, 0.0f, 0.0f));
+	clear_zbuffer_stencil(1.0f, 0);
 	
-	running.Traverse(UpdateNode, TRAVERSE_INORDER);
+	running.traverse(update_node, TRAVERSE_INORDER);
 
 	// apply any post effects
-	ApplyImageFx(time);
+	apply_image_fx(time);
 
-	Flip();
+	flip();
 	return 0;
 }
 
-static int ExecuteScript(DemoScript *ds, unsigned long time) {
+static int execute_script(DemoScript *ds, unsigned long time) {
 	DemoCommand command;
 	
 	int res = get_next_command(ds, &command, time);
@@ -183,7 +183,7 @@ static int ExecuteScript(DemoScript *ds, unsigned long time) {
 		return res;
 	}
 
-	if(!cmd::Command(command.type, command.argv[0], command.argv + 1)) {
+	if(!cmd::command(command.type, command.argv[0], command.argv + 1)) {
 		error("error in demoscript command execution!");;
 	}
 

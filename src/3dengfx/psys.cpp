@@ -67,7 +67,7 @@ Particle::Particle() {
 }
 
 Particle::Particle(const Vector3 &pos, const Vector3 &vel, scalar_t friction, scalar_t lifespan) {
-	SetPosition(pos);
+	set_position(pos);
 	velocity = vel;
 	this->friction = friction;
 	this->lifespan = lifespan;
@@ -76,46 +76,46 @@ Particle::Particle(const Vector3 &pos, const Vector3 &vel, scalar_t friction, sc
 
 Particle::~Particle(){}
 
-bool Particle::Alive() const {
+bool Particle::alive() const {
 	return global_time - birth_time < lifespan;
 }
 
-void Particle::Update(const Vector3 &ext_force) {
+void Particle::update(const Vector3 &ext_force) {
 	scalar_t time = global_time - birth_time;
 	if(time > lifespan) return;
 
 	velocity = (velocity + ext_force) * friction;
-	Translate(velocity);	// update position
+	translate(velocity);	// update position
 }
 
 
-ParticleVertex BillboardParticle::GetParticleVertex() const {
+ParticleVertex BillboardParticle::get_particle_vertex() const {
 	ParticleVertex pv;
-	pv.pos = GetPRS().position;
+	pv.pos = get_prs().position;
 	pv.size = size;
 	pv.col = Color(color.r, color.g, color.b, color.a);
 
 	return pv;
 }
 
-void BillboardParticle::Update(const Vector3 &ext_force) {
-	Particle::Update(ext_force);
+void BillboardParticle::update(const Vector3 &ext_force) {
+	Particle::update(ext_force);
 	
 	scalar_t time = global_time - birth_time;
 	if(time > lifespan) return;
 	scalar_t t = time / lifespan;
 	
-	color = BlendColors(start_color, end_color, t);
+	color = blend_colors(start_color, end_color, t);
 }
 
 
 
 
-void BillboardParticle::Draw() const {
+void BillboardParticle::draw() const {
 	static int times;
 
 	if(!times) {
-		warning("WARNING: BillboardParticle::Draw() is just a stub, due efficiency reasons");
+		warning("WARNING: BillboardParticle::draw() is just a stub, due efficiency reasons");
 		times++;
 	}
 }
@@ -136,7 +136,7 @@ ParticleSystem::ParticleSystem(const char *fname) {
 	ptype = PTYPE_BILLBOARD;
 
 	if(fname) {
-		if(!psys::LoadParticleSysParams(fname, &psys_params)) {
+		if(!psys::load_particle_sys_params(fname, &psys_params)) {
 			error("Error loading particle file: %s", fname);
 		}
 	}
@@ -145,20 +145,20 @@ ParticleSystem::ParticleSystem(const char *fname) {
 ParticleSystem::~ParticleSystem() {}
 
 
-void ParticleSystem::SetParams(const ParticleSysParams &psys_params) {
+void ParticleSystem::set_params(const ParticleSysParams &psys_params) {
 	this->psys_params = psys_params;
 }
 
-void ParticleSystem::SetParticleType(ParticleType ptype) {
+void ParticleSystem::set_particle_type(ParticleType ptype) {
 	this->ptype = ptype;
 }
 
-void ParticleSystem::Update(const Vector3 &ext_force) {
+void ParticleSystem::update(const Vector3 &ext_force) {
 	int updates_missed = (int)round((global_time - prev_update) / timeslice);
 
 	if(!updates_missed) return;	// less than a timeslice has elapsed, nothing to do
 	
-	PRS prs = GetPRS((unsigned long)(global_time * 1000.0));
+	PRS prs = get_prs((unsigned long)(global_time * 1000.0));
 
 	// spawn new particles
 	scalar_t spawn = psys_params.birth_rate() * (global_time - prev_update);
@@ -196,9 +196,9 @@ void ParticleSystem::Update(const Vector3 &ext_force) {
 			break;
 		}
 
-		particle->SetPosition(prs.position + psys_params.spawn_offset());
-		particle->SetRotation(prs.rotation);
-		particle->SetScaling(prs.scale);
+		particle->set_position(prs.position + psys_params.spawn_offset());
+		particle->set_rotation(prs.rotation);
+		particle->set_scaling(prs.scale);
 
 		particle->size = psys_params.psize();
 		particle->velocity = psys_params.shoot_dir();
@@ -216,11 +216,11 @@ void ParticleSystem::Update(const Vector3 &ext_force) {
 	while(iter != particles.end()) {
 		Particle *p = *iter;
 		int i = 0;
-		while(p->Alive() && i++ < updates_missed) {
-			p->Update(psys_params.gravity);
+		while(p->alive() && i++ < updates_missed) {
+			p->update(psys_params.gravity);
 		}
 
-		if(p->Alive()) {
+		if(p->alive()) {
 			iter++;
 		} else {
 			delete *iter;
@@ -232,22 +232,22 @@ void ParticleSystem::Update(const Vector3 &ext_force) {
 }
 
 
-static void RenderParticleBuffer(int count, const Texture *tex) {
-	SetLighting(false);
-	SetZWrite(false);
-	SetAlphaBlending(true);
-	SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE);
+static void render_particle_buffer(int count, const Texture *tex) {
+	set_lighting(false);
+	set_zwrite(false);
+	set_alpha_blending(true);
+	set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE);
 
 	if(tex) {
-		SetPointSprites(true);
-		EnableTextureUnit(0);
-		DisableTextureUnit(1);
-		SetTexture(0, tex);
-		SetPointSpriteCoords(0, true);
+		set_point_sprites(true);
+		enable_texture_unit(0);
+		disable_texture_unit(1);
+		set_texture(0, tex);
+		set_point_sprite_coords(0, true);
 	}
 
-	SetTextureUnitColor(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
-	SetTextureUnitAlpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+	set_texture_unit_color(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+	set_texture_unit_alpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
 		
 	glPointSize(pvert_buf[0].size);
 	
@@ -265,19 +265,19 @@ static void RenderParticleBuffer(int count, const Texture *tex) {
 	glPointSize(1.0);
 
 	if(tex) {
-		SetPointSpriteCoords(0, true);
-		DisableTextureUnit(0);
-		SetPointSprites(true);
+		set_point_sprite_coords(0, true);
+		disable_texture_unit(0);
+		set_point_sprites(true);
 	}
 
-	SetAlphaBlending(false);
-	SetZWrite(true);
-	SetLighting(true);
+	set_alpha_blending(false);
+	set_zwrite(true);
+	set_lighting(true);
 }
 
-void ParticleSystem::Draw() const {
-	SetMatrix(XFORM_WORLD, Matrix4x4());
-	LoadXFormMatrices();
+void ParticleSystem::draw() const {
+	set_matrix(XFORM_WORLD, Matrix4x4());
+	load_xform_matrices();
 
 	int i = 0;
 	ParticleVertex *pv_ptr = pvert_buf;
@@ -289,44 +289,44 @@ void ParticleSystem::Draw() const {
 			 * insert split them into runs of as many vertices
 			 * fit in the pvert_buf array and render them in batches.
 			 */
-			*pv_ptr++ = ((BillboardParticle*)(*iter++))->GetParticleVertex();
+			*pv_ptr++ = ((BillboardParticle*)(*iter++))->get_particle_vertex();
 			i++;
 
 			if(i >= PVERT_BUF_SIZE || iter == particles.end()) {
 				// render i particles
-				RenderParticleBuffer(i, psys_params.billboard_tex);
+				render_particle_buffer(i, psys_params.billboard_tex);
 
 				i = 0;
 				pv_ptr = pvert_buf;
 			}
 				
 		} else {
-			(*iter++)->Draw();
+			(*iter++)->draw();
 		}
 	} 
 
 	if(psys_params.halo) {
-		SetAlphaBlending(true);
-		SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE);
-		EnableTextureUnit(0);
-		DisableTextureUnit(1);
-		SetTexture(0, psys_params.halo);
-		SetZWrite(false);
-		Vertex v(GetPosition((unsigned long)(global_time * 1000.0)), 0, 0, psys_params.halo_color);
-		DrawPoint(v, psys_params.halo_size());
-		SetZWrite(true);
-		DisableTextureUnit(0);
-		SetAlphaBlending(false);
+		set_alpha_blending(true);
+		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE);
+		enable_texture_unit(0);
+		disable_texture_unit(1);
+		set_texture(0, psys_params.halo);
+		set_zwrite(false);
+		Vertex v(get_position((unsigned long)(global_time * 1000.0)), 0, 0, psys_params.halo_color);
+		draw_point(v, psys_params.halo_size());
+		set_zwrite(true);
+		disable_texture_unit(0);
+		set_alpha_blending(false);
 	}
 }
 
 
-void psys::SetGlobalTime(unsigned long msec) {
+void psys::set_global_time(unsigned long msec) {
 	global_time = (scalar_t)msec / 1000.0;
 }
 
 
-static Vector3 GetVector(const char *str) {
+static Vector3 get_vector(const char *str) {
 	char *buf = new char[strlen(str) + 1];
 	strcpy(buf, str);
 
@@ -357,7 +357,7 @@ static Vector3 GetVector(const char *str) {
 	return res;
 }
 
-static Vector4 GetVector4(const char *str) {
+static Vector4 get_vector4(const char *str) {
 	char *buf = new char[strlen(str) + 1];
 	strcpy(buf, str);
 
@@ -397,17 +397,17 @@ static Vector4 GetVector4(const char *str) {
 }
 
 
-bool psys::LoadParticleSysParams(const char *fname, ParticleSysParams *psp) {
+bool psys::load_particle_sys_params(const char *fname, ParticleSysParams *psp) {
 	Vector3 shoot, shoot_range;
 	Vector3 spawn_off, spawn_off_range;
 	
-	SetParserState(PS_AssignmentSymbol, ':');
-	SetParserState(PS_CommentSymbol, '#');
+	set_parser_state(PS_AssignmentSymbol, ':');
+	set_parser_state(PS_CommentSymbol, '#');
 
-	if(LoadConfigFile(fname) == -1) return false;
+	if(load_config_file(fname) == -1) return false;
 
 	const ConfigOption *opt;
-	while((opt = GetNextOption())) {
+	while((opt = get_next_option())) {
 
 		if(!strcmp(opt->option, "psize")) {
 			psp->psize.num = opt->flt_value;
@@ -428,49 +428,49 @@ bool psys::LoadParticleSysParams(const char *fname, ParticleSysParams *psp) {
 			psp->birth_rate.range = opt->flt_value;
 
 		} else if(!strcmp(opt->option, "grav")) {
-			psp->gravity = GetVector(opt->str_value);
+			psp->gravity = get_vector(opt->str_value);
 			
 		} else if(!strcmp(opt->option, "shoot")) {
-			shoot = GetVector(opt->str_value);
+			shoot = get_vector(opt->str_value);
 
 		} else if(!strcmp(opt->option, "shoot-r")) {
-			shoot_range = GetVector(opt->str_value);
+			shoot_range = get_vector(opt->str_value);
 
 		} else if(!strcmp(opt->option, "friction")) {
 			psp->friction = opt->flt_value;
 
 		} else if(!strcmp(opt->option, "spawn_off")) {
-			spawn_off = GetVector(opt->str_value);
+			spawn_off = get_vector(opt->str_value);
 
 		} else if(!strcmp(opt->option, "spawn_off-r")) {
-			spawn_off_range = GetVector(opt->str_value);
+			spawn_off_range = get_vector(opt->str_value);
 
 		} else if(!strcmp(opt->option, "tex")) {
-			psp->billboard_tex = GetTexture(opt->str_value);
+			psp->billboard_tex = get_texture(opt->str_value);
 			if(!psp->billboard_tex) {
 				error("Could not load texture: \"%s\"", opt->str_value);
 			}
 
 		} else if(!strcmp(opt->option, "color")) {
-			Vector4 v = GetVector4(opt->str_value);
+			Vector4 v = get_vector4(opt->str_value);
 			psp->start_color = psp->end_color = Color(v.x, v.y, v.z, v.w);
 			
 		} else if(!strcmp(opt->option, "color_start")) {
-			Vector4 v = GetVector4(opt->str_value);
+			Vector4 v = get_vector4(opt->str_value);
 			psp->start_color = Color(v.x, v.y, v.z, v.w);
 
 		} else if(!strcmp(opt->option, "color_end")) {
-			Vector4 v = GetVector4(opt->str_value);
+			Vector4 v = get_vector4(opt->str_value);
 			psp->end_color = Color(v.x, v.y, v.z, v.w);
 			
 		} else if(!strcmp(opt->option, "halo")) {
-			psp->halo = GetTexture(opt->str_value);
+			psp->halo = get_texture(opt->str_value);
 			if(!psp->halo) {
 				error("Could not load texture: \"%s\"", opt->str_value);
 			}
 
 		} else if(!strcmp(opt->option, "halo_color")) {
-			Vector4 v = GetVector4(opt->str_value);
+			Vector4 v = get_vector4(opt->str_value);
 			psp->halo_color = Color(v.x, v.y, v.z, v.w);
 
 		} else if(!strcmp(opt->option, "halo_size")) {

@@ -32,14 +32,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 enum ImgSamplingMode {SAMPLE_CLAMP, SAMPLE_WRAP, SAMPLE_MIRROR};
 
-void ClearPixelBuffer(PixelBuffer *pb, const Color &col);
+void clear_pixel_buffer(PixelBuffer *pb, const Color &col);
 
-bool ResamplePixelBuffer(PixelBuffer *pb, int w, int h);
-bool ApplyKernel(PixelBuffer *pb, int *kernel, int kernel_dim, ImgSamplingMode sampling = SAMPLE_CLAMP);
-int* LoadKernel(const char* filename, int *dim);
+bool resample_pixel_buffer(PixelBuffer *pb, int w, int h);
+bool apply_kernel(PixelBuffer *pb, int *kernel, int kernel_dim, ImgSamplingMode sampling = SAMPLE_CLAMP);
+int* load_kernel(const char* filename, int *dim);
 
 // filters
-bool SobelEdge(PixelBuffer *pb, ImgSamplingMode sampling = SAMPLE_CLAMP);
-bool Blur(PixelBuffer *pb, ImgSamplingMode sampling = SAMPLE_CLAMP);
+bool sobel_edge(PixelBuffer *pb, ImgSamplingMode sampling = SAMPLE_CLAMP);
+bool blur(PixelBuffer *pb, ImgSamplingMode sampling = SAMPLE_CLAMP);
 
 #endif	// _IMG_MANIP_HPP_

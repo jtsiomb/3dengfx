@@ -66,11 +66,11 @@ public:
 	Material();
 	Material(const Color &col);
 	
-	void SetTexture(Texture *texture, TextureType type);
-	Texture *GetTexture(TextureType type);
-	int GetTextureCount() const;
+	void set_texture(Texture *texture, TextureType type);
+	Texture *get_texture(TextureType type);
+	int get_texture_count() const;
 	
-	void SetGLMaterial() const;
+	void set_glmaterial() const;
 };
 	
 

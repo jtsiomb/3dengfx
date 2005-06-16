@@ -32,27 +32,27 @@ namespace dsys {
 		ntimer timer;
 		unsigned long time;
 		dsys::RenderTarget target;
-		bool clear;
+		bool clear_fb;
 
-		virtual void PreDraw();
-		virtual void DrawPart() = 0;
-		virtual void PostDraw();
+		virtual void pre_draw();
+		virtual void draw_part() = 0;
+		virtual void post_draw();
 
 	public:
 
 		Part(const char *name = 0);
 		virtual ~Part();
 
-		void SetName(const char *name);
-		const char *GetName() const;
-		virtual void SetClear(bool enable);
+		void set_name(const char *name);
+		const char *get_name() const;
+		virtual void set_clear(bool enable);
 
-		virtual void Start();
-		virtual void Stop();
+		virtual void start();
+		virtual void stop();
 
-		virtual void SetTarget(RenderTarget targ);
+		virtual void set_target(RenderTarget targ);
 
-		virtual void UpdateGraphics();
+		virtual void update_graphics();
 
 		/* the < operator compares the names,
 		 * intended for use by the binary tree.

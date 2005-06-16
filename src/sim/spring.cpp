@@ -25,25 +25,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "spring.hpp"
 
-SpringConn::SpringConn(const Vector3 &pos, bool fixed) {
+SpringConn::spring_conn(const Vector3 &pos, bool fixed) {
 	this->fixed = fixed;
-	SetPosition(pos);
+	set_position(pos);
 	weight = 1.0;
 }
 
-void SpringConn::SetFixed(bool fixed) {
+void SpringConn::set_fixed(bool fixed) {
 	this->fixed = fixed;
 }
 
-bool SpringConn::IsFixed() const {
+bool SpringConn::is_fixed() const {
 	return fixed;
 }
 
-void SpringConn::SetWeight(scalar_t weight) {
+void SpringConn::set_weight(scalar_t weight) {
 	this->weight = weight;
 }
 
-scalar_t SpringConn::GetWeight() const {
+scalar_t SpringConn::get_weight() const {
 	return weight;
 }
 
@@ -61,19 +61,19 @@ Spring::Spring(SpringConn *end1, SpringConn *end2, scalar_t k, scalar_t len) {
 	ends[1] = end2;
 }
 
-void Spring::SetEnds(SpringConn *end1, SpringConn *end2) {
+void Spring::set_ends(SpringConn *end1, SpringConn *end2) {
 	ends[0] = end1;
 	ends[1] = end2;
 }
 
-void Spring::SetStiffness(scalar_t stiffness) {
+void Spring::set_stiffness(scalar_t stiffness) {
 	this->stiffness = stiffness;
 }
 
-void Spring::SetLength(scalar_t len) {
+void Spring::set_length(scalar_t len) {
 	length = len;
 }
 
-Vector3 Spring::CalcForce(int end) const {
+Vector3 Spring::calc_force(int end) const {
 	return Vector3();
 }

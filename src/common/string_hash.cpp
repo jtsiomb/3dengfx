@@ -9,7 +9,7 @@
  * 
  * Modified to work on C++ string class objects by John Tsiombikas
  */
-unsigned int StringHash(const std::string &key, unsigned long size) {
+unsigned int string_hash(const std::string &key, unsigned long size) {
 	int hash = 0, a = 31415, b = 27183;
 	char *str = new char[key.length() + 1];
 	strcpy(str, key.c_str());

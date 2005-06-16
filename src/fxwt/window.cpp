@@ -24,19 +24,19 @@ using namespace fxwt;
 
 Window::Window(const char *title) {
 	if(!title) title = "Unnamed window";
-	this->title.SetText(title);
-	this->title.SetSize(Vector2(1.0, 0.08));
+	this->title.set_text(title);
+	this->title.set_size(Vector2(1.0, 0.08));
 	
-	SetColor(Color(0.45, 0.45, 0.45));
-	this->title.SetColor(Color(0.5, 0.5, 0.5));
+	set_color(Color(0.45, 0.45, 0.45));
+	this->title.set_color(Color(0.5, 0.5, 0.5));
 
-	SetMovable(true);
+	set_movable(true);
 
-	AddWidget(&this->title);
+	add_widget(&this->title);
 }
 
 Window::~Window() {}
 /*
-void Window::Draw() const {
+void Window::draw() const {
 	
 }*/

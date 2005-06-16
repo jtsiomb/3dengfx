@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifdef USING_3DENGFX
 #include "3dengfx/3denginefx_types.hpp"
 
-SysCaps GetSystemCapabilities();
+SysCaps get_system_capabilities();
 #endif	// USING_3DENGFX
 
 #define INVALID_VBO		0
@@ -44,7 +44,7 @@ GeometryArray<DataType>::GeometryArray(bool dynamic) {
 	buffer_object = INVALID_VBO;
 	vbo_in_sync = false;
 
-	SetDynamic(dynamic);
+	set_dynamic(dynamic);
 }
 
 template <class DataType>
@@ -52,9 +52,9 @@ GeometryArray<DataType>::GeometryArray(const DataType *data, unsigned long count
 	this->data = 0;
 	this->count = 0;
 	buffer_object = INVALID_VBO;
-	SetDynamic(dynamic);
+	set_dynamic(dynamic);
 
-	SetData(data, count);
+	set_data(data, count);
 }
 
 template <class DataType>
@@ -64,7 +64,7 @@ GeometryArray<DataType>::GeometryArray(const GeometryArray<DataType> &ga) {
 	dynamic = ga.dynamic;
 	buffer_object = INVALID_VBO;
 
-	SetData(ga.data, ga.count);
+	set_data(ga.data, ga.count);
 }
 
 template <class DataType>
@@ -82,13 +82,13 @@ GeometryArray<DataType> &GeometryArray<DataType>::operator =(const GeometryArray
 	dynamic = ga.dynamic;
 	if(data) delete [] data;
 
-	SetData(ga.data, ga.count);
+	set_data(ga.data, ga.count);
 	
 	return *this;
 }
 
 template <class DataType>
-void GeometryArray<DataType>::SyncBufferObject() {
+void GeometryArray<DataType>::sync_buffer_object() {
 #ifdef USING_3DENGFX
 	if(dynamic) return;
 
@@ -111,7 +111,7 @@ void GeometryArray<DataType>::SyncBufferObject() {
 
 
 template <class DataType>
-inline void GeometryArray<DataType>::SetData(const DataType *data, unsigned long count) {
+inline void GeometryArray<DataType>::set_data(const DataType *data, unsigned long count) {
 	if(!data) return;
 	if(!this->data || count != this->count) {
 		if(this->data) {
@@ -128,32 +128,32 @@ inline void GeometryArray<DataType>::SetData(const DataType *data, unsigned long
 		if(buffer_object != INVALID_VBO && count != this->count) {
 			glext::glDeleteBuffers(1, &buffer_object);
 		}
-		SyncBufferObject();
+		sync_buffer_object();
 		vbo_in_sync = true;
 	}
 #endif	// USING_3DENGFX
 }
 
 template <class DataType>
-inline const DataType *GeometryArray<DataType>::GetData() const {
+inline const DataType *GeometryArray<DataType>::get_data() const {
 	return data;
 }
 
 template <class DataType>
-inline DataType *GeometryArray<DataType>::GetModData() {
+inline DataType *GeometryArray<DataType>::get_mod_data() {
 	vbo_in_sync = false;
 	return data;
 }
 
 template <class DataType>
-inline unsigned long GeometryArray<DataType>::GetCount() const {
+inline unsigned long GeometryArray<DataType>::get_count() const {
 	return count;
 }
 
 template <class DataType>
-void GeometryArray<DataType>::SetDynamic(bool enable) {
+void GeometryArray<DataType>::set_dynamic(bool enable) {
 #ifdef USING_3DENGFX
-	SysCaps sys_caps = GetSystemCapabilities();
+	SysCaps sys_caps = get_system_capabilities();
 	dynamic = enable;
 
 	if(!dynamic && !sys_caps.vertex_buffers) {
@@ -165,14 +165,14 @@ void GeometryArray<DataType>::SetDynamic(bool enable) {
 }
 
 template <class DataType>
-inline bool GeometryArray<DataType>::GetDynamic() const {
+inline bool GeometryArray<DataType>::get_dynamic() const {
 	return dynamic;
 }
 
 template <class DataType>
-inline unsigned int GeometryArray<DataType>::GetBufferObject() const {
+inline unsigned int GeometryArray<DataType>::get_buffer_object() const {
 	if(!dynamic && !vbo_in_sync) {
-		const_cast<GeometryArray<DataType>*>(this)->SyncBufferObject();
+		const_cast<GeometryArray<DataType>*>(this)->sync_buffer_object();
 	}
 		
 	return buffer_object;
@@ -180,22 +180,22 @@ inline unsigned int GeometryArray<DataType>::GetBufferObject() const {
 
 // inline functions of <index> specialization of GeometryArray
 
-inline const Index *GeometryArray<Index>::GetData() const {
+inline const Index *GeometryArray<Index>::get_data() const {
 	return data;
 }
 
-inline Index *GeometryArray<Index>::GetModData() {
+inline Index *GeometryArray<Index>::get_mod_data() {
 	vbo_in_sync = false;
 	return data;
 }
 
-inline unsigned long GeometryArray<Index>::GetCount() const {
+inline unsigned long GeometryArray<Index>::get_count() const {
 	return count;
 }
 
-inline void GeometryArray<Index>::SetDynamic(bool enable) {
+inline void GeometryArray<Index>::set_dynamic(bool enable) {
 #ifdef USING_3DENGFX
-	SysCaps sys_caps = GetSystemCapabilities();
+	SysCaps sys_caps = get_system_capabilities();
 	dynamic = enable;
 
 	if(!dynamic && !sys_caps.vertex_buffers) {
@@ -206,13 +206,13 @@ inline void GeometryArray<Index>::SetDynamic(bool enable) {
 #endif	// USING_3DENGFX
 }
 
-inline bool GeometryArray<Index>::GetDynamic() const {
+inline bool GeometryArray<Index>::get_dynamic() const {
 	return dynamic;
 }
 
-inline unsigned int GeometryArray<Index>::GetBufferObject() const {
+inline unsigned int GeometryArray<Index>::get_buffer_object() const {
 	if(!dynamic && !vbo_in_sync) {
-		const_cast<GeometryArray<Index>*>(this)->SyncBufferObject();
+		const_cast<GeometryArray<Index>*>(this)->sync_buffer_object();
 	}
 
 	return buffer_object;
@@ -220,20 +220,20 @@ inline unsigned int GeometryArray<Index>::GetBufferObject() const {
 
 
 ///////// Triangle Mesh Implementation (inline functions) //////////
-inline const VertexArray *TriMesh::GetVertexArray() const {
+inline const VertexArray *TriMesh::get_vertex_array() const {
 	return &varray;
 }
 
-inline VertexArray *TriMesh::GetModVertexArray() {
+inline VertexArray *TriMesh::get_mod_vertex_array() {
 	vertex_stats_valid = false;
 	return &varray;
 }
 
-inline const TriangleArray *TriMesh::GetTriangleArray() const {
+inline const TriangleArray *TriMesh::get_triangle_array() const {
 	return &tarray;
 }
 
-inline TriangleArray *TriMesh::GetModTriangleArray() {
+inline TriangleArray *TriMesh::get_mod_triangle_array() {
 	indices_valid = false;
 	return &tarray;
 }

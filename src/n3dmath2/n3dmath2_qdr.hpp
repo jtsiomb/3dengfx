@@ -42,16 +42,16 @@ public:
 	Surface(const Vector3 &pos=Vector3(0,0,0));
 	virtual ~Surface();
 
-	virtual void SetPosition(const Vector3 &pos);
-	virtual Vector3 GetPosition() const;
+	virtual void set_position(const Vector3 &pos);
+	virtual Vector3 get_position() const;
 
-	virtual void SetRotation(const Quaternion &rot);
-	virtual Quaternion GetRotation() const;
+	virtual void set_rotation(const Quaternion &rot);
+	virtual Quaternion get_rotation() const;
 
-	virtual Vector2 InvMap(const Vector3 &pt) const = 0;
+	virtual Vector2 inv_map(const Vector3 &pt) const = 0;
 	
-	virtual bool CheckIntersection(const Ray &ray) const = 0;
-	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const = 0;
+	virtual bool check_intersection(const Ray &ray) const = 0;
+	virtual bool find_intersection(const Ray &ray, SurfPoint *isect) const = 0;
 };
 
 // sphere (x² + y² + z² = r²)
@@ -63,13 +63,13 @@ public:
 	Sphere(const Vector3 &pos=Vector3(0,0,0), scalar_t rad=1.0);
 	virtual ~Sphere();
 
-	virtual void SetRadius(scalar_t rad);
-	virtual scalar_t GetRadius() const;
+	virtual void set_radius(scalar_t rad);
+	virtual scalar_t get_radius() const;
 	
-	virtual Vector2 InvMap(const Vector3 &pt) const;
+	virtual Vector2 inv_map(const Vector3 &pt) const;
 	
-	virtual bool CheckIntersection(const Ray &ray) const;
-	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;
+	virtual bool check_intersection(const Ray &ray) const;
+	virtual bool find_intersection(const Ray &ray, SurfPoint *isect) const;
 };
 
 // plane (ax + by + cz + d = 0)
@@ -82,13 +82,13 @@ public:
 	Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3);
 	virtual ~Plane();
 
-	virtual void SetNormal(const Vector3 &normal);
-	virtual Vector3 GetNormal() const;
+	virtual void set_normal(const Vector3 &normal);
+	virtual Vector3 get_normal() const;
 	
-	virtual Vector2 InvMap(const Vector3 &pt) const;
+	virtual Vector2 inv_map(const Vector3 &pt) const;
 	
-	virtual bool CheckIntersection(const Ray &ray) const;
-	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;
+	virtual bool check_intersection(const Ray &ray) const;
+	virtual bool find_intersection(const Ray &ray, SurfPoint *isect) const;
 };
 
 class Box : public Surface {
@@ -101,13 +101,13 @@ public:
 		const Vector3 &v4, const Vector3 &v5, const Vector3 &v6, const Vector3 &v7);
 	Box(const Vector3 *array);
 
-	virtual Vector2 InvMap(const Vector3 &pt) const;
+	virtual Vector2 inv_map(const Vector3 &pt) const;
 
-	virtual bool CheckIntersection(const Ray &ray) const;
-	virtual bool FindIntersection(const Ray &ray, SurfPoint *isect) const;
+	virtual bool check_intersection(const Ray &ray) const;
+	virtual bool find_intersection(const Ray &ray, SurfPoint *isect) const;
 };
 
 // utility functions
-bool PointOverPlane(const Plane &plane, const Vector3 &point);
+bool point_over_plane(const Plane &plane, const Vector3 &point);
 
 #endif	// _N3DMATH2_QDR_HPP_

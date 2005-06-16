@@ -6,7 +6,7 @@ extern Camera *cam;
 extern std::list<Camera*> *cam_list;
 extern std::list<Camera*>::iterator cam_iter;
 
-void KeyHandler(int key) {
+void key_handler(int key) {
 	static bool running = true;
 	extern ntimer timer;
 	extern Scene *scene;
@@ -15,15 +15,15 @@ void KeyHandler(int key) {
 	
 	switch(key) {
 	case 'a':
-		cam->Zoom(0.8);
+		cam->zoom(0.8);
 		break;
 
 	case 'z':
-		cam->Zoom(1.2);
+		cam->zoom(1.2);
 		break;
 
 	case '`':
-		ScreenCapture();
+		screen_capture();
 		break;
 
 	case ' ':
@@ -55,15 +55,15 @@ void KeyHandler(int key) {
 		if(++cam_iter == cam_list->end()) {
 			cam_iter = cam_list->begin();
 		}
-		scene->SetActiveCamera(cam = *cam_iter);
+		scene->set_active_camera(cam = *cam_iter);
 		break;
 
 	case 'l':
 		if(cam_light_on) {
-			scene->RemoveLight(cam_light);
+			scene->remove_light(cam_light);
 		} else {
-			cam_light->SetPosition(cam->GetPosition());
-			scene->AddLight(cam_light);
+			cam_light->set_position(cam->get_position());
+			scene->add_light(cam_light);
 		}
 		cam_light_on = !cam_light_on;
 		break;
@@ -79,20 +79,20 @@ void KeyHandler(int key) {
 static int prev_x = -1;
 static int prev_y = -1;
 
-void MotionHandler(int x, int y) {
+void motion_handler(int x, int y) {
 	if(prev_x != -1) {
 		float dx = (float)(x - prev_x) * 0.01;
 		float dy = (float)(y - prev_y) * 1.0;
 		
-		cam->Rotate(Vector3(0, -dx, 0));
-		cam->Translate(Vector3(0, -dy, 0));
+		cam->rotate(Vector3(0, -dx, 0));
+		cam->translate(Vector3(0, -dy, 0));
 		
 		prev_x = x;
 		prev_y = y;
 	}
 }
 
-void BnHandler(int bn, int pressed, int x, int y) {
+void bn_handler(int bn, int pressed, int x, int y) {
 	switch(bn) {
 	case fxwt::BN_RIGHT:
 		if(pressed) {
@@ -104,11 +104,11 @@ void BnHandler(int bn, int pressed, int x, int y) {
 		break;
 
 	case fxwt::BN_WHEELUP:
-		cam->Zoom(0.9);
+		cam->zoom(0.9);
 		break;
 
 	case fxwt::BN_WHEELDOWN:
-		cam->Zoom(1.1);
+		cam->zoom(1.1);
 		break;
 
 	default:

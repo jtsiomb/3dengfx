@@ -36,7 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* CreatePlane - (JT)
  * creates a planar mesh of arbitrary subdivision
  */
-void CreatePlane(TriMesh *mesh, const Vector3 &normal, const Vector2 &size, int subdiv) {
+void create_plane(TriMesh *mesh, const Vector3 &normal, const Vector2 &size, int subdiv) {
 	unsigned long vcount = (subdiv + 2) * (subdiv + 2);
 	unsigned long tcount = (subdiv + 1) * (subdiv + 1) * 2;
 	int quad_num = tcount / 2;
@@ -79,27 +79,27 @@ void CreatePlane(TriMesh *mesh, const Vector3 &normal, const Vector2 &size, int 
 
 	// reorient the plane to match the specification
 	Basis b;
-	Vector3 n = normal.Normalized();
+	Vector3 n = normal.normalized();
 	b.k = -n;
 	
-	if(fabs(DotProduct(n, Vector3(1, 0, 0))) < 1.0 - small_number) {
+	if(fabs(dot_product(n, Vector3(1, 0, 0))) < 1.0 - small_number) {
 		b.i = Vector3(1, 0, 0);
-		b.j = CrossProduct(b.k, b.i);
-		b.i = CrossProduct(b.j, b.k);
+		b.j = cross_product(b.k, b.i);
+		b.i = cross_product(b.j, b.k);
 	} else {
 		b.j = Vector3(0, 1, 0);
-		b.i = CrossProduct(b.j, b.k);
-		b.j = CrossProduct(b.k, b.i);
+		b.i = cross_product(b.j, b.k);
+		b.j = cross_product(b.k, b.i);
 	}
 	
-	Matrix3x3 rot = b.CreateRotationMatrix();
+	Matrix3x3 rot = b.create_rotation_matrix();
 
 	for(unsigned long i=0; i<vcount; i++) {
-		varray[i].pos.Transform(rot);
-		varray[i].normal.Transform(rot);
+		varray[i].pos.transform(rot);
+		varray[i].normal.transform(rot);
 	}
 
-	mesh->SetData(varray, vcount, tarray, tcount);
+	mesh->set_data(varray, vcount, tarray, tcount);
 
 	delete [] quads;
 	delete [] varray;
@@ -110,7 +110,7 @@ void CreatePlane(TriMesh *mesh, const Vector3 &normal, const Vector2 &size, int 
  * creates a cylinder by extruding a circle along the y axis, with optional
  * caps at each end.
  */
-void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int udiv, int vdiv) {
+void create_cylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int udiv, int vdiv) {
 	if(udiv < 3) udiv = 3;
 	Vector3 *circle = new Vector3[udiv + 1];
 
@@ -119,8 +119,8 @@ void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int ud
 	
 	for(int i=0; i<udiv; i++) {
 		Matrix3x3 mat;
-		mat.SetRotation(Vector3(0.0, two_pi * (scalar_t)i / (scalar_t)udiv, 0.0));
-		circle[i] = cgen.Transformed(mat);
+		mat.set_rotation(Vector3(0.0, two_pi * (scalar_t)i / (scalar_t)udiv, 0.0));
+		circle[i] = cgen.transformed(mat);
 	}
 	circle[udiv] = cgen;
 
@@ -198,7 +198,7 @@ void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int ud
 		}		
 	}
 	
-	mesh->SetData(verts, vcount, triangles, tcount);
+	mesh->set_data(verts, vcount, triangles, tcount);
 
 	delete [] verts;
 	delete [] triangles;
@@ -207,7 +207,7 @@ void CreateCylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int ud
 /* CreateSphere - (MG)
  * creates a sphere as a solid of revolution
  */
-void CreateSphere(TriMesh *mesh, scalar_t radius, int subdiv) {
+void create_sphere(TriMesh *mesh, scalar_t radius, int subdiv) {
 	// Solid of revolution. A slice of pi rads is rotated
 	// for 2pi rads. Subdiv in this revolution should be
 	// double than subdiv of the slice, because the angle
@@ -237,10 +237,10 @@ void CreateSphere(TriMesh *mesh, scalar_t radius, int subdiv) {
 			roty = -(two_pi * i) / (vcount_2pi - 1);
 			
 			Matrix4x4 rot_mat;
-			rot_mat.SetRotation(Vector3(rotx, 0, 0));
-			up_vec.Transform(rot_mat);
-			rot_mat.SetRotation(Vector3(0, roty, 0));
-			up_vec.Transform(rot_mat);
+			rot_mat.set_rotation(Vector3(rotx, 0, 0));
+			up_vec.transform(rot_mat);
+			rot_mat.set_rotation(Vector3(0, roty, 0));
+			up_vec.transform(rot_mat);
 
 			scalar_t u = (scalar_t)i / (scalar_t)(vcount_2pi - 1);
 			scalar_t v = 1.0 - (scalar_t)j / (scalar_t)(vcount_pi - 1);
@@ -269,7 +269,7 @@ void CreateSphere(TriMesh *mesh, scalar_t radius, int subdiv) {
 		tarray[i * 2 + 1] = Triangle(quads[i].vertices[0], quads[i].vertices[3], quads[i].vertices[2]);
 	}
 
-	mesh->SetData(varray, vcount, tarray, tcount);
+	mesh->set_data(varray, vcount, tarray, tcount);
 
 	delete [] quads;
 	delete [] varray;
@@ -279,7 +279,7 @@ void CreateSphere(TriMesh *mesh, scalar_t radius, int subdiv) {
 /* CreateTorus - (MG)
  * Creates a toroid mesh
  */
-void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv) {
+void create_torus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int subdiv) {
 	unsigned long edges_2pi  = 4 * subdiv;
 	unsigned long vcount_2pi = edges_2pi + 1;
 
@@ -301,8 +301,8 @@ void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int su
 		
 		Vector3 up_vec = Vector3(0, 1, 0);
 		Matrix4x4 rot_mat;
-		rot_mat.SetRotation(Vector3(0, 0, two_pi * t));
-		up_vec.Transform(rot_mat);
+		rot_mat.set_rotation(Vector3(0, 0, two_pi * t));
+		up_vec.transform(rot_mat);
 
 		Vector3 pos_vec = up_vec * circle_rad;
 		pos_vec += Vector3(revolv_rad, 0, 0);
@@ -323,9 +323,9 @@ void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int su
 			nor = circle[j].normal;
 
 			Matrix4x4 rot_mat;
-			rot_mat.SetRotation(Vector3(0, two_pi * t, 0));
-			pos.Transform(rot_mat);
-			nor.Transform(rot_mat);
+			rot_mat.set_rotation(Vector3(0, two_pi * t, 0));
+			pos.transform(rot_mat);
+			nor.transform(rot_mat);
 
 			unsigned long index = i + vcount_2pi * j;
 
@@ -352,7 +352,7 @@ void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int su
 		tarray[i * 2 + 1] = Triangle(qarray[i].vertices[0], qarray[i].vertices[3], qarray[i].vertices[2]);
 	}
 
-	mesh->SetData(varray, vcount, tarray, tcount);
+	mesh->set_data(varray, vcount, tarray, tcount);
 	
 	// cleanup
 	delete [] varray;
@@ -365,51 +365,51 @@ void CreateTorus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int su
  * overloaded function that gets a vector3 array
  * and makes a single Bezier patch
  */
-void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv)
+void create_bezier_patch(TriMesh *mesh, const Vector3 *cp, int subdiv)
 {
 
 	// make 8 BezierSpline's
 	BezierSpline u[4], v[4];
 
-	u[0].AddControlPoint(cp[0]);
-	u[0].AddControlPoint(cp[1]);
-	u[0].AddControlPoint(cp[2]);	
-	u[0].AddControlPoint(cp[3]);
+	u[0].add_control_point(cp[0]);
+	u[0].add_control_point(cp[1]);
+	u[0].add_control_point(cp[2]);	
+	u[0].add_control_point(cp[3]);
 	
-	u[1].AddControlPoint(cp[4]);
-	u[1].AddControlPoint(cp[5]);
-	u[1].AddControlPoint(cp[6]);	
-	u[1].AddControlPoint(cp[7]);
+	u[1].add_control_point(cp[4]);
+	u[1].add_control_point(cp[5]);
+	u[1].add_control_point(cp[6]);	
+	u[1].add_control_point(cp[7]);
 	
-	u[2].AddControlPoint(cp[8]);
-	u[2].AddControlPoint(cp[9]);
-	u[2].AddControlPoint(cp[10]);	
-	u[2].AddControlPoint(cp[11]);
+	u[2].add_control_point(cp[8]);
+	u[2].add_control_point(cp[9]);
+	u[2].add_control_point(cp[10]);	
+	u[2].add_control_point(cp[11]);
 	
-	u[3].AddControlPoint(cp[12]);
-	u[3].AddControlPoint(cp[13]);
-	u[3].AddControlPoint(cp[14]);	
-	u[3].AddControlPoint(cp[15]);
+	u[3].add_control_point(cp[12]);
+	u[3].add_control_point(cp[13]);
+	u[3].add_control_point(cp[14]);	
+	u[3].add_control_point(cp[15]);
 
-	v[0].AddControlPoint(cp[0]);
-	v[0].AddControlPoint(cp[4]);
-	v[0].AddControlPoint(cp[8]);	
-	v[0].AddControlPoint(cp[12]);
+	v[0].add_control_point(cp[0]);
+	v[0].add_control_point(cp[4]);
+	v[0].add_control_point(cp[8]);	
+	v[0].add_control_point(cp[12]);
 	
-	v[1].AddControlPoint(cp[1]);
-	v[1].AddControlPoint(cp[5]);
-	v[1].AddControlPoint(cp[9]);	
-	v[1].AddControlPoint(cp[13]);
+	v[1].add_control_point(cp[1]);
+	v[1].add_control_point(cp[5]);
+	v[1].add_control_point(cp[9]);	
+	v[1].add_control_point(cp[13]);
 	
-	v[2].AddControlPoint(cp[2]);
-	v[2].AddControlPoint(cp[6]);
-	v[2].AddControlPoint(cp[10]);	
-	v[2].AddControlPoint(cp[14]);
+	v[2].add_control_point(cp[2]);
+	v[2].add_control_point(cp[6]);
+	v[2].add_control_point(cp[10]);	
+	v[2].add_control_point(cp[14]);
 
-	v[3].AddControlPoint(cp[3]);
-	v[3].AddControlPoint(cp[7]);
-	v[3].AddControlPoint(cp[11]);	
-	v[3].AddControlPoint(cp[15]);
+	v[3].add_control_point(cp[3]);
+	v[3].add_control_point(cp[7]);
+	v[3].add_control_point(cp[11]);	
+	v[3].add_control_point(cp[15]);
 
 	unsigned long edges = subdiv * 2;
 	unsigned long vrow = edges + 1;
@@ -427,30 +427,30 @@ void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv)
 	{
 		scalar_t tv = (scalar_t)j / (scalar_t)(vrow - 1);
 		BezierSpline uc;
-		uc.AddControlPoint(v[0].Interpolate(tv));
-		uc.AddControlPoint(v[1].Interpolate(tv));
-		uc.AddControlPoint(v[2].Interpolate(tv));
-		uc.AddControlPoint(v[3].Interpolate(tv));
+		uc.add_control_point(v[0].interpolate(tv));
+		uc.add_control_point(v[1].interpolate(tv));
+		uc.add_control_point(v[2].interpolate(tv));
+		uc.add_control_point(v[3].interpolate(tv));
 		
 		for (unsigned long i=0; i<vrow; i++)
 		{
 			scalar_t tu = (scalar_t)i / (scalar_t)(vrow - 1);
 			BezierSpline vc;
-			vc.AddControlPoint(u[0].Interpolate(tu));
-			vc.AddControlPoint(u[1].Interpolate(tu));
-			vc.AddControlPoint(u[2].Interpolate(tu));
-			vc.AddControlPoint(u[3].Interpolate(tu));
+			vc.add_control_point(u[0].interpolate(tu));
+			vc.add_control_point(u[1].interpolate(tu));
+			vc.add_control_point(u[2].interpolate(tu));
+			vc.add_control_point(u[3].interpolate(tu));
 
 			// get the position
-			Vector3 pos = uc.Interpolate(tu);
+			Vector3 pos = uc.interpolate(tu);
 
 			// get normal
 			Vector3 tan_u,tan_v;
-			tan_u = uc.GetTangent(tu);
-			tan_v = vc.GetTangent(tv);
+			tan_u = uc.get_tangent(tu);
+			tan_v = vc.get_tangent(tv);
 			Vector3 normal;
-			normal = CrossProduct(tan_u, tan_v);
-			normal.Normalize();
+			normal = cross_product(tan_u, tan_v);
+			normal.normalize();
 
 			// store vertex
 			varray[i + j * vrow] = Vertex(pos, tu, 1.0 - tv, Color(1.0f));
@@ -472,7 +472,7 @@ void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv)
 		tarray[i * 2 + 1] = Triangle(qarray[i].vertices[0], qarray[i].vertices[3], qarray[i].vertices[2]);
 	}
 
-	mesh->SetData(varray, vcount, tarray, tcount);
+	mesh->set_data(varray, vcount, tarray, tcount);
 	
 	// cleanup
 	delete [] varray;
@@ -486,44 +486,44 @@ void CreateBezierPatch(TriMesh *mesh, const Vector3 *cp, int subdiv)
  * segments, multiple patches will be included
  * in the output TriMesh
  */
-void CreateBezierPatch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline &u1, const BezierSpline &u2, const BezierSpline &u3, int subdiv)
+void create_bezier_patch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline &u1, const BezierSpline &u2, const BezierSpline &u3, int subdiv)
 {
 	// get minimum number of segments
 	unsigned long min_seg , tmp;
-	min_seg = u0.GetSegmentCount();
-	tmp = u1.GetSegmentCount(); if (min_seg > tmp) min_seg = tmp;
-	tmp = u2.GetSegmentCount(); if (min_seg > tmp) min_seg = tmp;
-	tmp = u3.GetSegmentCount(); if (min_seg > tmp) min_seg = tmp;
+	min_seg = u0.get_segment_count();
+	tmp = u1.get_segment_count(); if (min_seg > tmp) min_seg = tmp;
+	tmp = u2.get_segment_count(); if (min_seg > tmp) min_seg = tmp;
+	tmp = u3.get_segment_count(); if (min_seg > tmp) min_seg = tmp;
 
 	TriMesh tmp_mesh;
 	Vector3 *cp = new Vector3[16];
 	for (unsigned long i=0; i<min_seg; i++)
 	{
 		// fill control point array
-		cp[0] = u0.GetControlPoint(4 * i + 0);
-		cp[1] = u0.GetControlPoint(4 * i + 1);
-		cp[2] = u0.GetControlPoint(4 * i + 2);
-		cp[3] = u0.GetControlPoint(4 * i + 3);
+		cp[0] = u0.get_control_point(4 * i + 0);
+		cp[1] = u0.get_control_point(4 * i + 1);
+		cp[2] = u0.get_control_point(4 * i + 2);
+		cp[3] = u0.get_control_point(4 * i + 3);
 
-		cp[4] = u1.GetControlPoint(4 * i + 0);
-		cp[5] = u1.GetControlPoint(4 * i + 1);
-		cp[6] = u1.GetControlPoint(4 * i + 2);
-		cp[7] = u1.GetControlPoint(4 * i + 3);
+		cp[4] = u1.get_control_point(4 * i + 0);
+		cp[5] = u1.get_control_point(4 * i + 1);
+		cp[6] = u1.get_control_point(4 * i + 2);
+		cp[7] = u1.get_control_point(4 * i + 3);
 		
-		cp[8] = u2.GetControlPoint(4 * i + 0);
-		cp[9] = u2.GetControlPoint(4 * i + 1);
-		cp[10] = u2.GetControlPoint(4 * i + 2);
-		cp[11] = u2.GetControlPoint(4 * i + 3);
+		cp[8] = u2.get_control_point(4 * i + 0);
+		cp[9] = u2.get_control_point(4 * i + 1);
+		cp[10] = u2.get_control_point(4 * i + 2);
+		cp[11] = u2.get_control_point(4 * i + 3);
 			
-		cp[12] = u3.GetControlPoint(4 * i + 0);
-		cp[13] = u3.GetControlPoint(4 * i + 1);
-		cp[14] = u3.GetControlPoint(4 * i + 2);
-		cp[15] = u3.GetControlPoint(4 * i + 3);
+		cp[12] = u3.get_control_point(4 * i + 0);
+		cp[13] = u3.get_control_point(4 * i + 1);
+		cp[14] = u3.get_control_point(4 * i + 2);
+		cp[15] = u3.get_control_point(4 * i + 3);
 
 		// Make a single patch and put all patches together	
-		CreateBezierPatch(&tmp_mesh, cp, subdiv);
+		create_bezier_patch(&tmp_mesh, cp, subdiv);
 
-		JoinTriMesh(mesh, mesh, &tmp_mesh);
+		join_tri_mesh(mesh, mesh, &tmp_mesh);
 	}
 
 	// cleanup
@@ -536,7 +536,7 @@ void CreateBezierPatch(TriMesh *mesh, const BezierSpline &u0, const BezierSpline
  * TODO : Make a bezier patch class , like Triangle
  * and Quad. Store indices
  */
-void CreateBezierMesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, int patch_count, int subdiv)
+void create_bezier_mesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, int patch_count, int subdiv)
 {
 	TriMesh tmp_mesh;
 	Vector3 control_pts[16];
@@ -547,9 +547,9 @@ void CreateBezierMesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, i
 			control_pts[j] = cp[ patches[16 * i + j] ];
 		}
 
-		CreateBezierPatch(&tmp_mesh, control_pts, subdiv);
+		create_bezier_patch(&tmp_mesh, control_pts, subdiv);
 
-		JoinTriMesh(mesh, mesh, &tmp_mesh);
+		join_tri_mesh(mesh, mesh, &tmp_mesh);
 	}
 }
 
@@ -557,7 +557,7 @@ void CreateBezierMesh(TriMesh *mesh, const Vector3 *cp, unsigned int *patches, i
  * Creates a teapot TriMesh, using the original
  * data file from Newell
  */
-void CreateTeapot(TriMesh *mesh, scalar_t size, int subdiv)
+void create_teapot(TriMesh *mesh, scalar_t size, int subdiv)
 {
 	unsigned int *patches = new unsigned int[teapot_num_patches * 16];
 	
@@ -595,7 +595,7 @@ void CreateTeapot(TriMesh *mesh, scalar_t size, int subdiv)
 		vertices[i].y = teapot_vertices[i * 3 + 2] * size;
 	}
 	
-	CreateBezierMesh(mesh, vertices, patches, teapot_num_patches, subdiv);
+	create_bezier_mesh(mesh, vertices, patches, teapot_num_patches, subdiv);
 
 	// cleanup
 	delete [] patches;

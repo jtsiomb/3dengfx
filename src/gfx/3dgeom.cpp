@@ -82,11 +82,11 @@ Triangle::Triangle(Index v1, Index v2, Index v3) {
 	smoothing_group = 0;
 }
 
-void Triangle::CalculateNormal(const Vertex *vbuffer, bool normalize) {
+void Triangle::calculate_normal(const Vertex *vbuffer, bool normalize) {
 	Vector3 v1 = vbuffer[vertices[1]].pos - vbuffer[vertices[0]].pos;
 	Vector3 v2 = vbuffer[vertices[2]].pos - vbuffer[vertices[0]].pos;
-	normal = CrossProduct(v1, v2);
-	if(normalize) normal.Normalize();
+	normal = cross_product(v1, v2);
+	if(normalize) normal.normalize();
 }
 
 Quad::Quad(Index v1, Index v2, Index v3, Index v4) {
@@ -96,11 +96,11 @@ Quad::Quad(Index v1, Index v2, Index v3, Index v4) {
 	vertices[3] = v4;
 }
 
-void Quad::CalculateNormal(const Vertex *vbuffer, bool normalize) {
+void Quad::calculate_normal(const Vertex *vbuffer, bool normalize) {
 	Vector3 v1 = vbuffer[vertices[1]].pos - vbuffer[vertices[0]].pos;
 	Vector3 v2 = vbuffer[vertices[2]].pos - vbuffer[vertices[0]].pos;
-	normal = CrossProduct(v1, v2);
-	if(normalize) normal.Normalize();
+	normal = cross_product(v1, v2);
+	if(normalize) normal.normalize();
 }
 
 ///////////////////////////////////////////
@@ -113,40 +113,40 @@ GeometryArray<Index>::GeometryArray(bool dynamic) {
 	buffer_object = INVALID_VBO;
 	vbo_in_sync = false;
 
-	SetDynamic(dynamic);
+	set_dynamic(dynamic);
 }
 
 GeometryArray<Index>::GeometryArray(const Index *data, unsigned long count, bool dynamic) {
 	this->data = 0;
 	this->count = 0;
 	buffer_object = INVALID_VBO;
-	SetDynamic(dynamic);
+	set_dynamic(dynamic);
 
-	SetData(data, count);
+	set_data(data, count);
 }
 
-void TriToIndexArray(GeometryArray<Index> *ia, const GeometryArray<Triangle> &ta) {
-	ia->dynamic = ta.GetDynamic();
+void tri_to_index_array(GeometryArray<Index> *ia, const GeometryArray<Triangle> &ta) {
+	ia->dynamic = ta.get_dynamic();
 	ia->data = 0;
 	ia->count = 0;
 	ia->buffer_object = INVALID_VBO;
 
-	unsigned long tcount = ta.GetCount();
+	unsigned long tcount = ta.get_count();
 	Index *tmp_data = new Index[tcount * 3];
 
 	Index *ptr = tmp_data;
 	for(unsigned long i=0; i<tcount; i++) {
 		for(int j=0; j<3; j++) {
-			*ptr++ = ta.GetData()[i].vertices[j];
+			*ptr++ = ta.get_data()[i].vertices[j];
 		}
 	}
 
-	ia->SetData(tmp_data, tcount * 3);
+	ia->set_data(tmp_data, tcount * 3);
 	delete [] tmp_data;
 }
 
 GeometryArray<Index>::GeometryArray(const GeometryArray<Triangle> &tarray) {
-	TriToIndexArray(this, tarray);
+	tri_to_index_array(this, tarray);
 }
 
 GeometryArray<Index>::GeometryArray(const GeometryArray<Index> &ga) {
@@ -155,7 +155,7 @@ GeometryArray<Index>::GeometryArray(const GeometryArray<Index> &ga) {
 	buffer_object = INVALID_VBO;
 	dynamic = ga.dynamic;
 
-	SetData(ga.data, ga.count);
+	set_data(ga.data, ga.count);
 }
 
 GeometryArray<Index>::~GeometryArray() {
@@ -171,12 +171,12 @@ GeometryArray<Index> &GeometryArray<Index>::operator =(const GeometryArray<Index
 	dynamic = ga.dynamic;
 	if(data) delete [] data;
 
-	SetData(ga.data, ga.count);
+	set_data(ga.data, ga.count);
 
 	return *this;
 }
 
-void GeometryArray<Index>::SyncBufferObject() {
+void GeometryArray<Index>::sync_buffer_object() {
 #ifdef USING_3DENGFX
 	if(dynamic) return;
 
@@ -189,7 +189,7 @@ void GeometryArray<Index>::SyncBufferObject() {
 
 		int glerr;
 		while((glerr = glGetError()) != GL_NO_ERROR) {
-			std::cerr << GetGLErrorString(glerr) << " ";
+			std::cerr << get_glerror_string(glerr) << " ";
 		}
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, buffer_object);
 		Index *ptr = (Index*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
@@ -204,7 +204,7 @@ void GeometryArray<Index>::SyncBufferObject() {
 
 }
 
-void GeometryArray<Index>::SetData(const Index *data, unsigned long count) {
+void GeometryArray<Index>::set_data(const Index *data, unsigned long count) {
 	if(!data) return;
 	if(!this->data || count != this->count) {
 		if(this->data) {
@@ -220,7 +220,7 @@ void GeometryArray<Index>::SetData(const Index *data, unsigned long count) {
 		if(buffer_object != INVALID_VBO && count != this->count) {
 			glDeleteBuffers(1, &buffer_object);
 		}
-		SyncBufferObject();
+		sync_buffer_object();
 		vbo_in_sync = true;
 	}
 #endif	// USING_3DENGFX
@@ -238,71 +238,71 @@ TriMesh::TriMesh() {
 TriMesh::TriMesh(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount) {
 	indices_valid = false;
 	vertex_stats_valid = false;
-	SetData(vdata, vcount, tdata, tcount);
+	set_data(vdata, vcount, tdata, tcount);
 }
 
-const IndexArray *TriMesh::GetIndexArray() {
+const IndexArray *TriMesh::get_index_array() {
 	if(!indices_valid) {
 		//iarray = IndexArray(tarray);
-		TriToIndexArray(&iarray, tarray);
+		tri_to_index_array(&iarray, tarray);
 		indices_valid = true;
 	}
 	return &iarray;
 }
 
-void TriMesh::SetData(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount) {
-	GetModVertexArray()->SetData(vdata, vcount);	// also invalidates vertex stats
-	GetModTriangleArray()->SetData(tdata, tcount);	// also invalidates indices
+void TriMesh::set_data(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount) {
+	get_mod_vertex_array()->set_data(vdata, vcount);	// also invalidates vertex stats
+	get_mod_triangle_array()->set_data(tdata, tcount);	// also invalidates indices
 }
 
-void TriMesh::CalculateNormals() {
+void TriMesh::calculate_normals() {
 	// precalculate which triangles index each vertex
 	std::vector<unsigned int> *tri_indices;
-	tri_indices = new std::vector<unsigned int>[varray.GetCount()];
+	tri_indices = new std::vector<unsigned int>[varray.get_count()];
 	
-	for(unsigned int i=0; i<tarray.GetCount(); i++) {
+	for(unsigned int i=0; i<tarray.get_count(); i++) {
 		for(int j=0; j<3; j++) {
-			tri_indices[tarray.GetData()[i].vertices[j]].push_back(i);
+			tri_indices[tarray.get_data()[i].vertices[j]].push_back(i);
 		}
 	}
 	
 	bool prev_ivalid_state = indices_valid;
 	
 	// calculate the triangle normals
-	for(unsigned int i=0; i<tarray.GetCount(); i++) {
-		tarray.GetModData()[i].CalculateNormal(varray.GetData(), false);
+	for(unsigned int i=0; i<tarray.get_count(); i++) {
+		tarray.get_mod_data()[i].calculate_normal(varray.get_data(), false);
 	}
 	
 	// we only changed the normal above, so the indices are really still valid
 	indices_valid = prev_ivalid_state;
 	
 	// now calculate the vertex normals
-	for(unsigned int i=0; i<varray.GetCount(); i++) {
+	for(unsigned int i=0; i<varray.get_count(); i++) {
 		Vector3 normal;
 		for(unsigned int j=0; j<(unsigned int)tri_indices[i].size(); j++) {
-			normal += tarray.GetData()[tri_indices[i][j]].normal;
+			normal += tarray.get_data()[tri_indices[i][j]].normal;
 		}
-		normal.Normalize();
-		varray.GetModData()[i].normal = normal;
+		normal.normalize();
+		varray.get_mod_data()[i].normal = normal;
 	}
 	
 	delete [] tri_indices;
 }
 
 
-void TriMesh::NormalizeNormals() {
-	Vertex *vptr = varray.GetModData();
-	for(unsigned int i=0; i<varray.GetCount(); i++) {
-		vptr[i].normal.Normalize();
+void TriMesh::normalize_normals() {
+	Vertex *vptr = varray.get_mod_data();
+	for(unsigned int i=0; i<varray.get_count(); i++) {
+		vptr[i].normal.normalize();
 	}
 }
 
-/* TriMesh::InvertWinding() - (JT)
+/* TriMesh::invert_winding() - (JT)
  * inverts the order of vertices (cw/ccw) as well as the normals
  */
-void TriMesh::InvertWinding() {
-	Triangle *tptr = tarray.GetModData();
-	int tcount = tarray.GetCount();
+void TriMesh::invert_winding() {
+	Triangle *tptr = tarray.get_mod_data();
+	int tcount = tarray.get_count();
 
 	for(int i=0; i<tcount; i++) {
 		Index tmp = tptr->vertices[1];
@@ -312,8 +312,8 @@ void TriMesh::InvertWinding() {
 		tptr++;
 	}
 
-	Vertex *vptr = varray.GetModData();
-	int vcount = varray.GetCount();
+	Vertex *vptr = varray.get_mod_data();
+	int vcount = varray.get_count();
 
 	for(int i=0; i<vcount; i++) {
 		vptr->normal = -vptr->normal;
@@ -322,24 +322,24 @@ void TriMesh::InvertWinding() {
 }
 
 
-void TriMesh::ApplyXForm(const Matrix4x4 &xform) {
-	Vertex *vptr = varray.GetModData();
-	unsigned long count = varray.GetCount();
+void TriMesh::apply_xform(const Matrix4x4 &xform) {
+	Vertex *vptr = varray.get_mod_data();
+	unsigned long count = varray.get_count();
 
 	for(unsigned long i=0; i<count; i++) {
-		vptr->pos.Transform(xform);
-		(vptr++)->normal.Transform((Matrix3x3)xform);
+		vptr->pos.transform(xform);
+		(vptr++)->normal.transform((Matrix3x3)xform);
 	}
 }
 
 void TriMesh::operator +=(const TriMesh *m2) {
-	JoinTriMesh(this, this, m2);
+	join_tri_mesh(this, this, m2);
 }
 
-VertexStatistics TriMesh::GetVertexStats() const {
+VertexStatistics TriMesh::get_vertex_stats() const {
 	if(!vertex_stats_valid) {
-		const Vertex *varray = GetVertexArray()->GetData();
-		int count = GetVertexArray()->GetCount();
+		const Vertex *varray = get_vertex_array()->get_data();
+		int count = get_vertex_array()->get_count();
 
 		const Vertex *vptr = varray;
 		vstats.centroid = Vector3(0, 0, 0);
@@ -354,7 +354,7 @@ VertexStatistics TriMesh::GetVertexStats() const {
 		
 		vptr = varray;
 		for(int i=0; i<count; i++) {
-			scalar_t len_sq = ((vptr++)->pos - vstats.centroid).LengthSq();
+			scalar_t len_sq = ((vptr++)->pos - vstats.centroid).length_sq();
 			if(len_sq < min_len_sq) min_len_sq = len_sq;
 			if(len_sq > max_len_sq) max_len_sq = len_sq;
 			avg_len_sq += len_sq;
@@ -372,19 +372,19 @@ VertexStatistics TriMesh::GetVertexStats() const {
  * Gets 2 trimeshes and returns a new one
  * that contains both meshes
  */
-void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2)
+void join_tri_mesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2)
 {
-	const Vertex *varr1 = m1->GetVertexArray()->GetData();
-	const Vertex *varr2 = m2->GetVertexArray()->GetData();
+	const Vertex *varr1 = m1->get_vertex_array()->get_data();
+	const Vertex *varr2 = m2->get_vertex_array()->get_data();
 	
-	unsigned long vcount1 = m1->GetVertexArray()->GetCount();
-	unsigned long vcount2 = m2->GetVertexArray()->GetCount();
+	unsigned long vcount1 = m1->get_vertex_array()->get_count();
+	unsigned long vcount2 = m2->get_vertex_array()->get_count();
 
-	const Triangle *tarr1 = m1->GetTriangleArray()->GetData();
-	const Triangle *tarr2 = m2->GetTriangleArray()->GetData();
+	const Triangle *tarr1 = m1->get_triangle_array()->get_data();
+	const Triangle *tarr2 = m2->get_triangle_array()->get_data();
 
-	unsigned long tcount1 = m1->GetTriangleArray()->GetCount();
-	unsigned long tcount2 = m2->GetTriangleArray()->GetCount();
+	unsigned long tcount1 = m1->get_triangle_array()->get_count();
+	unsigned long tcount2 = m2->get_triangle_array()->get_count();
 
 	// allocate memory
 	int vcount = vcount1 + vcount2;
@@ -407,7 +407,7 @@ void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2)
 		}
 	}
 	
-	ret->SetData(varray, vcount, tarray, tcount);
+	ret->set_data(varray, vcount, tarray, tcount);
 	
 	// cleanup
 	delete [] varray;
@@ -417,9 +417,9 @@ void JoinTriMesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2)
 /* Nicer JoinTriMesh - (JT)
  * This is a much better way to do things.
  */
-TriMesh *JoinTriMesh(const TriMesh *m1, const TriMesh *m2) {
+TriMesh *join_tri_mesh(const TriMesh *m1, const TriMesh *m2) {
 	TriMesh *mesh = new TriMesh;
-	JoinTriMesh(mesh, m1, m2);
+	join_tri_mesh(mesh, m1, m2);
 	return mesh;
 }
 

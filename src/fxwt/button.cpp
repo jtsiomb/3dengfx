@@ -26,45 +26,45 @@ using namespace fxwt;
 Button::Button(const char *text) {
 	if(text) {
 		text_label = new Label(text);
-		text_label->SetPosition(Vector2(0.08, 0.05));
-		AddWidget(text_label);
+		text_label->set_position(Vector2(0.08, 0.05));
+		add_widget(text_label);
 	} else {
 		text_label = 0;
 	}
 
 	border = 0.004;
 	pressed = false;
-	SetColor(Color(0.5, 0.5, 0.5));
+	set_color(Color(0.5, 0.5, 0.5));
 }
 
 Button::~Button() {
 	delete text_label;
 }
 
-void Button::SetText(const char *text) {
+void Button::set_text(const char *text) {
 	if(text_label) {
-		text_label->SetText(text ? text : "");
+		text_label->set_text(text ? text : "");
 	} else {
 		text_label = new Label(text);
-		text_label->SetPosition(Vector2(0.08, 0.05));
-		AddWidget(text_label);
+		text_label->set_position(Vector2(0.08, 0.05));
+		add_widget(text_label);
 	}
 }
 
-void Button::Draw() const {
+void Button::draw() const {
 	static const Color bcol(0.05, 0.05, 0.05, 0.0);
 	static const Color fcol(0.1, 0.1, 0.1, 0.0);
 	
-	Vector2 pos = GetPosition();
+	Vector2 pos = get_position();
 	
 	Color color = this->color;
 	if(focus) color += fcol;
 	
 	if(border == 0.0) {
-		dsys::Overlay(tex, pos, pos + GetSize(), color, shader);
+		dsys::overlay(tex, pos, pos + get_size(), color, shader);
 	} else {
 		Vector2 boff(border, border);
-		dsys::Overlay(tex, pos, pos + GetSize(), color + bcol, shader);
-		dsys::Overlay(tex, pos + boff, pos + GetSize() - boff, color, shader);
+		dsys::overlay(tex, pos, pos + get_size(), color + bcol, shader);
+		dsys::overlay(tex, pos + boff, pos + get_size() - boff, color, shader);
 	}
 }

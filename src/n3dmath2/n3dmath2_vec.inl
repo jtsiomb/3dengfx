@@ -35,7 +35,7 @@ inline Vector2 operator -(const Vector2 &vec) {
 	return Vector2(-vec.x, -vec.y);
 }
 
-inline scalar_t DotProduct(const Vector2 &v1, const Vector2 &v2) {
+inline scalar_t dot_product(const Vector2 &v1, const Vector2 &v2) {
 	return v1.x * v2.x + v1.y * v2.y;
 }
 
@@ -131,11 +131,11 @@ inline void operator /=(Vector2 &vec, scalar_t scalar) {
 	vec.y /= scalar;
 }
 
-inline scalar_t Vector2::Length() const {
+inline scalar_t Vector2::length() const {
 	return sqrt(x*x + y*y);
 }
 
-inline scalar_t Vector2::LengthSq() const {
+inline scalar_t Vector2::length_sq() const {
 	return x*x + y*y;
 }
 
@@ -153,11 +153,11 @@ inline Vector3 operator -(const Vector3 &vec) {
 }
 
 // binary vector (op) vector operations
-inline scalar_t DotProduct(const Vector3 &v1, const Vector3 &v2) {
+inline scalar_t dot_product(const Vector3 &v1, const Vector3 &v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-inline Vector3 CrossProduct(const Vector3 &v1, const Vector3 &v2) {
+inline Vector3 cross_product(const Vector3 &v1, const Vector3 &v2) {
 	return Vector3(v1.y * v2.z - v1.z * v2.y,  v1.z * v2.x - v1.x * v2.z,  v1.x * v2.y - v1.y * v2.x);
 }
 
@@ -262,10 +262,10 @@ inline void operator /=(Vector3 &vec, scalar_t scalar) {
 	vec.z /= scalar;
 }
 
-inline scalar_t Vector3::Length() const {
+inline scalar_t Vector3::length() const {
 	return sqrt(x*x + y*y + z*z);
 }
-inline scalar_t Vector3::LengthSq() const {
+inline scalar_t Vector3::length_sq() const {
 	return x*x + y*y + z*z;
 }
 
@@ -281,11 +281,11 @@ inline Vector4 operator -(const Vector4 &vec) {
 	return Vector4(-vec.x, -vec.y, -vec.z, -vec.w);
 }
 
-inline scalar_t DotProduct(const Vector4 &v1, const Vector4 &v2) {
+inline scalar_t dot_product(const Vector4 &v1, const Vector4 &v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 }
 
-inline Vector4 CrossProduct(const Vector4 &v1, const Vector4 &v2, const Vector4 &v3) {
+inline Vector4 cross_product(const Vector4 &v1, const Vector4 &v2, const Vector4 &v3) {
 	float  A, B, C, D, E, F;       // Intermediate Values
     Vector4 result;
 
@@ -417,9 +417,9 @@ inline void operator /=(Vector4 &vec, scalar_t scalar) {
 	vec.w /= scalar;
 }
 
-inline scalar_t Vector4::Length() const {
+inline scalar_t Vector4::length() const {
 	return sqrt(x*x + y*y + z*z + w*w);
 }
-inline scalar_t Vector4::LengthSq() const {
+inline scalar_t Vector4::length_sq() const {
 	return x*x + y*y + z*z + w*w;
 }

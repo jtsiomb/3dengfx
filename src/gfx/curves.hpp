@@ -44,45 +44,45 @@ protected:
 	Curve *ease_curve;	// ease in/out curve (1D, x&z discarded)
 	int ease_sample_count, ease_step;
 	
-	void SampleArcLengths();
-	scalar_t Parametrize(scalar_t t) const;
-	scalar_t Ease(scalar_t t) const;
+	void sample_arc_lengths();
+	scalar_t parametrize(scalar_t t) const;
+	scalar_t ease(scalar_t t) const;
 
 public:
 	std::string name;
 
 	Curve();
 	virtual ~Curve();
-	virtual void AddControlPoint(const Vector3 &cp);
+	virtual void add_control_point(const Vector3 &cp);
 
-	virtual int GetSegmentCount() const = 0;
-	virtual void SetArcParametrization(bool state);
-	virtual void SetEaseCurve(Curve *curve);
-	virtual void SetEaseSampleCount(int count);
+	virtual int get_segment_count() const = 0;
+	virtual void set_arc_parametrization(bool state);
+	virtual void set_ease_curve(Curve *curve);
+	virtual void set_ease_sample_count(int count);
 
-	virtual Vector3 Interpolate(scalar_t t) const = 0;
+	virtual Vector3 interpolate(scalar_t t) const = 0;
 	virtual Vector3 operator ()(scalar_t t) const;
 };
 
 class BSplineCurve : public Curve {
 public:
-	virtual int GetSegmentCount() const;
-	virtual Vector3 Interpolate(scalar_t t) const;
+	virtual int get_segment_count() const;
+	virtual Vector3 interpolate(scalar_t t) const;
 };
 
 class CatmullRomSplineCurve : public Curve {
 public:
-	virtual int GetSegmentCount() const;
-	virtual Vector3 Interpolate(scalar_t t) const;
+	virtual int get_segment_count() const;
+	virtual Vector3 interpolate(scalar_t t) const;
 };
 
 class BezierSpline : public Curve {
 public:
-	virtual int GetSegmentCount() const;
-	virtual Vector3 Interpolate(scalar_t t) const;
+	virtual int get_segment_count() const;
+	virtual Vector3 interpolate(scalar_t t) const;
 
-	Vector3 GetControlPoint(int i) const;
-	Vector3 GetTangent(scalar_t t);
+	Vector3 get_control_point(int i) const;
+	Vector3 get_tangent(scalar_t t);
 };
 
 #endif	// _CURVES_HPP_

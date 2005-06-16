@@ -34,7 +34,7 @@ ScenePart::ScenePart(const char *name, Scene *scene) : Part(name) {
 }
 
 ScenePart::ScenePart(const char *name, const char *scene_file) : Part(name) {
-	if(!(scene = LoadScene(scene_file))) {
+	if(!(scene = load_scene(scene_file))) {
 		error("ScenePart: %s, failed loading scene: %s", name, scene_file);
 		scene = 0;
 	}
@@ -44,10 +44,10 @@ ScenePart::~ScenePart() {
 	delete scene;
 }
 
-void ScenePart::DrawPart() {
-	scene->Render(time);
+void ScenePart::draw_part() {
+	scene->render(time);
 }
 
-void ScenePart::SetScene(Scene *scene) {
+void ScenePart::set_scene(Scene *scene) {
 	this->scene = scene;
 }

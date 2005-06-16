@@ -46,20 +46,20 @@ Color::Color(scalar_t r, scalar_t g, scalar_t b, scalar_t a) {
 	this->a = clamp<scalar_t>(a, 0.0f, 1.0f);
 }
 
-unsigned long Color::GetPacked32() const {
-	return PackColor32(*this);
+unsigned long Color::get_packed32() const {
+	return pack_color32(*this);
 }
 
-unsigned short Color::GetPacked16() const {
-	return PackColor16(*this);
+unsigned short Color::get_packed16() const {
+	return pack_color16(*this);
 }
 
-unsigned short Color::GetPacked15() const {
-	return PackColor15(*this);
+unsigned short Color::get_packed15() const {
+	return pack_color15(*this);
 }
 
-unsigned char Color::GetNearest8(const unsigned char **pal) const {
-	return MatchNearest8(*this, pal);
+unsigned char Color::get_nearest8(const unsigned char **pal) const {
+	return match_nearest8(*this, pal);
 }
 
 Color Color::operator +(const Color &col) const {
@@ -95,12 +95,12 @@ void Color::operator *=(scalar_t scalar) {
 	*this = Color(r * scalar, g * scalar, b * scalar, a);
 }
 
-unsigned char MatchNearest8(const Color &col, const unsigned char **pal) {
+unsigned char match_nearest8(const Color &col, const unsigned char **pal) {
 	static const scalar_t half_pi = 1.5707963268;
 
 	scalar_t score[256];
 	for(int i=0; i<256; i++) {
-		Color palcol = LookupColor8(i, pal);
+		Color palcol = lookup_color8(i, pal);
 		scalar_t near_r = (scalar_t)cos(fabs(col.r - palcol.r) * half_pi);
 		scalar_t near_g = (scalar_t)cos(fabs(col.g - palcol.g) * half_pi);
 		scalar_t near_b = (scalar_t)cos(fabs(col.b - palcol.b) * half_pi);

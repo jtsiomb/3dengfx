@@ -30,8 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "3dscene.hpp"
 #include "material.hpp"
 
-void SetSceneDataPath(const char *path);
+void set_scene_data_path(const char *path);
 
-Scene *LoadScene(const char *fname);
+Scene *load_scene(const char *fname);
 
 #endif	// _SCENELOADER_H_

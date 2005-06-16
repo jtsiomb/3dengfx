@@ -36,7 +36,7 @@ Part::Part(const char *name) {
 	}
 	
 	target = RT_FB;
-	clear = false;
+	clear_fb = false;
 	timer_reset(&timer);
 }
 
@@ -45,21 +45,21 @@ Part::~Part() {
 }
 
 
-void Part::PreDraw() {
+void Part::pre_draw() {
 	if(target != RT_FB) {
-		::SetRenderTarget(dsys::tex[target]);
+		::set_render_target(dsys::tex[target]);
 	}
 	
-	if(clear) {
-		Clear(Color(0, 0, 0));
-		ClearZBufferStencil(1.0f, 0);
+	if(clear_fb) {
+		clear(Color(0, 0, 0));
+		clear_zbuffer_stencil(1.0f, 0);
 	}
 	time = timer_getmsec(&timer);
 }
 
-void Part::PostDraw() {
+void Part::post_draw() {
 	if(target != RT_FB) {
-		::SetRenderTarget(0);
+		::set_render_target(0);
 	}
 
 	// reset states
@@ -67,38 +67,38 @@ void Part::PostDraw() {
 		glDisable(GL_LIGHT0 + i);
 	}
 
-	SetAmbientLight(0.0f);
+	set_ambient_light(0.0f);
 }
 
-void Part::SetName(const char *name) {
+void Part::set_name(const char *name) {
 	this->name = new char[strlen(name)+1];
 	strcpy(this->name, name);
 }
 
-const char *Part::GetName() const {
+const char *Part::get_name() const {
 	return name;
 }
 
-void Part::SetClear(bool enable) {
-	clear = enable;
+void Part::set_clear(bool enable) {
+	clear_fb = enable;
 }
 
-void Part::Start() {
+void Part::start() {
 	timer_start(&timer);
 }
 
-void Part::Stop() {
+void Part::stop() {
 	timer_stop(&timer);
 }
 
-void Part::SetTarget(RenderTarget targ) {
+void Part::set_target(RenderTarget targ) {
 	target = targ;
 }
 
-void Part::UpdateGraphics() {
-	PreDraw();
-	DrawPart();
-	PostDraw();
+void Part::update_graphics() {
+	pre_draw();
+	draw_part();
+	post_draw();
 }
 
 bool Part::operator <(const Part &part) const {

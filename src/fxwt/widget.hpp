@@ -33,14 +33,14 @@ namespace fxwt {
 	class DrawableWidget;
 	extern DrawableWidget *root_win;
 
-	void WidgetInit();
+	void widget_init();
 		
-	void WidgetDisplayHandler();
-	void WidgetKeyboardHandler(int key);
-	void WidgetMotionHandler(int x, int y);
-	void WidgetButtonHandler(int bn, int press, int x, int y);
+	void widget_display_handler();
+	void widget_keyboard_handler(int key);
+	void widget_motion_handler(int x, int y);
+	void widget_button_handler(int bn, int press, int x, int y);
 
-	void Redraw();
+	void redraw();
 
 	struct EventHandlers {
 		void (*display)();
@@ -66,45 +66,45 @@ namespace fxwt {
 		bool movable;
 		bool focus, sz_relative;
 
-		virtual void DispHandler();
-		virtual void KeybHandler(int key);
-		virtual void MotionHandler(const Vector2 &pos);
-		virtual void ButtonHandler(int bn, bool press, const Vector2 &pos);
-		virtual void FocusHandler(bool has_focus);
-		virtual void ClickHandler(int bn, const Vector2 &pos);
-		virtual void DragHandler(const Vector2 &rel_pos);
+		virtual void disp_handler();
+		virtual void keyb_handler(int key);
+		virtual void motion_handler(const Vector2 &pos);
+		virtual void button_handler(int bn, bool press, const Vector2 &pos);
+		virtual void focus_handler(bool has_focus);
+		virtual void click_handler(int bn, const Vector2 &pos);
+		virtual void drag_handler(const Vector2 &rel_pos);
 
 	public:
 		Widget();
 		virtual ~Widget();
 
-		void SetParent(Widget *w);
+		void set_parent(Widget *w);
 
-		void AddWidget(Widget *w);
+		void add_widget(Widget *w);
 		// TODO: also remove by some name ?
 
-		Vector2 ToLocalPos(const Vector2 &p) const;
-		Vector2 ToGlobalPos(const Vector2 &p) const;
+		Vector2 to_local_pos(const Vector2 &p) const;
+		Vector2 to_global_pos(const Vector2 &p) const;
 
-		void SetPosition(const Vector2 &pos);
-		Vector2 GetPosition() const;
-		void SetSize(const Vector2 &pos, bool relative = true);
-		Vector2 GetSize() const;
+		void set_position(const Vector2 &pos);
+		Vector2 get_position() const;
+		void set_size(const Vector2 &pos, bool relative = true);
+		Vector2 get_size() const;
 
-		void SetMovable(bool enable);
-		bool GetMovable() const;
+		void set_movable(bool enable);
+		bool get_movable() const;
 
-		bool HasFocus() const;
+		bool has_focus() const;
 
-		virtual bool HitTest(const Vector2 &global_pt) const;
+		virtual bool hit_test(const Vector2 &global_pt) const;
 
-		void SetDisplayHandler(void (*disp_handler)());
-		void SetKeyHandler(void (*keyb_handler)(int));
-		void SetMotionHandler(void (*motion_handler)(const Vector2&));
-		void SetButtonHandler(void (*bn_handler)(int, bool, const Vector2&));
-		void SetFocusHandler(void (*focus_handler)(bool));
-		void SetClickHandler(void (*click_handler)(int, const Vector2&));
-		void SetDragHandler(void (*drag_handler)(const Vector2&));
+		void set_display_handler(void (*disp_handler)());
+		void set_key_handler(void (*keyb_handler)(int));
+		void set_motion_handler(void (*motion_handler)(const Vector2&));
+		void set_button_handler(void (*bn_handler)(int, bool, const Vector2&));
+		void set_focus_handler(void (*focus_handler)(bool));
+		void set_click_handler(void (*click_handler)(int, const Vector2&));
+		void set_drag_handler(void (*drag_handler)(const Vector2&));
 
 	};
 
@@ -116,25 +116,25 @@ namespace fxwt {
 		bool visible;
 		scalar_t border;
 
-		virtual void DispHandler();
+		virtual void disp_handler();
 		
 	public:
 		DrawableWidget(const Color &col = Color(1,1,1,1), Texture *tex = 0, GfxProg *sdr = 0);
 		virtual ~DrawableWidget();
 
-		void SetColor(const Color &col);
-		void SetTexture(Texture *tex);
-		void SetShader(GfxProg *sdr);
-		void SetVisible(bool vis);
-		void SetBorder(scalar_t border);
+		void set_color(const Color &col);
+		void set_texture(Texture *tex);
+		void set_shader(GfxProg *sdr);
+		void set_visible(bool vis);
+		void set_border(scalar_t border);
 
-		virtual void Draw() const;
+		virtual void draw() const;
 
-		friend void fxwt::WidgetDisplayHandler();
-		friend void fxwt::WidgetKeyboardHandler(int key);
-		friend void fxwt::WidgetMotionHandler(int x, int y);
-		friend void fxwt::WidgetButtonHandler(int bn, int press, int x, int y);
-		friend void fxwt::Redraw();
+		friend void fxwt::widget_display_handler();
+		friend void fxwt::widget_keyboard_handler(int key);
+		friend void fxwt::widget_motion_handler(int x, int y);
+		friend void fxwt::widget_button_handler(int bn, int press, int x, int y);
+		friend void fxwt::redraw();
 	};
 }
 

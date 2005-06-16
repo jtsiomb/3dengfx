@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 RopeSim::RopeSim(scalar_t timeslice) : Simulation(timeslice) {}
 
-const SpringConn *RopeSim::AddConnection(const SpringConn &conn) {
+const SpringConn *RopeSim::add_connection(const SpringConn &conn) {
 	connections.push_back(conn);
 	return 0;	// TODO: fix
 }

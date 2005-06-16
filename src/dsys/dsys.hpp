@@ -33,22 +33,22 @@ namespace dsys {
 	extern Texture *tex[4];
 	extern unsigned int rtex_size_x, rtex_size_y;
 
-	bool Init();
-	void CleanUp();
+	bool init();
+	void clean_up();
 
-	void SetDemoScript(const char *fname);
+	void set_demo_script(const char *fname);
 
-	void AddPart(Part *part);
-	void RemovePart(Part *part);
-	void StartPart(Part *part);
-	void StopPart(Part *part);
+	void add_part(Part *part);
+	void remove_part(Part *part);
+	void start_part(Part *part);
+	void stop_part(Part *part);
 
-	Part *GetPart(const char *pname);
-	Part *GetRunning(const char *pname);
+	Part *get_part(const char *pname);
+	Part *get_running(const char *pname);
 	
-	bool StartDemo();
-	void EndDemo();
-	int UpdateGraphics();
+	bool start_demo();
+	void end_demo();
+	int update_graphics();
 }
 
 #endif	// _DSYS_HPP_

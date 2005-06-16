@@ -3,6 +3,6 @@
 
 #include <string>
 
-unsigned int StringHash(const std::string &key, unsigned long size);
+unsigned int string_hash(const std::string &key, unsigned long size);
 
 #endif	// _STRING_HASH_HPP_

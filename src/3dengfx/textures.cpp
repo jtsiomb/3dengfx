@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "opengl.h"
 #include "textures.hpp"
 
-static void InvertImage(unsigned long *img, int x, int y) {
+static void invert_image(unsigned long *img, int x, int y) {
 	unsigned long *s2 = img + (y - 1) * x;
 	unsigned long *tmp = new unsigned long[x];
 	
@@ -43,7 +43,7 @@ static void InvertImage(unsigned long *img, int x, int y) {
 
 static PixelBuffer undef_pbuf;
 
-static void GenUndefImage(int x, int y) {
+static void gen_undef_image(int x, int y) {
 	if((int)undef_pbuf.width != x || (int)undef_pbuf.height != y) {
 		if(undef_pbuf.buffer) {
 			delete [] undef_pbuf.buffer;
@@ -66,8 +66,8 @@ Texture::Texture(int x, int y, TextureDim type) {
 	this->type = type;
 
 	if(x != -1 && y != -1) {
-		GenUndefImage(width, height);
-		AddFrame(undef_pbuf);
+		gen_undef_image(width, height);
+		add_frame(undef_pbuf);
 	}
 }
 
@@ -76,12 +76,12 @@ Texture::Texture(int x, TextureDim type) {
 	height = type == TEX_1D ? 1 : x;
 	this->type = type;
 
-	GenUndefImage(width, height);
-	AddFrame(undef_pbuf);
+	gen_undef_image(width, height);
+	add_frame(undef_pbuf);
 }
 		
 
-void Texture::AddFrame() {
+void Texture::add_frame() {
 	glGenTextures(1, &tex_id);
 	glBindTexture(type, tex_id);
 	
@@ -99,33 +99,33 @@ void Texture::AddFrame() {
 	frame_tex_id.push_back(tex_id);
 }
 
-void Texture::AddFrame(const PixelBuffer &pbuf) {
-	AddFrame();
+void Texture::add_frame(const PixelBuffer &pbuf) {
+	add_frame();
 
 	if(type == TEX_CUBE) {
-		SetPixelData(pbuf, CUBE_MAP_PX);
-		SetPixelData(pbuf, CUBE_MAP_NX);
-		SetPixelData(pbuf, CUBE_MAP_PY);
-		SetPixelData(pbuf, CUBE_MAP_NY);
-		SetPixelData(pbuf, CUBE_MAP_PZ);
-		SetPixelData(pbuf, CUBE_MAP_NZ);
+		set_pixel_data(pbuf, CUBE_MAP_PX);
+		set_pixel_data(pbuf, CUBE_MAP_NX);
+		set_pixel_data(pbuf, CUBE_MAP_PY);
+		set_pixel_data(pbuf, CUBE_MAP_NY);
+		set_pixel_data(pbuf, CUBE_MAP_PZ);
+		set_pixel_data(pbuf, CUBE_MAP_NZ);
 	} else {
-		SetPixelData(pbuf);
+		set_pixel_data(pbuf);
 	}
 }
 
-void Texture::SetActiveFrame(unsigned int frame) {
+void Texture::set_active_frame(unsigned int frame) {
 	assert(frame < frame_tex_id.size());
 	
 	active_frame = frame;
 	tex_id = frame_tex_id[active_frame];
 }
 
-unsigned int Texture::GetActiveFrame() const {
+unsigned int Texture::get_active_frame() const {
 	return active_frame;
 }
 
-void Texture::Lock(CubeMapFace cube_map_face) {
+void Texture::lock(CubeMapFace cube_map_face) {
 	buffer = new Pixel[width * height];
 	
 	glBindTexture(type, tex_id);
@@ -136,13 +136,13 @@ void Texture::Lock(CubeMapFace cube_map_face) {
 		glGetTexImage(type, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	}
 
-	InvertImage(buffer, width, height);
+	invert_image(buffer, width, height);
 }
 
-void Texture::Unlock(CubeMapFace cube_map_face) {
+void Texture::unlock(CubeMapFace cube_map_face) {
 	glBindTexture(type, tex_id);
 
-	InvertImage(buffer, width, height);
+	invert_image(buffer, width, height);
 
 	switch(type) {
 	case TEX_1D:
@@ -165,10 +165,10 @@ void Texture::Unlock(CubeMapFace cube_map_face) {
 	buffer = 0;
 }
 
-void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
+void Texture::set_pixel_data(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
 	
 	if(!frame_tex_id.size()) {
-		AddFrame();
+		add_frame();
 	}
 		
 	width = pbuf.width;
@@ -178,7 +178,7 @@ void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
 
 	buffer = new unsigned long[width * height];
 	memcpy(buffer, pbuf.buffer, width * height * sizeof(unsigned long));
-	InvertImage(buffer, width, height);
+	invert_image(buffer, width, height);
 
 	switch(type) {
 	case TEX_1D:
@@ -190,7 +190,7 @@ void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
 		break;
 
 	case TEX_CUBE:
-		InvertImage(buffer, width, height);
+		invert_image(buffer, width, height);
 		glTexImage2D(cube_map_face, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 		break;
 
@@ -202,6 +202,6 @@ void Texture::SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face) {
 	buffer = 0;
 }
 
-TextureDim Texture::GetType() const {
+TextureDim Texture::get_type() const {
 	return type;
 }

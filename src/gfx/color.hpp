@@ -51,25 +51,25 @@ public:
 	void operator *=(const Color &col);
 	void operator *=(scalar_t scalar);
 
-	unsigned long GetPacked32() const;
-	unsigned short GetPacked16() const;
-	unsigned short GetPacked15() const;
-	unsigned char GetNearest8(const unsigned char **pal) const;
+	unsigned long get_packed32() const;
+	unsigned short get_packed16() const;
+	unsigned short get_packed15() const;
+	unsigned char get_nearest8(const unsigned char **pal) const;
 };
 
-inline Color IntColor(int r, int g, int b, int a = 255);
+inline Color int_color(int r, int g, int b, int a = 255);
 
-inline unsigned long PackColor32(const Color &col);
-inline unsigned short PackColor16(const Color &col);
-inline unsigned short PackColor15(const Color &col);
-unsigned char MatchNearest8(const Color &col, const unsigned char **pal);
+inline unsigned long pack_color32(const Color &col);
+inline unsigned short pack_color16(const Color &col);
+inline unsigned short pack_color15(const Color &col);
+unsigned char match_nearest8(const Color &col, const unsigned char **pal);
 
-inline Color UnpackColor32(unsigned long pcol);
-inline Color UnpackColor16(unsigned short pcol);
-inline Color UnpackColor15(unsigned short pcol);
-inline Color LookupColor8(int index, const unsigned char **pal);
+inline Color unpack_color32(unsigned long pcol);
+inline Color unpack_color16(unsigned short pcol);
+inline Color unpack_color15(unsigned short pcol);
+inline Color lookup_color8(int index, const unsigned char **pal);
 
-Color BlendColors(const Color &c1, const Color &c2, scalar_t t);
+Color blend_colors(const Color &c1, const Color &c2, scalar_t t);
 
 #include "color.inl"
 

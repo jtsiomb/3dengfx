@@ -137,16 +137,16 @@ void operator *=(Matrix3x3 &mat, scalar_t scalar) {
 	}
 }
 
-void Matrix3x3::Translate(const Vector2 &trans) {
+void Matrix3x3::translate(const Vector2 &trans) {
 	Matrix3x3 tmat(1, 0, trans.x, 0, 1, trans.y, 0, 0, 1);
 	*this *= tmat;
 }
 
-void Matrix3x3::SetTranslation(const Vector2 &trans) {
+void Matrix3x3::set_translation(const Vector2 &trans) {
 	*this = Matrix3x3(1, 0, trans.x, 0, 1, trans.y, 0, 0, 1);
 }
 
-void Matrix3x3::Rotate(scalar_t angle) {
+void Matrix3x3::rotate(scalar_t angle) {
 	scalar_t cos_a = cos(angle);
 	scalar_t sin_a = sin(angle);
 	Matrix3x3 rmat(	cos_a, 	-sin_a, 	0,
@@ -155,13 +155,13 @@ void Matrix3x3::Rotate(scalar_t angle) {
 	*this *= rmat;
 }
 
-void Matrix3x3::SetRotation(scalar_t angle) {
+void Matrix3x3::set_rotation(scalar_t angle) {
 	scalar_t cos_a = cos(angle);
 	scalar_t sin_a = sin(angle);
 	*this = Matrix3x3(cos_a, -sin_a, 0, sin_a, cos_a, 0, 0, 0, 1);
 }
 
-void Matrix3x3::Rotate(const Vector3 &euler_angles) {
+void Matrix3x3::rotate(const Vector3 &euler_angles) {
 	Matrix3x3 xrot, yrot, zrot;
 	
 	xrot = Matrix3x3(	1,			0,					0,
@@ -179,7 +179,7 @@ void Matrix3x3::Rotate(const Vector3 &euler_angles) {
 	*this *= xrot * yrot * zrot;
 }
 
-void Matrix3x3::SetRotation(const Vector3 &euler_angles) {
+void Matrix3x3::set_rotation(const Vector3 &euler_angles) {
 	Matrix3x3 xrot, yrot, zrot;
 	
 	xrot = Matrix3x3(	1,			0,					0,
@@ -197,7 +197,7 @@ void Matrix3x3::SetRotation(const Vector3 &euler_angles) {
 	*this = xrot * yrot * zrot;
 }
 
-void Matrix3x3::Rotate(const Vector3 &axis, scalar_t angle) {
+void Matrix3x3::rotate(const Vector3 &axis, scalar_t angle) {
 	scalar_t sina = (scalar_t)sin(angle);
 	scalar_t cosa = (scalar_t)cos(angle);
 	scalar_t invcosa = 1-cosa;
@@ -219,7 +219,7 @@ void Matrix3x3::Rotate(const Vector3 &axis, scalar_t angle) {
 	*this *= xform;
 }
 
-void Matrix3x3::SetRotation(const Vector3 &axis, scalar_t angle) {
+void Matrix3x3::set_rotation(const Vector3 &axis, scalar_t angle) {
 	scalar_t sina = (scalar_t)sin(angle);
 	scalar_t cosa = (scalar_t)cos(angle);
 	scalar_t invcosa = 1-cosa;
@@ -227,7 +227,7 @@ void Matrix3x3::SetRotation(const Vector3 &axis, scalar_t angle) {
 	scalar_t nysq = axis.y * axis.y;
 	scalar_t nzsq = axis.z * axis.z;
 
-	ResetIdentity();
+	reset_identity();
 	m[0][0] = nxsq + (1-nxsq) * cosa;
 	m[0][1] = axis.x * axis.y * invcosa - axis.z * sina;
 	m[0][2] = axis.x * axis.z * invcosa + axis.y * sina;
@@ -239,40 +239,40 @@ void Matrix3x3::SetRotation(const Vector3 &axis, scalar_t angle) {
 	m[2][2] = nzsq + (1-nzsq) * cosa;
 }
 
-void Matrix3x3::Scale(const Vector3 &scale_vec) {
+void Matrix3x3::scale(const Vector3 &scale_vec) {
 	Matrix3x3 smat(	scale_vec.x, 0, 0,
 					0, scale_vec.y, 0,
 					0, 0, scale_vec.z);
 	*this *= smat;
 }
 
-void Matrix3x3::SetScaling(const Vector3 &scale_vec) {
+void Matrix3x3::set_scaling(const Vector3 &scale_vec) {
 	*this = Matrix3x3(	scale_vec.x, 0, 0,
 						0, scale_vec.y, 0,
 						0, 0, scale_vec.z);
 }
 
-void Matrix3x3::SetColumnVector(const Vector3 &vec, unsigned int col_index) {
+void Matrix3x3::set_column_vector(const Vector3 &vec, unsigned int col_index) {
 	m[0][col_index] = vec.x;
 	m[1][col_index] = vec.y;
 	m[2][col_index] = vec.z;
 }
 
-void Matrix3x3::SetRowVector(const Vector3 &vec, unsigned int row_index) {
+void Matrix3x3::set_row_vector(const Vector3 &vec, unsigned int row_index) {
 	m[row_index][0] = vec.x;
 	m[row_index][1] = vec.y;
 	m[row_index][2] = vec.z;
 }
 
-Vector3 Matrix3x3::GetColumnVector(unsigned int col_index) const {
+Vector3 Matrix3x3::get_column_vector(unsigned int col_index) const {
 	return Vector3(m[0][col_index], m[1][col_index], m[2][col_index]);
 }
 
-Vector3 Matrix3x3::GetRowVector(unsigned int row_index) const {
+Vector3 Matrix3x3::get_row_vector(unsigned int row_index) const {
 	return Vector3(m[row_index][0], m[row_index][1], m[row_index][2]);
 }
 
-void Matrix3x3::Transpose() {
+void Matrix3x3::transpose() {
 	Matrix3x3 tmp = *this;
 	for(int i=0; i<3; i++) {
 		for(int j=0; j<3; j++) {
@@ -281,7 +281,7 @@ void Matrix3x3::Transpose() {
 	}
 }
 
-Matrix3x3 Matrix3x3::Transposed() const {
+Matrix3x3 Matrix3x3::transposed() const {
 	Matrix3x3 res;
 	for(int i=0; i<3; i++) {
 		for(int j=0; j<3; j++) {
@@ -291,13 +291,13 @@ Matrix3x3 Matrix3x3::Transposed() const {
 	return res;
 }
 
-scalar_t Matrix3x3::Determinant() const {
+scalar_t Matrix3x3::determinant() const {
 	return 	m[0][0] * (m[1][1]*m[2][2] - m[1][2]*m[2][1]) -
 			m[0][1] * (m[1][0]*m[2][2] - m[1][2]*m[2][0]) +
 			m[0][2] * (m[1][0]*m[2][1] - m[1][1]*m[2][0]);
 }
 
-Matrix3x3 Matrix3x3::Inverse() const {
+Matrix3x3 Matrix3x3::inverse() const {
 	// TODO: implement 3x3 inverse
 	return *this;
 }
@@ -335,7 +335,7 @@ Matrix4x4::Matrix4x4(	scalar_t m11, scalar_t m12, scalar_t m13, scalar_t m14,
 }
 
 Matrix4x4::Matrix4x4(const Matrix3x3 &mat3x3) {
-	ResetIdentity();
+	reset_identity();
 	for(int i=0; i<3; i++) {
 		for(int j=0; j<3; j++) {
 			m[i][j] = mat3x3[i][j];
@@ -439,16 +439,16 @@ void operator *=(Matrix4x4 &mat, scalar_t scalar) {
 	}
 }
 
-void Matrix4x4::Translate(const Vector3 &trans) {
+void Matrix4x4::translate(const Vector3 &trans) {
 	Matrix4x4 tmat(1, 0, 0, trans.x, 0, 1, 0, trans.y, 0, 0, 1, trans.z, 0, 0, 0, 1);
 	*this *= tmat;
 }
 
-void Matrix4x4::SetTranslation(const Vector3 &trans) {
+void Matrix4x4::set_translation(const Vector3 &trans) {
 	*this = Matrix4x4(1, 0, 0, trans.x, 0, 1, 0, trans.y, 0, 0, 1, trans.z, 0, 0, 0, 1);
 }
 
-void Matrix4x4::Rotate(const Vector3 &euler_angles) {
+void Matrix4x4::rotate(const Vector3 &euler_angles) {
 	Matrix3x3 xrot, yrot, zrot;
 	
 	xrot = Matrix3x3(	1,			0,					0,
@@ -466,7 +466,7 @@ void Matrix4x4::Rotate(const Vector3 &euler_angles) {
 	*this *= Matrix4x4(xrot * yrot * zrot);
 }
 
-void Matrix4x4::SetRotation(const Vector3 &euler_angles) {
+void Matrix4x4::set_rotation(const Vector3 &euler_angles) {
 	Matrix3x3 xrot, yrot, zrot;
 	
 	xrot = Matrix3x3(	1,			0,					0,
@@ -484,7 +484,7 @@ void Matrix4x4::SetRotation(const Vector3 &euler_angles) {
 	*this = Matrix4x4(xrot * yrot * zrot);
 }
 
-void Matrix4x4::Rotate(const Vector3 &axis, scalar_t angle) {
+void Matrix4x4::rotate(const Vector3 &axis, scalar_t angle) {
 	scalar_t sina = (scalar_t)sin(angle);
 	scalar_t cosa = (scalar_t)cos(angle);
 	scalar_t invcosa = 1-cosa;
@@ -506,7 +506,7 @@ void Matrix4x4::Rotate(const Vector3 &axis, scalar_t angle) {
 	*this *= Matrix4x4(xform);
 }
 
-void Matrix4x4::SetRotation(const Vector3 &axis, scalar_t angle) {
+void Matrix4x4::set_rotation(const Vector3 &axis, scalar_t angle) {
 	scalar_t sina = (scalar_t)sin(angle);
 	scalar_t cosa = (scalar_t)cos(angle);
 	scalar_t invcosa = 1-cosa;
@@ -514,7 +514,7 @@ void Matrix4x4::SetRotation(const Vector3 &axis, scalar_t angle) {
 	scalar_t nysq = axis.y * axis.y;
 	scalar_t nzsq = axis.z * axis.z;
 
-	ResetIdentity();
+	reset_identity();
 	m[0][0] = nxsq + (1-nxsq) * cosa;
 	m[0][1] = axis.x * axis.y * invcosa - axis.z * sina;
 	m[0][2] = axis.x * axis.z * invcosa + axis.y * sina;
@@ -526,7 +526,7 @@ void Matrix4x4::SetRotation(const Vector3 &axis, scalar_t angle) {
 	m[2][2] = nzsq + (1-nzsq) * cosa;
 }
 
-void Matrix4x4::Scale(const Vector4 &scale_vec) {
+void Matrix4x4::scale(const Vector4 &scale_vec) {
 	Matrix4x4 smat(	scale_vec.x, 0, 0, 0,
 					0, scale_vec.y, 0, 0,
 					0, 0, scale_vec.z, 0,
@@ -534,36 +534,36 @@ void Matrix4x4::Scale(const Vector4 &scale_vec) {
 	*this *= smat;
 }
 
-void Matrix4x4::SetScaling(const Vector4 &scale_vec) {
+void Matrix4x4::set_scaling(const Vector4 &scale_vec) {
 	*this = Matrix4x4(	scale_vec.x, 0, 0, 0,
 						0, scale_vec.y, 0, 0,
 						0, 0, scale_vec.z, 0,
 						0, 0, 0, scale_vec.w);
 }
 
-void Matrix4x4::SetColumnVector(const Vector4 &vec, unsigned int col_index) {
+void Matrix4x4::set_column_vector(const Vector4 &vec, unsigned int col_index) {
 	m[0][col_index] = vec.x;
 	m[1][col_index] = vec.y;
 	m[2][col_index] = vec.z;
 	m[3][col_index] = vec.w;
 }
 
-void Matrix4x4::SetRowVector(const Vector4 &vec, unsigned int row_index) {
+void Matrix4x4::set_row_vector(const Vector4 &vec, unsigned int row_index) {
 	m[row_index][0] = vec.x;
 	m[row_index][1] = vec.y;
 	m[row_index][2] = vec.z;
 	m[row_index][3] = vec.w;
 }
 
-Vector4 Matrix4x4::GetColumnVector(unsigned int col_index) const {
+Vector4 Matrix4x4::get_column_vector(unsigned int col_index) const {
 	return Vector4(m[0][col_index], m[1][col_index], m[2][col_index], m[3][col_index]);
 }
 
-Vector4 Matrix4x4::GetRowVector(unsigned int row_index) const {
+Vector4 Matrix4x4::get_row_vector(unsigned int row_index) const {
 	return Vector4(m[row_index][0], m[row_index][1], m[row_index][2], m[row_index][3]);
 }
 
-void Matrix4x4::Transpose() {
+void Matrix4x4::transpose() {
 	Matrix4x4 tmp = *this;
 	for(int i=0; i<4; i++) {
 		for(int j=0; j<4; j++) {
@@ -572,7 +572,7 @@ void Matrix4x4::Transpose() {
 	}
 }
 
-Matrix4x4 Matrix4x4::Transposed() const {
+Matrix4x4 Matrix4x4::transposed() const {
 	Matrix4x4 res;
 	for(int i=0; i<4; i++) {
 		for(int j=0; j<4; j++) {
@@ -582,7 +582,7 @@ Matrix4x4 Matrix4x4::Transposed() const {
 	return res;
 }
 
-scalar_t Matrix4x4::Determinant() const {
+scalar_t Matrix4x4::determinant() const {
 
 	scalar_t det11 =	(m[1][1] * (m[2][2] * m[3][3] - m[3][2] * m[2][3])) -
 						(m[1][2] * (m[2][1] * m[3][3] - m[3][1] * m[2][3])) +
@@ -604,7 +604,7 @@ scalar_t Matrix4x4::Determinant() const {
 }
 
 
-Matrix4x4 Matrix4x4::Adjoint() const {
+Matrix4x4 Matrix4x4::adjoint() const {
 
 	Matrix4x4 coef;
 
@@ -660,7 +660,7 @@ Matrix4x4 Matrix4x4::Adjoint() const {
 					(m[0][1] * (m[1][0] * m[2][2] - m[2][0] * m[1][2])) +
 					(m[0][2] * (m[1][0] * m[2][1] - m[2][0] * m[1][1]));
 
-	coef.Transpose();
+	coef.transpose();
 
 	for(int i=0; i<4; i++) {
 		for(int j=0; j<4; j++) {
@@ -672,14 +672,14 @@ Matrix4x4 Matrix4x4::Adjoint() const {
 	return coef;
 }
 
-Matrix4x4 Matrix4x4::Inverse() const {
+Matrix4x4 Matrix4x4::inverse() const {
 
-	Matrix4x4 AdjMat = Adjoint();
+	Matrix4x4 AdjMat = adjoint();
 
-	return AdjMat * (1.0f / Determinant());
+	return AdjMat * (1.0f / determinant());
 }
 
-const scalar_t *Matrix4x4::OpenGLMatrix() const {
+const scalar_t *Matrix4x4::opengl_matrix() const {
 	return (const scalar_t*)m;
 }
 

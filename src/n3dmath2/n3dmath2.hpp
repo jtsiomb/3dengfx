@@ -59,21 +59,21 @@ extern const scalar_t error_margin;
 
 // -- mathematical & helper functions --
 scalar_t frand(scalar_t range);
-scalar_t Integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samples);
-scalar_t Gaussian(scalar_t x, scalar_t mean, scalar_t sdev);
+scalar_t integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samples);
+scalar_t gaussian(scalar_t x, scalar_t mean, scalar_t sdev);
 
 // -- interpolation and approximation --
-inline scalar_t Lerp(scalar_t a, scalar_t b, scalar_t t);
+inline scalar_t lerp(scalar_t a, scalar_t b, scalar_t t);
 
-scalar_t BSpline(const Vector4 &cpvec, scalar_t t);
-inline scalar_t BSpline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);
+scalar_t bspline(const Vector4 &cpvec, scalar_t t);
+inline scalar_t bspline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);
 
-scalar_t CatmullRomSpline(const Vector4 &cpvec, scalar_t t);
-inline scalar_t CatmullRomSpline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);
+scalar_t catmull_rom_spline(const Vector4 &cpvec, scalar_t t);
+inline scalar_t catmull_rom_spline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);
 
-scalar_t Bezier(const Vector4 &cp, scalar_t t);
-Vector3 Bezier(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t);
-Vector3 BezierTangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t);
+scalar_t bezier(const Vector4 &cp, scalar_t t);
+Vector3 bezier(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t);
+Vector3 bezier_tangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t);
 
 // -- actual class definitions --
 #include "n3dmath2_vec.hpp"
@@ -90,17 +90,17 @@ public:
 	Basis(const Vector3 &i, const Vector3 &j, const Vector3 &k);
 	Basis(const Vector3 &dir, bool LeftHanded=true);
 
-	void Rotate(scalar_t x, scalar_t y, scalar_t z);
-	void Rotate(const Vector3 &axis, scalar_t angle);
-	void Rotate(const Matrix4x4 &mat);
-	void Rotate(const Quaternion &quat);
+	void rotate(scalar_t x, scalar_t y, scalar_t z);
+	void rotate(const Vector3 &axis, scalar_t angle);
+	void rotate(const Matrix4x4 &mat);
+	void rotate(const Quaternion &quat);
 
-	Matrix3x3 CreateRotationMatrix() const;
+	Matrix3x3 create_rotation_matrix() const;
 };
 
 
 // bad ugly hack
-size_t SizeOfScalarType();
+size_t size_of_scalar_type();
 
 #include "n3dmath2.inl"
 

@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "timeline.hpp"
 
 template <class T>
-static inline T Wrap(T n, T low, T high) {
+static inline T wrap(T n, T low, T high) {
 	n -= low;
 	
 	while(n < 0) {
@@ -33,7 +33,7 @@ static inline T Wrap(T n, T low, T high) {
 }
 
 template <class T>
-static inline T Bounce(T n, T low, T high) {
+static inline T bounce(T n, T low, T high) {
 	T interval = high - low;
 	T offs = n % interval;
 	
@@ -46,14 +46,14 @@ static inline T Bounce(T n, T low, T high) {
 }
 
 
-unsigned long GetTimelineTime(unsigned long time, unsigned long start, unsigned long end, TimelineMode mode) {
+unsigned long get_timeline_time(unsigned long time, unsigned long start, unsigned long end, TimelineMode mode) {
 	switch(mode) {
 	case TIME_WRAP:
-		time = Wrap(time, start, end);
+		time = wrap(time, start, end);
 		break;
 
 	case TIME_BOUNCE:
-		time = Bounce(time, start, end);
+		time = bounce(time, start, end);
 		break;
 
 	case TIME_CLAMP:

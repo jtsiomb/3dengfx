@@ -9,10 +9,10 @@ extern GtkWidget *gl_drawing_area;
 #endif	// GTK
 
 namespace fxwt {
-	bool InitGraphics(GraphicsInitParameters *gip);
-	void DestroyGraphics();
+	bool init_graphics(GraphicsInitParameters *gip);
+	void destroy_graphics();
 
-	void SwapBuffers();
+	void swap_buffers();
 }
 
 #endif	// _FXWT_INIT_HPP_

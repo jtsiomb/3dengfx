@@ -26,11 +26,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 /* ---- Texture class ----
 ** it does NOT hold the actual pixel data, if we need access to
-** the pixels we have to call Lock() then the data are retrieved from
-** OpenGL, and Unlock() updates the OpenGL texture from our modified
+** the pixels we have to call lock() then the data are retrieved from
+** OpenGL, and unlock() updates the OpenGL texture from our modified
 ** pixel data in pbuf.
 ** if we wish to just set some pixel data without first retrieving the
-** actual data from OpenGL, we can use the function SetPixelData() with a
+** actual data from OpenGL, we can use the function set_pixel_data() with a
 ** new PixelBuffer as argument (this is copied, not referenced)
 */
 class Texture : public PixelBuffer {
@@ -49,18 +49,18 @@ public:
 	Texture(int x = -1, int y = -1, TextureDim type = TEX_2D);
 	Texture(int x, TextureDim type = TEX_1D);
 
-	void AddFrame();
-	void AddFrame(const PixelBuffer &pbuf);
+	void add_frame();
+	void add_frame(const PixelBuffer &pbuf);
 	
-	void SetActiveFrame(unsigned int frame);
-	unsigned int GetActiveFrame() const;
+	void set_active_frame(unsigned int frame);
+	unsigned int get_active_frame() const;
 	
-	void Lock(CubeMapFace cube_map_face = CUBE_MAP_PX);		// get a valid pixel pointer
-	void Unlock(CubeMapFace cube_map_face = CUBE_MAP_PX);	// update system data & invalidate pointer
+	void lock(CubeMapFace cube_map_face = CUBE_MAP_PX);		// get a valid pixel pointer
+	void unlock(CubeMapFace cube_map_face = CUBE_MAP_PX);	// update system data & invalidate pointer
 	
-	void SetPixelData(const PixelBuffer &pbuf, CubeMapFace cube_map_face = CUBE_MAP_PX);
+	void set_pixel_data(const PixelBuffer &pbuf, CubeMapFace cube_map_face = CUBE_MAP_PX);
 
-	TextureDim GetType() const;
+	TextureDim get_type() const;
 };
 
 #endif	// _TEXTURES_HPP_

@@ -38,17 +38,18 @@ private:
 	ntimer timer;
 
 protected:
-	virtual void Run(unsigned long msec) = 0;	// override this
+	virtual void run(unsigned long msec) = 0;	// override this
 
 public:
 	Simulation(scalar_t timeslice = SIM_STD_TIMESLICE);
+	virtual ~Simulation();
 
-	void Start();
-	void Stop();
-	void Reset();
+	void start();
+	void stop();
+	void reset();
 
-	void Update();
-	void Update(unsigned long msec);	// overrides dedicated timer
+	void update();
+	void update(unsigned long msec);	// overrides dedicated timer
 };
 	
 

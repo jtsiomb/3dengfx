@@ -45,12 +45,12 @@ struct Text {
 	scalar_t aspect;
 };
 
-static const char *FindFontFile(const char *font);
-static string GenKeyStr(const char *text);
-static void DrawFreeTypeBitmap(FT_Bitmap *ftbm, PixelBuffer *pbuf, int x, int y);
-static PixelBuffer *CreateTextImage(const char *str, FT_Face face, int font_size);
-static int NextPowTwo(int num);
-static Texture *PixelBufToTexture(const PixelBuffer &pbuf);
+static const char *find_font_file(const char *font);
+static string gen_key_str(const char *text);
+static void draw_free_type_bitmap(FT_Bitmap *ftbm, PixelBuffer *pbuf, int x, int y);
+static PixelBuffer *create_text_image(const char *str, FT_Face face, int font_size);
+static int next_pow_two(int num);
+static Texture *pixel_buf_to_texture(const PixelBuffer &pbuf);
 
 static FT_LibraryRec_ *ft;
 static vector<FT_FaceRec_*> face_list;
@@ -96,11 +96,11 @@ static Font font_style_list[3][4] = {
 #define COURIER_NEW_FILE		"cour.ttf"
 #endif
 
-bool fxwt::TextInit() {
+bool fxwt::text_init() {
 
 	set_verbosity(2);
 
-	text_table.SetHashFunction(StringHash);
+	text_table.set_hash_function(string_hash);
 
 	if(FT_Init_FreeType(&ft) != 0) return false;
 	
@@ -113,7 +113,7 @@ bool fxwt::TextInit() {
 
 	const char **fptr = fonts;
 	while(*fptr) {
-		const char *font_path = FindFontFile(*fptr++);
+		const char *font_path = find_font_file(*fptr++);
 		if(font_path) {
 			FT_Face face;
 			if(FT_New_Face(ft, font_path, 0, &face) == 0) {
@@ -124,14 +124,14 @@ bool fxwt::TextInit() {
 		}
 	}
 
-	atexit(fxwt::TextClose);
+	atexit(fxwt::text_close);
 
 	set_verbosity(3);
 
 	return true;
 }
 
-void fxwt::TextClose() {
+void fxwt::text_close() {
 	// TODO: free the textures
 	
 	for(size_t i=0; i<face_list.size(); i++) {
@@ -140,19 +140,19 @@ void fxwt::TextClose() {
 	FT_Done_FreeType(ft);
 }
 
-void fxwt::SetTextRenderMode(TextRenderMode mode) {
+void fxwt::set_text_render_mode(TextRenderMode mode) {
 	render_mode = mode;
 }
 
-void fxwt::SetFontSize(int sz) {
+void fxwt::set_font_size(int sz) {
 	font_size = sz;
 }
 
-int fxwt::GetFontSize() {
+int fxwt::get_font_size() {
 	return font_size;
 }
 
-bool fxwt::SetFont(Font fnt) {
+bool fxwt::set_font(Font fnt) {
 	for(size_t i=0; i<face_list.size(); i++) {
 		if(!strcmp(face_list[i]->family_name, font_names[fnt])) {
 			font = face_list[i];
@@ -162,46 +162,46 @@ bool fxwt::SetFont(Font fnt) {
 	return false;
 }
 
-bool fxwt::SetFont(FontStyle fstyle) {
+bool fxwt::set_font(FontStyle fstyle) {
 	int i = 0;
 	while(font_style_list[fstyle][i] != FONT_NULL) {
-		if(SetFont(font_style_list[fstyle][i++])) return true;
+		if(set_font(font_style_list[fstyle][i++])) return true;
 	}
 	return false;
 }
 
-const char *fxwt::GetFontName(Font fnt) {
+const char *fxwt::get_font_name(Font fnt) {
 	return font_names[fnt];
 }
 
-Texture *fxwt::GetText(const char *text_str) {
+Texture *fxwt::get_text(const char *text_str) {
 	Pair<string, Text> *res;
-	if((res = text_table.Find(GenKeyStr(text_str)))) {
+	if((res = text_table.find(gen_key_str(text_str)))) {
 		latest_fetched_aspect = res->val.aspect;
 		return res->val.texture;
 	}
 
-	PixelBuffer *text_img = CreateTextImage(text_str, font, font_size);
+	PixelBuffer *text_img = create_text_image(text_str, font, font_size);
 	scalar_t aspect = (scalar_t)text_img->width / (scalar_t)text_img->height;
-	Texture *tex = PixelBufToTexture(*text_img);
+	Texture *tex = pixel_buf_to_texture(*text_img);
 	delete text_img;
 
 	Text text = {tex, aspect};
-	text_table.Insert(GenKeyStr(text_str), text);
+	text_table.insert(gen_key_str(text_str), text);
 	
 	latest_fetched_aspect = aspect;
 	return tex;
 }
 
 
-void fxwt::PrintText(const char *text_str, const Vector2 &pos, scalar_t size, const Color &col) {
-	Texture *tex = GetText(text_str);
+void fxwt::print_text(const char *text_str, const Vector2 &pos, scalar_t size, const Color &col) {
+	Texture *tex = get_text(text_str);
 	Vector2 sz_vec(size * latest_fetched_aspect, size);
 	
-	dsys::Overlay(tex, pos, pos + sz_vec, col);
+	dsys::overlay(tex, pos, pos + sz_vec, col);
 }
 
-static const char *FindFontFile(const char *font) {
+static const char *find_font_file(const char *font) {
 	static char path[512];
 	FILE *fp;
 
@@ -246,12 +246,12 @@ static const char *FindFontFile(const char *font) {
 	return 0;
 }
 
-static string GenKeyStr(const char *text) {
+static string gen_key_str(const char *text) {
 	return string(font->family_name) + string("##") + string(text);
 }
 
 
-static void DrawFreeTypeBitmap(FT_Bitmap *ftbm, PixelBuffer *pbuf, int x, int y) {
+static void draw_free_type_bitmap(FT_Bitmap *ftbm, PixelBuffer *pbuf, int x, int y) {
 	int i, j;
 	unsigned long *dptr = pbuf->buffer + y * pbuf->width + x;
 	unsigned char *sptr = (unsigned char*)ftbm->buffer;
@@ -279,7 +279,7 @@ static void DrawFreeTypeBitmap(FT_Bitmap *ftbm, PixelBuffer *pbuf, int x, int y)
 	}
 }
 
-static PixelBuffer *CreateTextImage(const char *str, FT_Face face, int font_size) {
+static PixelBuffer *create_text_image(const char *str, FT_Face face, int font_size) {
 	FT_GlyphSlot slot = face->glyph;
 	FT_Set_Pixel_Sizes(face, 0, font_size);	// set size
 
@@ -296,7 +296,7 @@ static PixelBuffer *CreateTextImage(const char *str, FT_Face face, int font_size
 			continue;
 		}
 
-		DrawFreeTypeBitmap(&slot->bitmap, &tmp_buf, pen_x + slot->bitmap_left, pen_y - slot->bitmap_top);
+		draw_free_type_bitmap(&slot->bitmap, &tmp_buf, pen_x + slot->bitmap_left, pen_y - slot->bitmap_top);
 
 		pen_x += slot->advance.x >> 6;
 	}
@@ -317,23 +317,23 @@ static PixelBuffer *CreateTextImage(const char *str, FT_Face face, int font_size
 	return pbuf;
 }
 
-static int NextPowTwo(int num) {
+static int next_pow_two(int num) {
 	int val = 1;
 	while(val < num) val <<= 1;
 	return val;
 }
 
-static Texture *PixelBufToTexture(const PixelBuffer &pbuf) {
-	int w = NextPowTwo(pbuf.width);
-	int h = NextPowTwo(pbuf.height);
+static Texture *pixel_buf_to_texture(const PixelBuffer &pbuf) {
+	int w = next_pow_two(pbuf.width);
+	int h = next_pow_two(pbuf.height);
 
 	PixelBuffer tmp = pbuf;
 
-	ResamplePixelBuffer(&tmp, w, h);
+	resample_pixel_buffer(&tmp, w, h);
 
 	Texture *tex = new Texture(w, h);
-	tex->SetPixelData(tmp);
-	/*tex->Lock();
+	tex->set_pixel_data(tmp);
+	/*tex->lock();
 
 	float dx = (float)pbuf.width / (float)w;
 	float dy = (float)pbuf.height / (float)h;
@@ -346,6 +346,6 @@ static Texture *PixelBufToTexture(const PixelBuffer &pbuf) {
 		}
 	}
 
-	tex->Unlock();*/
+	tex->unlock();*/
 	return tex;
 }

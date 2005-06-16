@@ -36,13 +36,13 @@ private:
 	std::list<Spring> springs;
 	
 protected:
-	virtual void Run(unsigned long msec);
+	virtual void run(unsigned long msec);
 
 public:
 	RopeSim(scalar_t timeslice = SIM_STD_TIMESLICE);
 
-	const SpringConn *AddConnection(const SpringConn &conn);
-	void AddSpring(const Spring &spring);
+	const SpringConn *add_connection(const SpringConn &conn);
+	void add_spring(const Spring &spring);
 };
 
 #endif	// _ROPE_HPP_

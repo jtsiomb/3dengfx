@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * don't create any library dependencies.
  */
 #define IMGLIB_USE_TGA
+#define IMGLIB_USE_PPM
 
 /* for jpeg and png, make the default be to compile them in,
  * unless explicitly disabled.
@@ -49,7 +50,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 enum image_file_format {
 	IMG_FMT_PNG,
 	IMG_FMT_JPEG,
-	IMG_FMT_TGA
+	IMG_FMT_TGA,
+	IMG_FMT_PPM
 };
 
 enum {

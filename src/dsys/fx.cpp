@@ -141,8 +141,16 @@ void dsys::overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2,
 		set_texture_unit_color(0, TOP_REPLACE, TARG_TEXTURE, TARG_COLOR);
 		set_texture_unit_alpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_COLOR);
 		set_texture_coord_index(0, 0);
-		set_texture_addressing(0, TEXADDR_CLAMP, TEXADDR_CLAMP);
 		set_texture(0, tex);
+		set_texture_addressing(0, TEXADDR_CLAMP, TEXADDR_CLAMP);
+
+		for(int i=0; i<4; i++) {
+			if(tex == dsys::tex[i]) {
+				glMatrixMode(GL_TEXTURE);
+				load_matrix_gl(dsys::tex_mat[i]);
+				break;
+			}
+		}
 	}
 
 	if(pprog) {
@@ -166,6 +174,13 @@ void dsys::overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2,
 	}
 	
 	if(tex) {
+		for(int i=0; i<4; i++) {
+			if(tex == dsys::tex[i]) {
+				glMatrixMode(GL_TEXTURE);
+				load_matrix_gl(Matrix4x4::identity_matrix);
+				break;
+			}
+		}
 		set_texture_addressing(0, TEXADDR_WRAP, TEXADDR_WRAP);
 		disable_texture_unit(0);
 	}
@@ -174,6 +189,7 @@ void dsys::overlay(Texture *tex, const Vector2 &corner1, const Vector2 &corner2,
 	set_zbuffering(true);
 	set_lighting(true);
 
+	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
@@ -300,6 +316,93 @@ void FxFlash::apply(unsigned long time) {
 	flash(time, this->time, duration, color);
 }
 
+
+// ------------- Fade in/out -------------
+
+FxFade::FxFade() {
+	color1 = Color(0.0, 0.0, 0.0);
+	color2 = Color(1.0, 1.0, 1.0);
+	tex1 = tex2 = 0;
+}
+
+FxFade::~FxFade() {}
+
+bool FxFade::parse_script_args(const char **args) {
+	if(!ImageFx::parse_script_args(args)) {
+		return false;
+	}
+
+	if(args[2]) {
+		if(!str_to_color(args[2], &color1)) return false;
+	}
+
+	if(args[3] && !(args[3][0] == '0' && args[3][1] == 0)) {
+		// texture register? (t0, t1, t2, t3)
+		if(args[3][0] == 't' && isdigit(args[3][1]) && !args[3][2]) {
+			int reg = args[3][1] - '0';
+			if(reg > 3) return false;
+			tex1 = dsys::tex[reg];
+		} else {	// or a texture from file?
+			if(!(tex1 = get_texture(args[3]))) {
+				return false;
+			}
+		}
+	}
+
+	if(args[4]) {
+		if(!str_to_color(args[4], &color2)) return false;
+	}
+
+	if(args[5] && !(args[5][0] == '0' && args[5][1] == 0)) {
+		// texture register? (t0, t1, t2, t3)
+		if(args[5][0] == 't' && isdigit(args[5][1]) && !args[5][2]) {
+			int reg = args[5][1] - '0';
+			if(reg > 3) return false;
+			tex2 = dsys::tex[reg];
+		} else {	// or a texture from file?
+			if(!(tex2 = get_texture(args[5]))) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+void FxFade::apply(unsigned long time) {
+	if(time >= this->time && time < this->time + duration) {
+		float fsec = (float)(time - this->time) / 1000.0;
+		float t = fsec / ((float)duration / 1000.0);
+
+		if(tex1) {
+			set_texture(0, tex1);
+			enable_texture_unit(0);
+		}
+		
+		if(tex2) {
+			set_texture(1, tex2);
+			enable_texture_unit(1);
+
+			set_texture_constant(1, t);
+			set_texture_unit_color(1, TOP_LERP, TARG_PREV, TARG_TEXTURE, TARG_CONSTANT);
+		}
+
+		set_alpha_blending(true);
+		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+		set_lighting(false);
+
+		Color col = color1 + (color2 - color1) * t;
+		col.a = color1.a + (color2.a - color1.a) * t;
+		
+		draw_scr_quad(Vector2(0, 0), Vector2(1, 1), col);
+
+		set_lighting(true);
+		set_alpha_blending(false);
+
+		if(tex1) disable_texture_unit(0);
+		if(tex2) disable_texture_unit(1);
+	}
+}
 
 // ------------ Image Overlay ------------
 

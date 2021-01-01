@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _COLOR_BITS_H_
 #define _COLOR_BITS_H_
 
+#include "common/types.h"
 #include "common/byteorder.h"
 
 /* 32bit color shift values */

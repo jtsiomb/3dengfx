@@ -24,7 +24,7 @@ struct ConfigOption {
 	unsigned short flags;
 };
 
-void set_parser_state(enum ParserState state, int value);
+void set_parser_state(enum ParserState state, long value);
 int load_config_file(const char *fname);
 const struct ConfigOption *get_next_option();
 void destroy_config_parser();

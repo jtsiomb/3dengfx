@@ -66,7 +66,7 @@ int check_jpeg(FILE *fp){
 void *load_jpeg(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	int i;
 	RGBTriplet *buffer;
-	unsigned long *image;
+	uint32_t *image;
 	
 	JSAMPLE *tmp;
     
@@ -87,7 +87,7 @@ void *load_jpeg(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
     /* allocate space */
     buffer = malloc(cinfo.image_width * sizeof(RGBTriplet));
     if (!buffer) return 0;
-    image = malloc(cinfo.image_width * (cinfo.image_height) * sizeof(unsigned long));
+    image = malloc(cinfo.image_width * (cinfo.image_height) * sizeof(uint32_t));
     if (!image) return 0;
     
     tmp = (JSAMPLE*) buffer;

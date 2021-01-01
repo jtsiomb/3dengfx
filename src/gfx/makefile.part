@@ -1,0 +1,15 @@
+gfx_obj = \
+	src/gfx/3dgeom.o\
+	src/gfx/animation.o\
+	src/gfx/controller.o\
+	src/gfx/timeline.o\
+	src/gfx/base_cam.o\
+	src/gfx/curves.o\
+	src/gfx/color.o\
+	src/gfx/image.o\
+	src/gfx/image_png.o\
+	src/gfx/image_jpg.o\
+	src/gfx/image_tga.o\
+	src/gfx/image_ppm.o\
+	src/gfx/img_manip.o\
+	src/gfx/bvol.o

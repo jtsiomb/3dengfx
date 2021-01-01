@@ -27,21 +27,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "psys.hpp"
 #include "gfx/curves.hpp"
 
-/*
 struct ShadowVolume {
 	TriMesh *shadow_mesh;
 	const Light *light;
 };
-*/
 
 class Scene {
 private:
-	Light *lights[8];
+	Light **lights;
+	int lcount, max_lights;
+
 	std::list<Camera *> cameras;
 	TargetCamera *cubic_cam[6];
-	std::list<Object *> objects;
-	//std::list<ShadowVolume> static_shadow_volumes;
-	std::list<Curve *> curves;
+	std::list<Object*> objects;
+	std::list<ShadowVolume> static_shadow_volumes;
+	std::list<Curve*> curves;
 	std::list<ParticleSystem*> psys;
 	
 	bool manage_data;
@@ -76,12 +76,15 @@ public:
 	void add_camera(Camera *cam);
 	void add_light(Light *light);
 	void add_object(Object *obj);
-	//void add_static_shadow_volume(TriMesh *mesh, const Light *light);
+	void add_static_shadow_volume(TriMesh *mesh, const Light *light);
 	void add_curve(Curve *curve);
 	void add_particle_sys(ParticleSystem *p);
 
-	void remove_object(const Object *obj);
-	void remove_light(const Light *light);
+	void add_skycube(scalar_t size, Texture *cubemap);
+
+	bool remove_light(const Light *light);
+	bool remove_object(const Object *obj);
+	bool remove_particle_sys(const ParticleSystem *p);
 
 	Camera *get_camera(const char *name);
 	Light *get_light(const char *name);
@@ -97,7 +100,7 @@ public:
 	void set_active_camera(const Camera *cam);
 	Camera *get_active_camera() const;
 
-	//void set_shadows(bool enable);
+	void set_shadows(bool enable);
 	void set_halo_drawing(bool enable);
 	void set_halo_size(float size);
 	void set_ambient_light(Color ambient);
@@ -110,11 +113,13 @@ public:
 	// render states
 	void setup_lights(unsigned long msec = XFORM_LOCAL_PRS) const;
 
-	//void render_shadows() const;
 	void render(unsigned long msec = XFORM_LOCAL_PRS) const;
+	void render_objects(unsigned long msec = XFORM_LOCAL_PRS) const;
+	void render_particles(unsigned long msec = XFORM_LOCAL_PRS) const;
+	void render_svol(int lidx, unsigned long msec = XFORM_LOCAL_PRS) const;
 	void render_cube_map(Object *obj, unsigned long msec = XFORM_LOCAL_PRS) const;
-};
-	
 
+	void render_sequence(unsigned long start, unsigned long end, int fps = 30, const char *out_dir = "frames");
+};
 
 #endif	// _3DSCENE_HPP_

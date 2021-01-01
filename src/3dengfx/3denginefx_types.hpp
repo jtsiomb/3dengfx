@@ -34,7 +34,11 @@ enum ShadeMode {
 	SHADING_GOURAUD = GL_SMOOTH
 };
 
+#ifdef COORD_LHS
 enum FaceOrder {ORDER_CW = GL_CW, ORDER_CCW = GL_CCW};
+#else
+enum FaceOrder {ORDER_CW = GL_CCW, ORDER_CCW = GL_CW};
+#endif
 
 enum PrimitiveType {
 	TRIANGLE_LIST	= GL_TRIANGLES,
@@ -153,6 +157,7 @@ struct ProgCaps {
 };
 
 struct SysCaps {
+	bool multitex;
 	bool load_transpose;
 	bool gen_mipmaps;
 	bool tex_combine_ops;
@@ -164,6 +169,8 @@ struct SysCaps {
 	bool point_sprites;
 	bool point_params;
 	int max_texture_units;
+	bool non_power_of_two_textures;
+	int max_lights;
 	ProgCaps prog;
 };
 

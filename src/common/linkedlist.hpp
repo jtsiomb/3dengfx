@@ -39,7 +39,9 @@ public:
 	~LinkedList();
 
 	inline ListNode<T> *begin();
+	inline const ListNode<T> *begin() const;
 	inline ListNode<T> *end();
+	inline const ListNode<T> *end() const;
 
 	void push_back(ListNode<T> *node);
 	void push_back(T data);
@@ -81,7 +83,17 @@ ListNode<T> *LinkedList<T>::begin() {
 }
 
 template <class T>
+const ListNode<T> *LinkedList<T>::begin() const {
+	return head;
+}
+
+template <class T>
 ListNode<T> *LinkedList<T>::end() {
+	return tail;
+}
+
+template <class T>
+const ListNode<T> *LinkedList<T>::end() const {
 	return tail;
 }
 

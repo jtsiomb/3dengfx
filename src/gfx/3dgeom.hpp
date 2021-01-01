@@ -1,6 +1,5 @@
 /*
-This file is part of the graphics core library.
-
+This file is part of the 3dengfx, realtime visualization system.
 Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 This program is free software; you can redistribute it and/or modify
@@ -36,7 +35,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "n3dmath2/n3dmath2.hpp"
 #include "color.hpp"
 
-typedef unsigned short Index;
+#include <iostream>
+#include <vector>
+
+typedef uint32_t Index;
 
 struct TexCoord {
 	scalar_t u, v, w;	// or s,t,v if you prefer... I like u,v,w more though.
@@ -50,6 +52,7 @@ class Vertex {
 public:
 	Vector3 pos;
 	Vector3 normal;
+	Vector3 tangent;
 	Color color;
 	TexCoord tex[2];
 
@@ -57,6 +60,7 @@ public:
 	Vertex(const Vector3 &position, scalar_t tu = 0.0f, scalar_t tv = 0.0f, const Color &color = Color(1.0f, 1.0f, 1.0f));
 };
 
+#define NO_ADJFACE 0xFFFFFFFF
 
 class Edge {
 public:
@@ -64,39 +68,40 @@ public:
 	Index adjfaces[2];
 
 	Edge();
-	Edge(Index v1, Index v2, Index af1 = 0, Index af2 = 0);
+	Edge(Index v1, Index v2, Index af1 = NO_ADJFACE, Index af2 = NO_ADJFACE);
 };
+
+std::ostream &operator <<(std::ostream &o, const Edge &e);
 
 
 class Triangle {
 public:
 	Index vertices[3];
 	Vector3 normal;
-	unsigned long smoothing_group;
+	Vector3 tangent;
+	unsigned int smoothing_group;
 
 	Triangle(Index v1 = 0, Index v2 = 0, Index v3 = 0);
 
 	void calculate_normal(const Vertex *vbuffer, bool normalize=false);
+	void calculate_tangent(const Vertex *vbuffer, bool normalize=false);
 };
+
+std::ostream &operator <<(std::ostream &o, const Triangle &t);
+
 
 
 class Quad {
 public:
 	Index vertices[4];
 	Vector3 normal;
-	unsigned long smoothing_group;
+	unsigned int smoothing_group;
 
 	Quad(Index v1 = 0, Index v2 = 0, Index v3 = 0, Index v4 = 0);
 
 	void calculate_normal(const Vertex *vbuffer, bool normalize=0);
 };
 
-
-/* And for my next trick... these template classes with specialization for
- * the index case. They handle the conversion from triangle arrays to index
- * arrays in an excruciatingly smooth and automagic way.
- * I like this one, didn't have that in my previous engine, new idea.
- */
 
 //////////////// Geometry Arrays //////////////
 template <class DataType>
@@ -176,6 +181,7 @@ struct VertexStatistics {
 	scalar_t min_dist;
 	scalar_t max_dist;
 	scalar_t avg_dist;
+	scalar_t xmin, xmax, ymin, ymax, zmin, zmax;
 };
 
 class TriMesh {
@@ -183,11 +189,22 @@ private:
 	VertexArray varray;
 	TriangleArray tarray;
 	IndexArray iarray;
+	IndexArray index_graph;
+	
+	GeometryArray<Edge> earray;
 
 	mutable VertexStatistics vstats;
 	
 	mutable bool vertex_stats_valid;
 	bool indices_valid;
+	bool edges_valid;
+	bool index_graph_valid;
+	bool triangle_normals_valid;
+	bool triangle_normals_normalized;
+	
+	void calculate_edges();
+	void calculate_index_graph();
+	void calculate_triangle_normals(bool normalize);
 	
 public:
 	TriMesh();
@@ -200,18 +217,29 @@ public:
 	inline TriangleArray *get_mod_triangle_array();
 	
 	const IndexArray *get_index_array();
+	const GeometryArray<Edge> *get_edge_array() const;
 	
 	void set_data(const Vertex *vdata, unsigned long vcount, const Triangle *tdata, unsigned long tcount);	
-		
+
+	void calculate_normals_by_index();
 	void calculate_normals();
 	void normalize_normals();
 	void invert_winding();
+
+	void calculate_tangents();
 
 	void apply_xform(const Matrix4x4 &xform);
 
 	void operator +=(const TriMesh *m2);
 
+	void sort_triangles(Vector3 point, bool hilo=true);
+	
 	VertexStatistics get_vertex_stats() const;
+
+	// shadow volumes
+	std::vector<Edge> *get_contour_edges(const Vector3 &pov_or_dir, bool dir = false);
+	//TriMesh *get_uncapped_shadow_volume(const Vector3 &pov_or_dir, bool dir = false);
+	TriMesh *get_shadow_volume(const Vector3 &pov_or_dir, bool dir = false);
 };
 
 
@@ -219,6 +247,7 @@ public:
  */
 void join_tri_mesh(TriMesh *ret, const TriMesh *m1, const TriMesh *m2);
 TriMesh *join_tri_mesh(const TriMesh *m1, const TriMesh *m2);
+Vector3 extrude(const Vector3 &vec, scalar_t distance, const Vector3 &pov_or_dir, bool dir);
 
 #include "3dgeom.inl"
 

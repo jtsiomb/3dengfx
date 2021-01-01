@@ -4,7 +4,7 @@
 #include "3dengfx_config.h"
 
 #ifndef GFX_LIBRARY
-#define GFX_LIBRARY		SDL
+#error "no gfx library specified, please reconfigure"
 #endif	/* GFX_LIBRARY */
 
 #if GFX_LIBRARY == SDL
@@ -28,29 +28,33 @@
 
 #if GFX_LIBRARY == NATIVE
 
-#if defined(__unix__)
-
+#if NATIVE_LIB == NATIVE_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <GL/glx.h>
+#endif	/* X11 */
 
-#elif defined(WIN32)
-
+#if NATIVE_LIB == NATIVE_WIN32
 #include <windows.h>
+#endif	/* WIN32 */
 
-#else
-#error	"Native support for this system is not implemented, choose SDL/GLUT instead"
-#endif	/* systems */
-
-#endif	/* NATIVE */
+#endif	/* GFX_LIBRARY == NATIVE */
 
 #if GFX_LIBRARY != SDL
+
 #if defined(__unix__)
 #include <GL/glx.h>
+
 #define glGetProcAddress(x)		glXGetProcAddress((unsigned char*)x)
-#elif defined(WIN32)
+
+#ifndef GLX_ARB_get_proc_address
+void *glXGetProcAddress(const char *name);
+#endif	/* GLX_ARB_get_proc_address */
+
+#elif defined(WIN32) || defined(__WIN32__)
 #define glGetProcAddress(x)		wglGetProcAddress(x)
 #endif /* __unix__ */
+
 #endif /* GFX_LIBRARY != SDL */
 
 #endif	/* _GFX_LIBRARY_H_ */

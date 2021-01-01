@@ -35,27 +35,38 @@ GfxProg::GfxProg(Shader vertex, Shader pixel) {
 	linked = false;
 	update_handler = 0;
 
-	prog = glCreateProgramObject();
+	prog = 0;
+	if(engfx_state::sys_caps.prog.shader_obj) {
+		prog = glCreateProgramObject();
 
-	if(vertex) add_shader(vertex);
-	if(pixel) add_shader(pixel);
+		if(vertex) add_shader(vertex);
+		if(pixel) add_shader(pixel);
+	}
 }
 
 GfxProg::~GfxProg() {
-	list<Shader>::iterator iter = sdr_list.begin();
-	while(iter != sdr_list.end()) {
-		glDetachObject(prog, *iter++);
+	if(engfx_state::sys_caps.prog.shader_obj) {
+		list<Shader>::iterator iter = sdr_list.begin();
+		while(iter != sdr_list.end()) {
+			glDetachObject(prog, *iter++);
+		}
+		glDeleteObject(prog);
 	}
-	glDeleteObject(prog);
 }
 
 void GfxProg::add_shader(Shader sdr) {
-	glAttachObject(prog, sdr);
-	sdr_list.push_back(sdr);
+	if(engfx_state::sys_caps.prog.shader_obj) {
+		glAttachObject(prog, sdr);
+		sdr_list.push_back(sdr);
+	}
 }
 
 void GfxProg::link() {
 	int linked, log_size;
+	
+	if(!engfx_state::sys_caps.prog.shader_obj) {
+		return;
+	}
 	
 	glLinkProgram(prog);
 	glGetObjectParameteriv(prog, GL_OBJECT_LINK_STATUS_ARB, &linked);
@@ -86,40 +97,93 @@ void GfxProg::link() {
 	this->linked = (bool)linked;
 }
 
-void GfxProg::set_parameter(const char *pname, scalar_t val) {
+bool GfxProg::is_linked() const {
+	return linked;
+}
+
+unsigned int GfxProg::get_id() const {
+	if(!linked) {
+		const_cast<GfxProg*>(this)->link();
+	}
+	return linked ? prog : 0;
+}
+
+bool GfxProg::set_parameter(const char *pname, int val) {
+	if(!engfx_state::sys_caps.prog.shader_obj) {
+		return false;
+	}
+	glUseProgramObject(prog);
+	int loc = glGetUniformLocation(prog, pname);
+	if(loc != -1) {
+		glUniform1i(loc, val);
+	}
+	glUseProgramObject(0);
+	return loc == -1 ? false : true;
+}
+
+bool GfxProg::set_parameter(const char *pname, scalar_t val) {
+	if(!engfx_state::sys_caps.prog.shader_obj) {
+		return false;
+	}
 	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
 		glUniform1f(loc, val);
 	}
 	glUseProgramObject(0);
+	return loc == -1 ? false : true;
 }
 
-void GfxProg::set_parameter(const char *pname, const Vector3 &val) {
+bool GfxProg::set_parameter(const char *pname, const Vector2 &val) {
+	if(!engfx_state::sys_caps.prog.shader_obj) {
+		return false;
+	}
+	glUseProgramObject(prog);
+	int loc = glGetUniformLocation(prog, pname);
+	if(loc != -1) {
+		glUniform2f(loc, val.x, val.y);
+	}
+	glUseProgramObject(0);
+	return loc == -1 ? false : true;
+}
+
+bool GfxProg::set_parameter(const char *pname, const Vector3 &val) {
+	if(!engfx_state::sys_caps.prog.shader_obj) {
+		return false;
+	}
 	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
 		glUniform3f(loc, val.x, val.y, val.z);
 	}
 	glUseProgramObject(0);
+	return loc == -1 ? false : true;
 }
 
-void GfxProg::set_parameter(const char *pname, const Vector4 &val) {
+bool GfxProg::set_parameter(const char *pname, const Vector4 &val) {
+	if(!engfx_state::sys_caps.prog.shader_obj) {
+		return false;
+	}
 	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
 		glUniform4f(loc, val.x, val.y, val.z, val.w);
 	}
 	glUseProgramObject(0);
+	return loc == -1 ? false : true;
 }
 
-void GfxProg::set_parameter(const char *pname, const Matrix4x4 &val) {
+bool GfxProg::set_parameter(const char *pname, const Matrix4x4 &val) {
+	if(!engfx_state::sys_caps.prog.shader_obj) {
+		return false;
+	}
 	glUseProgramObject(prog);
 	int loc = glGetUniformLocation(prog, pname);
 	if(loc != -1) {
 		glUniformMatrix4fv(loc, 1, 1, val.opengl_matrix());
 	}
 	glUseProgramObject(0);
+	return loc == -1 ? false : true;
 }
 
 void GfxProg::set_update_handler(void (*func)(GfxProg*)) {

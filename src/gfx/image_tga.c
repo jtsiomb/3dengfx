@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This is a small image library.
+
+Copyright (C) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 This library is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* targa support
  * 
  * author: John Tsiombikas 2004
+ * modified: John Tsiombikas 2005
  */
 
 #include "3dengfx_config.h"
@@ -31,32 +32,34 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <stdlib.h>
 #include <string.h>
+#include "color_bits.h"
+#include "common/byteorder.h"
 
 struct tga_header {
-	unsigned char idlen;		/* id field length */
-	unsigned char cmap_type;	/* color map type (0:no color map, 1:color map present) */
-	unsigned char img_type;		/* image type: 
-								 *	0: no image data
-								 *	1: uncomp. color-mapped		 9: RLE color-mapped
-								 *	2: uncomp. true color		10: RLE true color
-								 *	3: uncomp. black/white		11: RLE black/white */	
-	unsigned short cmap_first;	/* color map first entry index */
-	unsigned short cmap_len;	/* color map length */
-	unsigned char cmap_entry_sz;/* color map entry size */
-	unsigned short img_x;		/* X-origin of the image */
-	unsigned short img_y;		/* Y-origin of the image */
-	unsigned short img_width;	/* image width */
-	unsigned short img_height;	/* image height */
-	unsigned char img_bpp;		/* bits per pixel */
-	unsigned char img_desc;		/* descriptor: 
-								 * bits 0 - 3: alpha or overlay bits
-								 * bits 5 & 4: origin (0 = bottom/left, 1 = top/right)
-								 * bits 7 & 6: data interleaving */	
+	uint8_t idlen;			/* id field length */
+	uint8_t cmap_type;		/* color map type (0:no color map, 1:color map present) */
+	uint8_t img_type;		/* image type: 
+							 * 0: no image data
+							 *	1: uncomp. color-mapped		 9: RLE color-mapped
+							 *	2: uncomp. true color		10: RLE true color
+							 *	3: uncomp. black/white		11: RLE black/white */	
+	uint16_t cmap_first;	/* color map first entry index */
+	uint16_t cmap_len;		/* color map length */
+	uint8_t cmap_entry_sz;	/* color map entry size */
+	uint16_t img_x;			/* X-origin of the image */
+	uint16_t img_y;			/* Y-origin of the image */
+	uint16_t img_width;		/* image width */
+	uint16_t img_height;	/* image height */
+	uint8_t img_bpp;		/* bits per pixel */
+	uint8_t img_desc;		/* descriptor: 
+							 * bits 0 - 3: alpha or overlay bits
+							 * bits 5 & 4: origin (0 = bottom/left, 1 = top/right)
+							 * bits 7 & 6: data interleaving */	
 };
 
 struct tga_footer {
-	unsigned long ext_off;		/* extension area offset */
-	unsigned long devdir_off;	/* developer directory offset */
+	uint32_t ext_off;		/* extension area offset */
+	uint32_t devdir_off;	/* developer directory offset */
 	char sig[18];				/* signature with . and \0 */
 };
 
@@ -76,20 +79,20 @@ void *load_tga(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	struct tga_header hdr;
 	unsigned long x, y, sz;
 	int i;
-	unsigned long *pix;
+	uint32_t *pix;
 
 	/* read header */
 	fseek(fp, 0, SEEK_SET);
 	hdr.idlen = fgetc(fp);
 	hdr.cmap_type = fgetc(fp);
 	hdr.img_type = fgetc(fp);
-	fread(&hdr.cmap_first, 2, 1, fp);
-	fread(&hdr.cmap_len, 2, 1, fp);
+	hdr.cmap_first = read_int16_le(fp);
+	hdr.cmap_len = read_int16_le(fp);
 	hdr.cmap_entry_sz = fgetc(fp);
-	fread(&hdr.img_x, 2, 1, fp);
-	fread(&hdr.img_y, 2, 1, fp);
-	fread(&hdr.img_width, 2, 1, fp);
-	fread(&hdr.img_height, 2, 1, fp);
+	hdr.img_x = read_int16_le(fp);
+	hdr.img_y = read_int16_le(fp);
+	hdr.img_width = read_int16_le(fp);
+	hdr.img_height = read_int16_le(fp);
 	hdr.img_bpp = fgetc(fp);
 	hdr.img_desc = fgetc(fp);
 
@@ -121,7 +124,7 @@ void *load_tga(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	}
 
 	for(i=0; i<y; i++) {
-		unsigned long *ptr;
+		uint32_t *ptr;
 		int j;
 
 		ptr = pix + ((hdr.img_desc & 0x20) ? i : y-(i+1)) * x;
@@ -133,7 +136,7 @@ void *load_tga(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 			b = fgetc(fp);
 			a = (hdr.img_desc & 0xf) ? fgetc(fp) : 255;
 		
-			*ptr++ = r | (g << 8) | (b << 16) | (a << 24);		
+			*ptr++ = PACK_COLOR32(a, r, g, b);
 			
 			if(feof(fp)) break;
 		}
@@ -149,7 +152,7 @@ int save_tga(FILE *fp, void *pixels, unsigned long xsz, unsigned long ysz) {
 	struct tga_header hdr;
 	struct tga_footer ftr;
 	unsigned long pix_count = xsz * ysz;
-	unsigned long *pptr = pixels;
+	uint32_t *pptr = pixels;
 	unsigned long save_flags;
 	int i;
 
@@ -177,35 +180,36 @@ int save_tga(FILE *fp, void *pixels, unsigned long xsz, unsigned long ysz) {
 	strcpy(ftr.sig, "TRUEVISION-XFILE.");
 
 	/* write the header */
+	
 	fwrite(&hdr.idlen, 1, 1, fp);
 	fwrite(&hdr.cmap_type, 1, 1, fp);
 	fwrite(&hdr.img_type, 1, 1, fp);
-	fwrite(&hdr.cmap_first, 2, 1, fp);
-	fwrite(&hdr.cmap_len, 2, 1, fp);
+	write_int16_le(fp, hdr.cmap_first);
+	write_int16_le(fp, hdr.cmap_len);
 	fwrite(&hdr.cmap_entry_sz, 1, 1, fp);
-	fwrite(&hdr.img_x, 2, 1, fp);
-	fwrite(&hdr.img_y, 2, 1, fp);
-	fwrite(&hdr.img_width, 2, 1, fp);
-	fwrite(&hdr.img_height, 2, 1, fp);
+	write_int16_le(fp, hdr.img_x);
+	write_int16_le(fp, hdr.img_y);
+	write_int16_le(fp, hdr.img_width);
+	write_int16_le(fp, hdr.img_height);
 	fwrite(&hdr.img_bpp, 1, 1, fp);
 	fwrite(&hdr.img_desc, 1, 1, fp);
 
 	/* write the pixels */
 	for(i=0; i<pix_count; i++) {
-		fputc(*pptr & 0xff, fp);
-		fputc((*pptr >> 8) & 0xff, fp);
-		fputc((*pptr >> 16) & 0xff, fp);
+		fputc((*pptr >> BLUE_SHIFT32) & 0xff, fp);
+		fputc((*pptr >> GREEN_SHIFT32) & 0xff, fp);
+		fputc((*pptr >> RED_SHIFT32) & 0xff, fp);
 		
 		if(save_flags & IMG_SAVE_ALPHA) {
-			fputc((*pptr >> 24) & 0xff, fp);
+			fputc((*pptr >> ALPHA_SHIFT32) & 0xff, fp);
 		}
 		
 		pptr++;
 	}
 
 	/* write the footer */
-	fwrite(&ftr.ext_off, 4, 1, fp);
-	fwrite(&ftr.devdir_off, 4, 1, fp);
+	write_int32_le(fp, ftr.ext_off);
+	write_int32_le(fp, ftr.devdir_off);
 	fputs(ftr.sig, fp);
 	fputc(0, fp);
 

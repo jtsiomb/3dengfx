@@ -24,12 +24,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "opengl.h"
 #include "textures.hpp"
 
-static void invert_image(unsigned long *img, int x, int y) {
-	unsigned long *s2 = img + (y - 1) * x;
-	unsigned long *tmp = new unsigned long[x];
+static void invert_image(Pixel *img, int x, int y) {
+	Pixel *s2 = img + (y - 1) * x;
+	Pixel *tmp = new Pixel[x];
 	
 	int swaps = y / 2;
-	int sl_bytes = x * sizeof(unsigned long);
+	int sl_bytes = x * sizeof(Pixel);
 	for(int i=0; i<swaps; i++) {
 		memcpy(tmp, img, sl_bytes);
 		memcpy(img, s2, sl_bytes);
@@ -80,6 +80,9 @@ Texture::Texture(int x, TextureDim type) {
 	add_frame(undef_pbuf);
 }
 		
+Texture::~Texture() {
+	// TODO: check if it's destroyed between a lock/unlock and free image data
+}
 
 void Texture::add_frame() {
 	glGenTextures(1, &tex_id);
@@ -176,8 +179,8 @@ void Texture::set_pixel_data(const PixelBuffer &pbuf, CubeMapFace cube_map_face)
 	
 	glBindTexture(type, tex_id);
 
-	buffer = new unsigned long[width * height];
-	memcpy(buffer, pbuf.buffer, width * height * sizeof(unsigned long));
+	buffer = new Pixel[width * height];
+	memcpy(buffer, pbuf.buffer, width * height * sizeof(Pixel));
 	invert_image(buffer, width, height);
 
 	switch(type) {

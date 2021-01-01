@@ -60,6 +60,14 @@ Vector2 Vector2::transformed(const Matrix3x3 &mat) const {
 	vec.y = mat[1][0] * x + mat[1][1] * y + mat[1][2];
 	return vec;
 }
+
+void Vector2::rotate(scalar_t angle) {
+	*this = Vector2(cos(angle) * x - sin(angle) * y, sin(angle) * x + cos(angle) * y);
+}
+
+Vector2 Vector2::rotated(scalar_t angle) const {
+	return Vector2(cos(angle) * x - sin(angle) * y, sin(angle) * x + cos(angle) * y);
+}
 	
 Vector2 Vector2::reflection(const Vector2 &normal) const {
 	return 2.0 * dot_product(*this, normal) * normal - *this;
@@ -94,6 +102,17 @@ Vector3::Vector3(const Vector4 &vec) {
 	x = vec.x;
 	y = vec.y;
 	z = vec.z;
+}
+
+Vector3::Vector3(const SphVector &sph) {
+	*this = sph;
+}
+
+Vector3 &Vector3::operator =(const SphVector &sph) {
+	x = sph.r * cos(sph.theta) * sin(sph.phi);
+	z = sph.r * sin(sph.theta) * sin(sph.phi);
+	y = sph.r * cos(sph.phi);
+	return *this;
 }
 
 void Vector3::normalize() {
@@ -169,6 +188,18 @@ Vector3 Vector3::transformed(const Quaternion &quat) const {
 	Quaternion vq(0.0f, *this);
 	vq = quat * vq * quat.inverse();
 	return vq.v;
+}
+
+void Vector3::rotate(const Vector3 &euler) {
+	Matrix4x4 rot;
+	rot.set_rotation(euler);
+	transform(rot);
+}
+
+Vector3 Vector3::rotated(const Vector3 &euler) const {
+	Matrix4x4 rot;
+	rot.set_rotation(euler);
+	return transformed(rot);
 }
 
 std::ostream &operator <<(std::ostream &out, const Vector3 &vec) {

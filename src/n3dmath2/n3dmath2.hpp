@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _N3DMATH2_HPP_
 #define _N3DMATH2_HPP_
 
-
+#include <math.h>
 #include "n3dmath2_types.hpp"
 
 extern const scalar_t e;
@@ -53,9 +53,9 @@ extern const scalar_t error_margin;
 
 #define SQ(x) ((x) * (x))
 
-#ifndef __GNUC__
+#ifndef __GLIBC__
 #define round(x)	((x) >= 0 ? (x) + 0.5 : (x) - 0.5)
-#endif	// __GNUC__
+#endif	// __GLIBC__
 
 // -- mathematical & helper functions --
 scalar_t frand(scalar_t range);
@@ -75,10 +75,14 @@ scalar_t bezier(const Vector4 &cp, scalar_t t);
 Vector3 bezier(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t);
 Vector3 bezier_tangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, const Vector3 &p3, scalar_t t);
 
+// -- point / line distance in 2D --
+scalar_t dist_line(const Vector2 &p1, const Vector2 &p2, const Vector2 &p);
+
 // -- actual class definitions --
 #include "n3dmath2_vec.hpp"
 #include "n3dmath2_mat.hpp"
 #include "n3dmath2_qua.hpp"
+#include "n3dmath2_sph.hpp"
 #include "n3dmath2_ray.hpp"
 #include "n3dmath2_qdr.hpp"
 

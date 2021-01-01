@@ -26,8 +26,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class Camera : public BaseCamera {
 public:
 	Camera(const Vector3 &trans = Vector3(0,0,0), const Quaternion &rot = Quaternion());
+
+	virtual Matrix4x4 get_camera_matrix(unsigned long msec = XFORM_LOCAL_PRS) const;
 	
-	virtual void activate(unsigned long msec = XFORM_LOCAL_PRS) const;
+	//virtual void activate(unsigned long msec = XFORM_LOCAL_PRS) const;
 };
 
 
@@ -40,8 +42,10 @@ public:
 
 	virtual void set_target(const Vector3 &target);
 	virtual Vector3 get_target(unsigned long msec = XFORM_LOCAL_PRS) const;
+
+	virtual Matrix4x4 get_camera_matrix(unsigned long msec = XFORM_LOCAL_PRS) const;
 	
-	virtual void activate(unsigned long msec = XFORM_LOCAL_PRS) const;
+	//virtual void activate(unsigned long msec = XFORM_LOCAL_PRS) const;
 
 	virtual void zoom(scalar_t factor, unsigned long msec = XFORM_LOCAL_PRS);
 	virtual void roll(scalar_t angle, unsigned long msec = XFORM_LOCAL_PRS);

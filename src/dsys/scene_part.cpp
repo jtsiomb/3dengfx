@@ -41,7 +41,7 @@ ScenePart::ScenePart(const char *name, const char *scene_file) : Part(name) {
 }
 
 ScenePart::~ScenePart() {
-	delete scene;
+	if(scene) delete scene;
 }
 
 void ScenePart::draw_part() {

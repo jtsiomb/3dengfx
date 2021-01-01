@@ -23,6 +23,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * Author: John Tsiombikas 2005
  */
 
+#include "3dengfx_config.h"
+
+#ifndef FXWT_NO_FREETYPE
 #include <vector>
 #include <cstdio>
 #include <cassert>
@@ -90,14 +93,14 @@ static Font font_style_list[3][4] = {
 #define VERDANA_FILE			"Verdana.ttf"
 #define TIMES_NEW_ROMAN_FILE	"Times_New_Roman.ttf"
 #define COURIER_NEW_FILE		"Courier_New.ttf"
-#elif defined(WIN32)
+#elif defined(WIN32) || defined(__WIN32__)
 #define VERDANA_FILE			"verdana.ttf"
 #define TIMES_NEW_ROMAN_FILE	"times.ttf"
 #define COURIER_NEW_FILE		"cour.ttf"
 #endif
 
 bool fxwt::text_init() {
-
+	
 	set_verbosity(2);
 
 	text_table.set_hash_function(string_hash);
@@ -155,10 +158,10 @@ int fxwt::get_font_size() {
 bool fxwt::set_font(Font fnt) {
 	for(size_t i=0; i<face_list.size(); i++) {
 		if(!strcmp(face_list[i]->family_name, font_names[fnt])) {
-			font = face_list[i];
+			font = face_list[i];	
 			return true;
 		}
-	}
+	}	
 	return false;
 }
 
@@ -247,13 +250,16 @@ static const char *find_font_file(const char *font) {
 }
 
 static string gen_key_str(const char *text) {
-	return string(font->family_name) + string("##") + string(text);
+	if(font->family_name) {
+		return string(font->family_name) + string("##") + string(text);
+	}
+	return string(text);
 }
 
 
 static void draw_free_type_bitmap(FT_Bitmap *ftbm, PixelBuffer *pbuf, int x, int y) {
 	int i, j;
-	unsigned long *dptr = pbuf->buffer + y * pbuf->width + x;
+	Pixel *dptr = pbuf->buffer + y * pbuf->width + x;
 	unsigned char *sptr = (unsigned char*)ftbm->buffer;
 
 	assert(x >= 0);
@@ -265,7 +271,7 @@ static void draw_free_type_bitmap(FT_Bitmap *ftbm, PixelBuffer *pbuf, int x, int
 		for(j=0; j<ftbm->width; j++) {
 			if(j + x >= (int)pbuf->width) break;
 
-			unsigned long pixel = *sptr++;
+			Pixel pixel = *sptr++;
 			
 			if(render_mode == TEXT_TRANSPARENT) {
 				*dptr++ = 0x00ffffff | (pixel << 24);
@@ -305,8 +311,8 @@ static PixelBuffer *create_text_image(const char *str, FT_Face face, int font_si
 
 	PixelBuffer *pbuf = new PixelBuffer(pen_x, (int)(font_size * 1.5));
 	
-	unsigned long *dptr = pbuf->buffer;
-	unsigned long *sptr = tmp_buf.buffer;
+	Pixel *dptr = pbuf->buffer;
+	Pixel *sptr = tmp_buf.buffer;
 
 	for(size_t i=0; i<pbuf->height; i++) {
 		memcpy(dptr, sptr, pbuf->width * sizeof(Pixel));
@@ -324,15 +330,27 @@ static int next_pow_two(int num) {
 }
 
 static Texture *pixel_buf_to_texture(const PixelBuffer &pbuf) {
-	int w = next_pow_two(pbuf.width);
-	int h = next_pow_two(pbuf.height);
 
-	PixelBuffer tmp = pbuf;
+	int w, h;
+	Texture *tex;
+	
+	if (engfx_state::sys_caps.non_power_of_two_textures)
+	{
+		w = pbuf.width;
+		h = pbuf.height;
+		tex = new Texture(w, h);
+		tex->set_pixel_data(pbuf);
+	}
+	else
+	{
+		w = next_pow_two(pbuf.width);
+		h = next_pow_two(pbuf.height);
+		PixelBuffer tmp = pbuf;
+		resample_pixel_buffer(&tmp, w, h);
+		tex = new Texture(w, h);
+		tex->set_pixel_data(tmp);
+	}
 
-	resample_pixel_buffer(&tmp, w, h);
-
-	Texture *tex = new Texture(w, h);
-	tex->set_pixel_data(tmp);
 	/*tex->lock();
 
 	float dx = (float)pbuf.width / (float)w;
@@ -349,3 +367,61 @@ static Texture *pixel_buf_to_texture(const PixelBuffer &pbuf) {
 	tex->unlock();*/
 	return tex;
 }
+
+#else		// if we excluded freetype dependencies from compilation
+
+#include "text.hpp"
+#include "common/err_msg.h"
+
+using namespace fxwt;
+
+#define FT_NOT_COMPILED		"some text-rendering function is called, but freetype support is not compiled in"
+
+bool fxwt::text_init() {
+	return false;
+}
+
+void fxwt::text_close() {}
+
+void fxwt::set_text_render_mode(TextRenderMode mode) {
+	error(FT_NOT_COMPILED);
+}
+
+void fxwt::set_font_size(int sz) {
+	error(FT_NOT_COMPILED);
+}
+
+int fxwt::get_font_size() {
+	error(FT_NOT_COMPILED);
+	return 0;
+}
+
+bool fxwt::set_font(Font fnt) {
+	error(FT_NOT_COMPILED);
+	return false;
+}
+
+bool fxwt::set_font(FontStyle fstyle) {
+	error(FT_NOT_COMPILED);
+	return false;
+}
+
+const char *fxwt::get_font_name(Font fnt) {
+	error(FT_NOT_COMPILED);
+	return 0;
+}
+
+Texture *fxwt::get_text(const char *text_str) {
+	error(FT_NOT_COMPILED);
+	return 0;
+}
+
+void fxwt::print_text(const char *text_str, const Vector2 &pos, scalar_t size, const Color &col) {
+	static bool first = true;
+	if(first) {
+		error(FT_NOT_COMPILED);
+		first = false;
+	}
+}
+
+#endif	// FXWT_NO_FREETYPE

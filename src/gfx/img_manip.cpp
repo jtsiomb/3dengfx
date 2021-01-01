@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cctype>
 #include "img_manip.hpp"
 #include "color.hpp"
+#include "common/err_msg.h"
 
 // Macros
 #define PACK_ARGB32(a,r,g,b)	PACK_COLOR32(a,r,g,b)
@@ -55,60 +56,57 @@ void clear_pixel_buffer(PixelBuffer *pb, const Color &col) {
 
 // ------------ resampling ------------------
 
-static bool resample_line(scalar_t *dst, int dst_width, int dst_pitch,
-		  scalar_t *src, int src_width, int src_pitch)
+static bool resample_line(scalar_t *dst, int dst_width, int dst_pitch, scalar_t *src, int src_width, int src_pitch)
 {
 	if (!dst || !src) return false;
 
-	scalar_t 	x0,x1,x2,x3,t;
-	int		i0,i1,i2,i3;
+	scalar_t x0,x1,x2,x3,t;
+	int i0,i1,i2,i3;
 	for (int i=0;i<dst_width;i++)
 	{
 		i1 = (i*src_width)/dst_width;
-		i0 = i1-1; if (i0 < 0) 		i0=0;
-		i2 = i1+1; if (i2 >= src_width)	i2=src_width-1;
-		i3 = i1+2; if (i3 >= src_width) i3=src_width-1;
+		i0 = i1 - 1; if(i0 < 0) i0 = 0;
+		i2 = i1 + 1; if(i2 >= src_width) i2 = src_width - 1;
+		i3 = i1 + 2; if(i3 >= src_width) i3 = src_width - 1;
 
 		x0 = src[i0 * src_pitch];
 		x1 = src[i1 * src_pitch];
 		x2 = src[i2 * src_pitch];
 		x3 = src[i3 * src_pitch];
 
-		t = ( (scalar_t)i * (scalar_t)src_width ) / (scalar_t) dst_width;
+		t = ((scalar_t)i * (scalar_t)src_width) / (scalar_t)dst_width;
 		t -= i1;
 
 		// write the destination element
-		dst[i*dst_pitch] = cerp(x0,x1,x2,x3,t);
+		dst[i * dst_pitch] = cerp(x0, x1, x2, x3, t);
 	}
 
 	return true;
 }
 
-static bool resample2d(scalar_t *dst, int dst_w, int dst_h,
- 	        scalar_t *src, int src_w, int src_h)
+static bool resample2d(scalar_t *dst, int dst_w, int dst_h, scalar_t *src, int src_w, int src_h)
 {
 	if (!src || !dst) return false;
 
 	if (dst_w == src_w && dst_h == src_h)
 	{
-		memcpy(dst,src,dst_w*dst_h*sizeof(scalar_t));
+		memcpy(dst, src, dst_w * dst_h * sizeof(scalar_t));
 		return true;
 	}
 
 	// first resample along x
-	scalar_t *temp = (scalar_t*) malloc(dst_w*src_h*sizeof(scalar_t));
+	scalar_t *temp = (scalar_t*)malloc(dst_w * src_h * sizeof(scalar_t));
 
 	if (dst_w == src_w)
 	{
-		memcpy(temp,src,src_w*src_h*sizeof(scalar_t));
+		memcpy(temp, src, src_w * src_h * sizeof(scalar_t));
 	}
 	else
 	{
 		// horizontal resample
 		for (int i=0;i<src_h;i++)
 		{
-			resample_line(temp + i*dst_w , dst_w , 1,
-				     src  + i*src_w , src_w , 1);
+			resample_line(temp + i*dst_w, dst_w, 1, src + i * src_w, src_w, 1);
 		}
 	}
 
@@ -116,15 +114,14 @@ static bool resample2d(scalar_t *dst, int dst_w, int dst_h,
 	// stretch vertically
 	if (dst_h == src_h)
 	{
-		memcpy(dst,temp,dst_w*dst_h*sizeof(scalar_t));
+		memcpy(dst, temp, dst_w * dst_h * sizeof(scalar_t));
 	}
 	else
 	{
 		// vertical resample
-		for (int i=0;i<dst_w;i++)
+		for (int i=0; i<dst_w; i++)
 		{
-			resample_line(dst+i  , dst_h , dst_w,
-				     temp+i , src_h , dst_w);
+			resample_line(dst+i, dst_h, dst_w, temp + i, src_h, dst_w);
 		}
 	}
 
@@ -134,26 +131,25 @@ static bool resample2d(scalar_t *dst, int dst_w, int dst_h,
 	return true;
 }
 
-static bool pack_scalar_rgb2dw(unsigned long *dst, scalar_t *ac, scalar_t *rc, 
-		      scalar_t *gc, scalar_t *bc , int samples)
+static bool pack_scalar_rgb2dw(Pixel *dst, scalar_t *ac, scalar_t *rc, scalar_t *gc, scalar_t *bc, int samples)
 {
 	if (!dst || !ac || !rc || !gc || !bc) return false;
 
-	int a,r,g,b;
+	int a, r, g, b;
 
 	for (int i=0;i<samples;i++)
 	{
-		a = (int) (ac[i]+0.5f);
-		r = (int) (rc[i]+0.5f);
-		g = (int) (gc[i]+0.5f);
-		b = (int) (bc[i]+0.5f);
+		a = (int)(ac[i] + 0.5f);
+		r = (int)(rc[i] + 0.5f);
+		g = (int)(gc[i] + 0.5f);
+		b = (int)(bc[i] + 0.5f);
 
-		a = clamp_integer(a,0,255);
-		r = clamp_integer(r,0,255);
-		g = clamp_integer(g,0,255);
-		b = clamp_integer(b,0,255);
+		a = clamp_integer(a, 0, 255);
+		r = clamp_integer(r, 0, 255);
+		g = clamp_integer(g, 0, 255);
+		b = clamp_integer(b, 0, 255);
 
-		dst[i] = PACK_ARGB32(a,r,g,b);
+		dst[i] = PACK_ARGB32(a, r, g, b);
 	}
 
 	return true;
@@ -161,22 +157,22 @@ static bool pack_scalar_rgb2dw(unsigned long *dst, scalar_t *ac, scalar_t *rc,
 
 bool resample_pixel_buffer(PixelBuffer *pb, int w, int h)
 {
-	if (!pb || !pb->buffer || pb->width<0 || pb->height<0) return false;
+	if (!pb || !pb->buffer || pb->width < 0 || pb->height < 0) return false;
 
 	if ((int)pb->width == w && (int)pb->height == h) return true;
 
 	// split channels
-	scalar_t *a,*newa,*r,*newr,*g,*newg,*b,*newb;
+	scalar_t *a, *newa, *r, *newr, *g, *newg, *b, *newb;
 
-	a = (scalar_t*) malloc(pb->width*pb->height*sizeof(scalar_t));	
-	r = (scalar_t*) malloc(pb->width*pb->height*sizeof(scalar_t));
-	g = (scalar_t*) malloc(pb->width*pb->height*sizeof(scalar_t));
-	b = (scalar_t*) malloc(pb->width*pb->height*sizeof(scalar_t));
+	a = (scalar_t*)malloc(pb->width * pb->height * sizeof(scalar_t));	
+	r = (scalar_t*)malloc(pb->width * pb->height * sizeof(scalar_t));
+	g = (scalar_t*)malloc(pb->width * pb->height * sizeof(scalar_t));
+	b = (scalar_t*)malloc(pb->width * pb->height * sizeof(scalar_t));
 
-	newa = (scalar_t*) malloc(w*h*sizeof(scalar_t));
-	newr = (scalar_t*) malloc(w*h*sizeof(scalar_t));
-	newg = (scalar_t*) malloc(w*h*sizeof(scalar_t));
-	newb = (scalar_t*) malloc(w*h*sizeof(scalar_t));
+	newa = (scalar_t*)malloc(w * h * sizeof(scalar_t));
+	newr = (scalar_t*)malloc(w * h * sizeof(scalar_t));
+	newg = (scalar_t*)malloc(w * h * sizeof(scalar_t));
+	newb = (scalar_t*)malloc(w * h * sizeof(scalar_t));
 
 	for(int i=0; i<(int)(pb->width * pb->height); i++)
 	{
@@ -193,17 +189,17 @@ bool resample_pixel_buffer(PixelBuffer *pb, int w, int h)
 	resample2d(newb, w, h, b, pb->width, pb->height);
 
 	// pack
-	unsigned long *temp = (unsigned long*) malloc(w*h*sizeof(unsigned long));
-	pack_scalar_rgb2dw(temp , newa,newr,newg,newb,w*h);
+	Pixel *temp = (Pixel*)malloc(w * h * sizeof(Pixel));
+	pack_scalar_rgb2dw(temp, newa, newr, newg, newb, w * h);
 	free(pb->buffer);
 	pb->buffer = temp;
-	temp=0;
-	pb->width  = w;
+	temp = 0;
+	pb->width = w;
 	pb->height = h;
 
 	// cleanup
-	free(a);free(r);free(g);free(b);
-	free(newa);free(newr);free(newg);free(newb);
+	free(a); free(r); free(g); free(b);
+	free(newa); free(newr); free(newg); free(newb);
 
 	return true;
 }
@@ -213,15 +209,15 @@ bool resample_pixel_buffer(PixelBuffer *pb, int w, int h)
 
 static inline scalar_t cerp(scalar_t x0, scalar_t x1, scalar_t x2, scalar_t x3, scalar_t t)
 {
-	scalar_t a0,a1,a2,a3,t2;
+	scalar_t a0, a1, a2, a3, t2;
 
-	t2 = t*t;
+	t2 = t * t;
 	a0 = x3 - x2 - x0 + x1;
 	a1 = x0 - x1 - a0;
 	a2 = x2 - x0;
 	a3 = x1;
 
-	return(a0*t*t2+a1*t2+a2*t+a3);
+	return(a0 * t * t2 + a1 * t2 + a2 * t + a3);
 }
 
 
@@ -239,33 +235,33 @@ static inline int clamp_integer(int i, int from, int to)
 
 static ImgSamplingMode samp_mode = SAMPLE_CLAMP;
 
-static inline int map_index(int c,int dim)
+static inline int map_index(int c, int dim)
 {
 
 	switch (samp_mode)
 	{
 		case SAMPLE_WRAP:
 		{
-			if (c<0) 
+			if (c < 0) 
 			{
-				while (c<0) c+= dim;
+				while(c < 0) c += dim;
 				return c;
 			}
-			if (c>=dim) return c % dim;
+			if (c >= dim) return c % dim;
 			break;
 		}
 		case SAMPLE_MIRROR:
 		{
-			if (c<0) return -c;
-			if (c>=dim) return dim-c-1;
+			if (c < 0) return -c;
+			if (c >= dim) return dim - c - 1;
 			break;
 		}
 
 		case SAMPLE_CLAMP:
 		default:
 		{
-			if (c<0) return 0;
-			if (c>=dim) return dim-1;
+			if (c < 0) return 0;
+			if (c >= dim) return dim - 1;
 			break;
 		}
 	}
@@ -273,15 +269,9 @@ static inline int map_index(int c,int dim)
 	return c;
 }
 
-static void split_channels(unsigned long *img,
-						  unsigned long *a,
-						  unsigned long *r,
-						  unsigned long *g,
-						  unsigned long *b,
-						  unsigned long pixel_count)
+static void split_channels(Pixel *img, Pixel *a, Pixel *r, Pixel *g, Pixel *b, unsigned int pixel_count)
 {
-
-	for (unsigned long i=0; i<pixel_count; i++)
+	for(unsigned int i=0; i<pixel_count; i++)
 	{
 		*a++ = GETA(*img);
 		*r++ = GETR(*img);
@@ -291,20 +281,15 @@ static void split_channels(unsigned long *img,
 	}
 }
 
-static void join_channels(unsigned long *img,
-						  unsigned long *a,
-						  unsigned long *r,
-						  unsigned long *g,
-						  unsigned long *b,
-						  unsigned long pixel_count)
+static void join_channels(Pixel *img, Pixel *a, Pixel *r, Pixel *g, Pixel *b, unsigned int pixel_count)
 {
-	for (unsigned long i=0; i<pixel_count; i++)
+	for(unsigned int i=0; i<pixel_count; i++)
 	{
 		*img++ = PACK_ARGB32(*a++, *r++, *g++, *b++);
 	}
 }
 
-static inline unsigned long fetch_pixel(int x, int y, unsigned long *img, int w, int h)
+static inline Pixel fetch_pixel(int x, int y, Pixel *img, int w, int h)
 {
 	x = map_index(x,w);
 	y = map_index(y,h);
@@ -312,48 +297,45 @@ static inline unsigned long fetch_pixel(int x, int y, unsigned long *img, int w,
 	return img[x+w*y];
 }
 
-static unsigned long* apply_kernel_to_channel(int *kernel, int kernel_dim,
-								 unsigned long *img, int w, int h)
+static Pixel* apply_kernel_to_channel(int *kernel, int kernel_dim, Pixel *img, int w, int h)
 {
-
 	// only odd kernels
-	if (!(kernel_dim%2))  return 0;
+	if (!(kernel_dim % 2))  return 0;
 	if (!kernel || !img)  return 0;
-	if ((w<=0) || (h<=0)) return 0; 
+	if ((w <= 0) || (h <= 0)) return 0; 
 
 	int kernel_l = kernel_dim * kernel_dim;
-	int kernel_center = kernel_dim/2;
-	int kernel_sum=0;
-	for (int i=0;i<kernel_l;i++)
+	int kernel_center = kernel_dim / 2;
+	int kernel_sum = 0;
+	for (int i=0; i<kernel_l; i++)
 	{
 		kernel_sum += kernel[i];
 	}
 
 	// allocate memory
-	unsigned long *temp = (unsigned long*) malloc(w*h*sizeof(unsigned long));
+	Pixel *temp = (Pixel*)malloc(w * h * sizeof(Pixel));
 
 	// pain loop
-	for (int j=0;j<h;j++)
+	for(int j=0; j<h; j++)
 	{
-		for (int i=0;i<w;i++)
+		for(int i=0; i<w; i++)
 		{
-
 			int sum=0;
 
 			// kernel loop
-			for (int kj=0;kj<kernel_dim;kj++)
+			for(int kj=0; kj<kernel_dim; kj++)
 			{
-				for (int ki=0;ki<kernel_dim;ki++)
+				for(int ki=0; ki<kernel_dim; ki++)
 				{
-					int pixel = (int)fetch_pixel(i+ki-kernel_center, j+kj-kernel_center, img, w,h);
-					sum += pixel * kernel[ki+kernel_dim*kj];
+					int pixel = (int)fetch_pixel(i + ki - kernel_center, j + kj - kernel_center, img, w, h);
+					sum += pixel * kernel[ki + kernel_dim * kj];
 				}
 			}// end kernel loop
 
-			if (kernel_sum) {
+			if(kernel_sum) {
 				sum /= kernel_sum;
 			}
-			temp[i+j*w] = CLAMP(sum, 0, 255);
+			temp[i + j * w] = CLAMP(sum, 0, 255);
 		}
 	} // end pain loop
 
@@ -364,33 +346,33 @@ bool apply_kernel(PixelBuffer *pb, int *kernel, int kernel_dim, ImgSamplingMode 
 {
 	if(!pb || !pb->buffer) return false;
 	if(pb->width <= 0 || pb->height <= 0) return false;
-	if(!(kernel_dim/2)) return false;
+	if(!(kernel_dim / 2)) return false;
 	
-	unsigned long sz = pb->width * pb->height;
+	unsigned int sz = pb->width * pb->height;
 
 	// set sampling mode
 	samp_mode = sampling;
 
 	// allocate memory
-	unsigned long *tempa = (unsigned long*)malloc(sz * sizeof(unsigned long));
-	unsigned long *tempr = (unsigned long*)malloc(sz * sizeof(unsigned long));
-	unsigned long *tempg = (unsigned long*)malloc(sz * sizeof(unsigned long));
-	unsigned long *tempb = (unsigned long*)malloc(sz * sizeof(unsigned long));
+	Pixel *tempa = (Pixel*)malloc(sz * sizeof(Pixel));
+	Pixel *tempr = (Pixel*)malloc(sz * sizeof(Pixel));
+	Pixel *tempg = (Pixel*)malloc(sz * sizeof(Pixel));
+	Pixel *tempb = (Pixel*)malloc(sz * sizeof(Pixel));
 
 	// split channels
 	split_channels(pb->buffer, tempa, tempr, tempg, tempb, sz);
 
 	// apply kernel
-	unsigned long *a = apply_kernel_to_channel(kernel, kernel_dim, tempa, pb->width, pb->height);
+	Pixel *a = apply_kernel_to_channel(kernel, kernel_dim, tempa, pb->width, pb->height);
 	free(tempa);
 
-	unsigned long *r = apply_kernel_to_channel(kernel, kernel_dim, tempr, pb->width, pb->height);
+	Pixel *r = apply_kernel_to_channel(kernel, kernel_dim, tempr, pb->width, pb->height);
 	free(tempr);
 
-	unsigned long *g = apply_kernel_to_channel(kernel, kernel_dim, tempg, pb->width, pb->height);
+	Pixel *g = apply_kernel_to_channel(kernel, kernel_dim, tempg, pb->width, pb->height);
 	free(tempg);
 
-	unsigned long *b = apply_kernel_to_channel(kernel, kernel_dim, tempb, pb->width, pb->height);
+	Pixel *b = apply_kernel_to_channel(kernel, kernel_dim, tempb, pb->width, pb->height);
 	free(tempb);
 
 	// join channels
@@ -467,7 +449,7 @@ int* load_kernel(const char* filename, int *dim)
 
 	if(!isdigit(temp[0])) {
 		fclose(input);
-		fprintf(stderr, "load_kernel() failed, invalid kernel file format: %s\n", filename);
+		error("load_kernel() failed, invalid kernel file format: %s\n", filename);
 		return 0;
 	}
 	num = atoi(temp);
@@ -489,7 +471,7 @@ int* load_kernel(const char* filename, int *dim)
 		if(!isdigit(temp[0]) && temp[0] != '-' && temp[0] != '+') {
 			fclose(input);
 			free(kernel);
-			fprintf(stderr, "load_kernel() failed, invalid kernel file format: %s\n", filename);
+			error("load_kernel() failed, invalid kernel file format: %s\n", filename);
 			return 0;
 		}
 		kernel[n] = atoi(temp);
@@ -515,9 +497,9 @@ bool sobel_edge(PixelBuffer *pb, ImgSamplingMode sampling) {
 	if(!apply_kernel(&horiz, sobel_horiz, 3, sampling)) return false;
 	if(!apply_kernel(&vert, sobel_vert, 3, sampling)) return false;
 
-	unsigned long *vptr = vert.buffer;
-	unsigned long *hptr = horiz.buffer;
-	unsigned long *dest = pb->buffer;
+	Pixel *vptr = vert.buffer;
+	Pixel *hptr = horiz.buffer;
+	Pixel *dest = pb->buffer;
 	int sz = pb->width * pb->height;
 
 	for(int i=0; i<sz; i++) {
@@ -535,10 +517,10 @@ bool sobel_edge(PixelBuffer *pb, ImgSamplingMode sampling) {
 }
 
 
-static inline unsigned long blur_pixels(unsigned long p1, unsigned long p2)
+static inline Pixel blur_pixels(Pixel p1, Pixel p2)
 {
 	// static temp colors
-	static unsigned long tempc1, tempc2, tempc3, tempc4;
+	static Pixel tempc1, tempc2, tempc3, tempc4;
 	
 	// blur all channels in a SIMD-like manner
 	tempc1 = tempc2 = p1;
@@ -554,21 +536,21 @@ static inline unsigned long blur_pixels(unsigned long p1, unsigned long p2)
 	tempc1 = (tempc1 + tempc3) & 0xff00ff00;
 	tempc2 = (tempc2 + tempc4) & 0x00ff00ff;
 
-	return (tempc1 | tempc2);
+	return tempc1 | tempc2;
 }
 
 
-bool blur(PixelBuffer *pb,ImgSamplingMode sampling)
+bool blur(PixelBuffer *pb, ImgSamplingMode sampling)
 {
-	if (!pb) return false;
-	if (pb->width <=0 || pb->height <=0) return false;
+	if(!pb) return false;
+	if(pb->width <= 0 || pb->height <= 0) return false;
 
 	samp_mode = sampling;
 
-	unsigned long *temp = (unsigned long*)malloc(pb->width * pb->height * sizeof(unsigned long));
+	Pixel *temp = (Pixel*)malloc(pb->width * pb->height * sizeof(Pixel));
 
-	unsigned long *scanline = pb->buffer;
-	unsigned long *dst_scanline = temp;
+	Pixel *scanline = pb->buffer;
+	Pixel *dst_scanline = temp;
 
 	// blur horizontally
 	for(unsigned int j=0; j<pb->height; j++)

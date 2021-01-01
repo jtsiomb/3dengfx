@@ -26,27 +26,31 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Camera::Camera(const Vector3 &translation, const Quaternion &rot) 
 	: BaseCamera(translation, rot) {}
 
-void Camera::activate(unsigned long msec) const {
+Matrix4x4 Camera::get_camera_matrix(unsigned long msec) const {
 	PRS prs = get_prs(msec);
 
-	engfx_state::view_matrix = prs.rotation.inverse().get_rotation_matrix();
-	engfx_state::view_matrix.translate(-prs.position);
+	Matrix4x4 vmat = prs.rotation.inverse().get_rotation_matrix();
+	vmat.translate(-prs.position);
 
 	// TODO: this does not work...
 	Matrix4x4 flip_matrix;
 	if(flip_view.x) flip_matrix[0][0] = -1;
 	if(flip_view.y) flip_matrix[1][1] = -1;
 	if(flip_view.z) flip_matrix[2][2] = -1;
-	set_matrix(XFORM_VIEW, flip_matrix * engfx_state::view_matrix);
 
-	Matrix4x4 proj = create_projection_matrix(fov, aspect, near_clip, far_clip);
+	return flip_matrix * vmat;
+}
+/*
+void Camera::activate(unsigned long msec) const {
+	set_matrix(XFORM_VIEW, get_camera_matrix(msec));
+
+	Matrix4x4 proj = get_projection_matrix();
 	set_matrix(XFORM_PROJECTION, proj);
 
 	engfx_state::view_mat_camera = this;
-
 	const_cast<Camera*>(this)->setup_frustum(proj * engfx_state::view_matrix);
 }
-
+*/
 
 TargetCamera::TargetCamera(const Vector3 &trans, const Vector3 &target) : Camera(trans) {
 	set_target(target);
@@ -62,16 +66,19 @@ Vector3 TargetCamera::get_target(unsigned long msec) const {
 	return target.get_prs(msec).position;
 }
 
-void TargetCamera::activate(unsigned long msec) const {
+Matrix4x4 TargetCamera::get_camera_matrix(unsigned long msec) const {
 	PRS prs = get_prs(msec);
-
 	Vector3 targ = target.get_prs(msec).position;
 
 	Vector3 pvec = prs.position - targ;
 	pvec.transform(prs.rotation.get_rotation_matrix());
 	Vector3 pos = targ + pvec;
 
+#ifdef COORD_LHS
 	Vector3 n = (targ - pos).normalized();
+#else
+	Vector3 n = -(targ - pos).normalized();
+#endif
 	Vector3 u = cross_product(up, n).normalized();
 	Vector3 v;
 	
@@ -87,21 +94,23 @@ void TargetCamera::activate(unsigned long msec) const {
 	scalar_t ty = -dot_product(v, pos);
 	scalar_t tz = -dot_product(n, pos);
 	
-	Matrix4x4 cam_matrix = Matrix4x4(u.x, u.y, u.z, tx,
-									v.x, v.y, v.z, ty,
-									n.x, n.y, n.z, tz,
-									0.0, 0.0, 0.0, 1.0);
+	return Matrix4x4(u.x, u.y, u.z, tx,
+					v.x, v.y, v.z, ty,
+					n.x, n.y, n.z, tz,
+					0.0, 0.0, 0.0, 1.0);
+}
 
-	set_matrix(XFORM_VIEW, cam_matrix);
-	
-	Matrix4x4 proj = create_projection_matrix(fov, aspect, near_clip, far_clip);
+/*
+void TargetCamera::activate(unsigned long msec) const {
+	set_matrix(XFORM_VIEW, get_camera_matrix(msec));
+
+	Matrix4x4 proj = get_projection_matrix();
 	set_matrix(XFORM_PROJECTION, proj);
 
 	engfx_state::view_mat_camera = this;
-
 	const_cast<TargetCamera*>(this)->setup_frustum(proj * engfx_state::view_matrix);
 }
-
+*/
 
 void TargetCamera::zoom(scalar_t factor, unsigned long msec) {
 	Vector3 pos = get_prs(msec).position;

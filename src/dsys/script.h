@@ -53,6 +53,7 @@ void close_script(DemoScript *ds);
  * the command on the next line is to be executed at the future
  */
 int get_next_command(DemoScript *ds, DemoCommand *cmd, unsigned long time);
+void free_command(DemoCommand *cmd);
 
 long str_to_time(const char *str);
 

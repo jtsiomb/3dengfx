@@ -80,6 +80,19 @@ namespace dsys {
 		virtual void apply(unsigned long time);
 	};
 
+	class FxFade : public ImageFx {
+	protected:
+		Color color1, color2;
+		Texture *tex1, *tex2;
+
+	public:
+		FxFade();
+		virtual ~FxFade();
+		virtual bool parse_script_args(const char **args);
+
+		virtual void apply(unsigned long time);
+	};
+
 	class FxOverlay : public ImageFx {
 	protected:
 		Texture *tex;

@@ -43,6 +43,7 @@ void set_verbosity(int value);
 void set_log_verbosity(int value);
 
 void set_log_filename(const char *fname);
+const char *get_log_filename(void);
 
 void error(const char *str, ...);
 void warning(const char *str, ...);

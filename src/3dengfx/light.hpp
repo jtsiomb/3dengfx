@@ -35,6 +35,7 @@ protected:
 	Color ambient_color, diffuse_color, specular_color;
 	scalar_t intensity;
 	scalar_t attenuation[3];
+	bool cast_shadows;
 
 public:
 	Light();
@@ -50,8 +51,11 @@ public:
 	virtual void set_attenuation(scalar_t att0, scalar_t att1, scalar_t att2);
 	virtual scalar_t get_attenuation(int which) const;
 	virtual Vector3 get_attenuation_vector() const;
+
+	virtual void set_shadow_casting(bool shd);
+	virtual bool casts_shadows() const;
 	
-	virtual void set_gllight(int n, unsigned long time = XFORM_LOCAL_PRS) const = 0;
+	virtual void set_gl_light(int n, unsigned long time = XFORM_LOCAL_PRS) const = 0;
 };
 
 
@@ -60,8 +64,20 @@ public:
 	PointLight(const Vector3 &pos=Vector3(0,0,0), const Color &col=Color(1.0f, 1.0f, 1.0f));
 	virtual ~PointLight();
 
-	void set_gllight(int n, unsigned long time = XFORM_LOCAL_PRS) const;
+	virtual void set_gl_light(int n, unsigned long time = XFORM_LOCAL_PRS) const;
 };
+
+class DirLight : public Light {
+private:
+	Vector3 dir;	// actually get rid of this and work with the PRS directly?
+
+public:
+	DirLight(const Vector3 &dir=Vector3(0, 0, 1), const Color &col=Color(1.0f, 1.0f, 1.0f));
+	virtual ~DirLight();
+
+	Vector3 get_direction();
 	
+	virtual void set_gl_light(int n, unsigned long time = XFORM_LOCAL_PRS) const;
+};
 
 #endif	// _LIGHT_HPP_

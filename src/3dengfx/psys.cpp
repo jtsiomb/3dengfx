@@ -34,10 +34,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif	// SINGLE_PRECISION_MATH
 
 static scalar_t global_time;
-static const scalar_t timeslice = 1.0 / 30.0;
 
-#define PVERT_BUF_SIZE		2048
-static ParticleVertex pvert_buf[PVERT_BUF_SIZE];
+// just a trial and error constant to match point-sprite size with billboard size
+#define PSPRITE_BILLBOARD_RATIO		100
+
+// particle rendering state
+static bool use_psprites = true;
+static bool volatile_particles = false;
 
 Fuzzy::Fuzzy(scalar_t num, scalar_t range) {
 	this->num = num;
@@ -88,16 +91,6 @@ void Particle::update(const Vector3 &ext_force) {
 	translate(velocity);	// update position
 }
 
-
-ParticleVertex BillboardParticle::get_particle_vertex() const {
-	ParticleVertex pv;
-	pv.pos = get_prs().position;
-	pv.size = size;
-	pv.col = Color(color.r, color.g, color.b, color.a);
-
-	return pv;
-}
-
 void BillboardParticle::update(const Vector3 &ext_force) {
 	Particle::update(ext_force);
 	
@@ -106,47 +99,112 @@ void BillboardParticle::update(const Vector3 &ext_force) {
 	scalar_t t = time / lifespan;
 	
 	color = blend_colors(start_color, end_color, t);
+
+	size = size_start + (size_end - size_start) * t;
+
+	angle = rot * time + birth_angle;
 }
 
-
-
-
+/* NOTE:
+ * if we use point sprites, and the particles are not rotating, then the
+ * calling function has taken care to call glBegin() before calling this.
+ */
 void BillboardParticle::draw() const {
-	static int times;
+	Matrix4x4 tex_rot;
+	if(volatile_particles) {
+		tex_rot.translate(Vector3(0.5, 0.5, 0.0));
+		tex_rot.rotate(Vector3(0.0, 0.0, angle));
+		tex_rot.translate(Vector3(-0.5, -0.5, 0.0));
+		set_matrix(XFORM_TEXTURE, tex_rot);
+	}
 
-	if(!times) {
-		warning("WARNING: BillboardParticle::draw() is just a stub, due efficiency reasons");
-		times++;
+	Vector3 pos = get_position();
+	
+	if(use_psprites) {
+		if(volatile_particles) {
+			glPointSize(size);
+			
+			glBegin(GL_POINTS);
+			glColor4f(color.r, color.g, color.b, color.a);
+			glVertex3f(pos.x, pos.y, pos.z);
+			glEnd();
+		} else {
+			glColor4f(color.r, color.g, color.b, color.a);
+			glVertex3f(pos.x, pos.y, pos.z);
+		}
+	} else {	// don't use point sprites
+		Vertex v(pos, 0, 0, color);
+		draw_point(v, size / PSPRITE_BILLBOARD_RATIO);
 	}
 }
 
 
 
 ParticleSysParams::ParticleSysParams() {
+	psize_end = -1.0;
 	friction = 0.95;
 	billboard_tex = 0;
 	halo = 0;
+	rot = 0.0;
+	glob_rot = 0.0;
+	halo_rot = 0.0;
+	big_particles = false;
+	spawn_offset_curve = 0;
+	spawn_offset_curve_area = Fuzzy(0.5, 1.0);
+
+	src_blend = BLEND_SRC_ALPHA;
+	dest_blend = BLEND_ONE;
 }
 
 
 
 ParticleSystem::ParticleSystem(const char *fname) {
-	prev_update = 0.0;
+	timeslice = 1.0 / 50.0;
+	SysCaps sys_caps = get_system_capabilities();
+	/* XXX: My Radeon Mobility 9000 supports point sprites but does not say so
+	 * in the extension string, it only has point params there. So I changed this
+	 * condition to && since probably if a card supports one, it will also support
+	 * the other.
+	 */
+	psprites_unsupported = !sys_caps.point_sprites && !sys_caps.point_params;
+
+	prev_update = -1.0;
 	fraction = 0.0;
 	ptype = PTYPE_BILLBOARD;
+
+	ready = true;
 
 	if(fname) {
 		if(!psys::load_particle_sys_params(fname, &psys_params)) {
 			error("Error loading particle file: %s", fname);
+			ready = false;
 		}
 	}
 }
 
-ParticleSystem::~ParticleSystem() {}
+ParticleSystem::~ParticleSystem() {
+	reset();
+}
 
+void ParticleSystem::reset() {
+	prev_update = -1.0;
+	std::list<Particle*>::iterator iter = particles.begin();
+	while(iter != particles.end()) {
+		delete *iter++;
+	}
+	particles.clear();
+}
+
+void ParticleSystem::set_update_interval(scalar_t timeslice) {
+	this->timeslice = timeslice;
+}
 
 void ParticleSystem::set_params(const ParticleSysParams &psys_params) {
 	this->psys_params = psys_params;
+}
+
+ParticleSysParams *ParticleSystem::get_params() {
+	return &psys_params;
 }
 
 void ParticleSystem::set_particle_type(ParticleType ptype) {
@@ -154,11 +212,18 @@ void ParticleSystem::set_particle_type(ParticleType ptype) {
 }
 
 void ParticleSystem::update(const Vector3 &ext_force) {
+	if(!ready) return;
+	
+	curr_time = global_time;
 	int updates_missed = (int)round((global_time - prev_update) / timeslice);
 
 	if(!updates_missed) return;	// less than a timeslice has elapsed, nothing to do
 	
 	PRS prs = get_prs((unsigned long)(global_time * 1000.0));
+	curr_pos = prs.position;
+	curr_halo_rot = psys_params.halo_rot * global_time;
+
+	curr_rot = fmod(psys_params.glob_rot * global_time, two_pi);
 
 	// spawn new particles
 	scalar_t spawn = psys_params.birth_rate() * (global_time - prev_update);
@@ -174,6 +239,18 @@ void ParticleSystem::update(const Vector3 &ext_force) {
 		spawn_count--;
 	}
 
+	Vector3 dp, pos;
+	if(prev_update < 0.0) {
+		prev_pos = curr_pos;
+		prev_update = curr_time;
+		return;
+	} else {
+		dp = (curr_pos - prev_pos) / (scalar_t)spawn_count;
+		pos = prev_pos;
+	}
+	
+	scalar_t dt = (global_time - prev_update) / (scalar_t)spawn_count;
+	scalar_t t = prev_update;
 	
 	for(int i=0; i<spawn_count; i++) {
 		Particle *particle;
@@ -182,10 +259,14 @@ void ParticleSystem::update(const Vector3 &ext_force) {
 		case PTYPE_BILLBOARD:
 			particle = new BillboardParticle;
 			{
+				curr_rot = fmod(psys_params.glob_rot * t, two_pi);
+				
 				BillboardParticle *bbp = (BillboardParticle*)particle;
 				bbp->texture = psys_params.billboard_tex;
 				bbp->start_color = psys_params.start_color;
 				bbp->end_color = psys_params.end_color;
+				bbp->rot = psys_params.rot;
+				bbp->birth_angle = curr_rot;
 			}
 
 			break;
@@ -195,18 +276,35 @@ void ParticleSystem::update(const Vector3 &ext_force) {
 			exit(-1);
 			break;
 		}
+		
+		//PRS sub_prs = get_prs((unsigned long)(t * 1000.0));
+		
 
-		particle->set_position(prs.position + psys_params.spawn_offset());
+		Vector3 offset = psys_params.spawn_offset();
+		if(psys_params.spawn_offset_curve) {
+			float t = psys_params.spawn_offset_curve_area();
+			offset += (*psys_params.spawn_offset_curve)(t);
+		}
+		// XXX: correct this rotation to span the whole interval
+		particle->set_position(pos + offset.transformed(prs.rotation));
 		particle->set_rotation(prs.rotation);
 		particle->set_scaling(prs.scale);
 
-		particle->size = psys_params.psize();
-		particle->velocity = psys_params.shoot_dir();
+		particle->size_start = psys_params.psize();
+		if(psys_params.psize_end < 0.0) {
+			particle->size_end = particle->size_start;
+		} else {
+			particle->size_end = psys_params.psize_end;
+		}
+		particle->velocity = psys_params.shoot_dir().transformed(prs.rotation);	// XXX: correct this rotation to span the interval
 		particle->friction = psys_params.friction;
-		particle->birth_time = global_time;
+		particle->birth_time = t;
 		particle->lifespan = psys_params.lifespan();
 
 		particles.push_back(particle);
+
+		pos += dp;
+		t += dt;
 	}
 	
 
@@ -229,94 +327,111 @@ void ParticleSystem::update(const Vector3 &ext_force) {
 	}
 
 	prev_update = global_time;
-}
-
-
-static void render_particle_buffer(int count, const Texture *tex) {
-	set_lighting(false);
-	set_zwrite(false);
-	set_alpha_blending(true);
-	set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE);
-
-	if(tex) {
-		set_point_sprites(true);
-		enable_texture_unit(0);
-		disable_texture_unit(1);
-		set_texture(0, tex);
-		set_point_sprite_coords(0, true);
-	}
-
-	set_texture_unit_color(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
-	set_texture_unit_alpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
-		
-	glPointSize(pvert_buf[0].size);
-	
-	/* I would prefer using vertex arrays, but I can't seem to be able
-	 * to make points sprites work with it. So let's leave it for the
-	 * time being
-	 */
-	glBegin(GL_POINTS);
-	for(int i=0; i<count; i++) {
-		glColor4f(pvert_buf[i].col.r, pvert_buf[i].col.g, pvert_buf[i].col.b, pvert_buf[i].col.a);
-		glVertex3f(pvert_buf[i].pos.x, pvert_buf[i].pos.y, pvert_buf[i].pos.z);
-	}
-	glEnd();
-
-	glPointSize(1.0);
-
-	if(tex) {
-		set_point_sprite_coords(0, true);
-		disable_texture_unit(0);
-		set_point_sprites(true);
-	}
-
-	set_alpha_blending(false);
-	set_zwrite(true);
-	set_lighting(true);
+	prev_pos = curr_pos;
 }
 
 void ParticleSystem::draw() const {
+	if(!ready) return;
+
+	// use point sprites if the system supports them AND we don't need big particles
+	use_psprites = !psys_params.big_particles && !psprites_unsupported;
+
+	// particles are volatile if they rotate OR they fluctuate in size
+	volatile_particles = psys_params.rot > small_number || psys_params.psize.range > small_number;
+	
 	set_matrix(XFORM_WORLD, Matrix4x4());
 	load_xform_matrices();
 
-	int i = 0;
-	ParticleVertex *pv_ptr = pvert_buf;
-	
 	std::list<Particle*>::const_iterator iter = particles.begin();
-	while(iter != particles.end()) {
+	if(iter != particles.end()) {
+		
 		if(ptype == PTYPE_BILLBOARD) {
-			/* if the particles of this system are billboards
-			 * insert split them into runs of as many vertices
-			 * fit in the pvert_buf array and render them in batches.
-			 */
-			*pv_ptr++ = ((BillboardParticle*)(*iter++))->get_particle_vertex();
-			i++;
+			// ------ setup render state ------
+			set_lighting(false);
+			set_zwrite(false);
+			set_alpha_blending(true);
+			set_blend_func(psys_params.src_blend, psys_params.dest_blend);
 
-			if(i >= PVERT_BUF_SIZE || iter == particles.end()) {
-				// render i particles
-				render_particle_buffer(i, psys_params.billboard_tex);
+			if(psys_params.billboard_tex) {
+				enable_texture_unit(0);
+				disable_texture_unit(1);
+				set_texture(0, psys_params.billboard_tex);
+				set_texture_addressing(0, TEXADDR_CLAMP, TEXADDR_CLAMP);
 
-				i = 0;
-				pv_ptr = pvert_buf;
+				if(use_psprites) {
+					set_point_sprites(true);
+					set_point_sprite_coords(0, true);
+				}
+
+				if(!volatile_particles) {
+					Matrix4x4 prot;
+					prot.translate(Vector3(0.5, 0.5, 0.0));
+					prot.rotate(Vector3(0.0, 0.0, curr_rot));
+					prot.translate(Vector3(-0.5, -0.5, 0.0));
+					set_matrix(XFORM_TEXTURE, prot);
+				}
 			}
-				
-		} else {
+
+			set_texture_unit_color(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+			set_texture_unit_alpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+
+			if(use_psprites && !volatile_particles) {
+				glPointSize((*iter)->size);
+				glBegin(GL_POINTS);
+			}
+		}
+
+		// ------ render particles ------
+		while(iter != particles.end()) {
 			(*iter++)->draw();
 		}
-	} 
+	
+		if(ptype == PTYPE_BILLBOARD) {
+			// ------ restore render states -------
+			if(use_psprites) {
+				if(!volatile_particles) glEnd();
+				glPointSize(1.0);
+			}
 
+			if(psys_params.billboard_tex) {
+				if(use_psprites) {
+					set_point_sprites(true);
+					set_point_sprite_coords(0, true);
+				}
+				set_texture_addressing(0, TEXADDR_WRAP, TEXADDR_WRAP);
+				disable_texture_unit(0);
+
+				set_matrix(XFORM_TEXTURE, Matrix4x4::identity_matrix);
+			}
+
+			set_alpha_blending(false);
+			set_zwrite(true);
+			set_lighting(true);
+		}
+	}
+
+	// ------ render a halo around the emitter if we need to ------
 	if(psys_params.halo) {
+		// construct texture matrix for halo rotation
+		Matrix4x4 mat;
+		mat.translate(Vector3(0.5, 0.5, 0.0));
+		mat.rotate(Vector3(0, 0, curr_halo_rot));
+		mat.translate(Vector3(-0.5, -0.5, 0.0));
+		set_matrix(XFORM_TEXTURE, mat);
+
 		set_alpha_blending(true);
 		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE);
 		enable_texture_unit(0);
 		disable_texture_unit(1);
 		set_texture(0, psys_params.halo);
 		set_zwrite(false);
-		Vertex v(get_position((unsigned long)(global_time * 1000.0)), 0, 0, psys_params.halo_color);
-		draw_point(v, psys_params.halo_size());
+		Vertex v(curr_pos, 0, 0, psys_params.halo_color);
+		draw_point(v, psys_params.halo_size() / PSPRITE_BILLBOARD_RATIO);
 		set_zwrite(true);
 		disable_texture_unit(0);
 		set_alpha_blending(false);
+
+		set_matrix(XFORM_TEXTURE, Matrix4x4::identity_matrix);
 	}
 }
 
@@ -415,6 +530,9 @@ bool psys::load_particle_sys_params(const char *fname, ParticleSysParams *psp) {
 		} else if(!strcmp(opt->option, "psize-r")) {
 			psp->psize.range = opt->flt_value;
 
+		} else if(!strcmp(opt->option, "psize_end")) {
+			psp->psize_end = opt->flt_value;
+
 		} else if(!strcmp(opt->option, "life")) {
 			psp->lifespan.num = opt->flt_value;
 
@@ -462,6 +580,12 @@ bool psys::load_particle_sys_params(const char *fname, ParticleSysParams *psp) {
 		} else if(!strcmp(opt->option, "color_end")) {
 			Vector4 v = get_vector4(opt->str_value);
 			psp->end_color = Color(v.x, v.y, v.z, v.w);
+
+		} else if(!strcmp(opt->option, "rot")) {
+			psp->rot = opt->flt_value;
+
+		} else if(!strcmp(opt->option, "glob_rot")) {
+			psp->glob_rot = opt->flt_value;
 			
 		} else if(!strcmp(opt->option, "halo")) {
 			psp->halo = get_texture(opt->str_value);
@@ -478,8 +602,47 @@ bool psys::load_particle_sys_params(const char *fname, ParticleSysParams *psp) {
 
 		} else if(!strcmp(opt->option, "halo_size-r")) {
 			psp->halo_size.range = opt->flt_value;
-		}
 			
+		} else if(!strcmp(opt->option, "halo_rot")) {
+			psp->halo_rot = opt->flt_value;
+			
+		} else if(!strcmp(opt->option, "big_particles")) {
+			if(!strcmp(opt->str_value, "true")) {
+				psp->big_particles = true;
+			}
+			
+		} else if(!strcmp(opt->option, "blend_src") || !strcmp(opt->option, "blend_dest")) {
+			BlendingFactor factor = (BlendingFactor)0xfbad;
+			if(!strcmp(opt->str_value, "0")) {
+				factor = BLEND_ZERO;
+			} else if(!strcmp(opt->str_value, "1")) {
+				factor = BLEND_ONE;
+			} else if(!strcmp(opt->str_value, "srcc")) {
+				factor = BLEND_SRC_COLOR;
+			} else if(!strcmp(opt->str_value, "srca")) {
+				factor = BLEND_SRC_ALPHA;
+			} else if(!strcmp(opt->str_value, "1-srcc")) {
+				factor = BLEND_ONE_MINUS_SRC_COLOR;
+			} else if(!strcmp(opt->str_value, "1-srca")) {
+				factor = BLEND_ONE_MINUS_SRC_ALPHA;
+			} else if(!strcmp(opt->str_value, "1-dstc")) {
+				factor = BLEND_ONE_MINUS_DST_COLOR;
+			} else {
+				error("psys: invalid blend specification: %s", opt->str_value);
+			}
+
+			if(factor != (BlendingFactor)0xfbad) {
+				if(!strcmp(opt->option, "blend_src")) {
+					psp->src_blend = factor;
+				} else {
+					psp->dest_blend = factor;
+				}
+			}
+		} else if(!strcmp(opt->option, "spawn_offset_curve")) {
+			if(!(psp->spawn_offset_curve = load_curve(opt->str_value))) {
+				error("psys: could not load spawn offset curve: %s", opt->str_value);
+			}
+		}
 	}
 
 	psp->shoot_dir = FuzzyVec3(Fuzzy(shoot.x, shoot_range.x), Fuzzy(shoot.y, shoot_range.y), Fuzzy(shoot.z, shoot_range.z));

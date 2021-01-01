@@ -51,14 +51,18 @@ public:
 	void add_shader(Shader sdr);
 	void link();
 
-	void set_parameter(const char *pname, scalar_t val);
-	void set_parameter(const char *pname, const Vector3 &val);
-	void set_parameter(const char *pname, const Vector4 &val);
-	void set_parameter(const char *pname, const Matrix4x4 &val);
+	bool is_linked() const;
+	unsigned int get_id() const;
+
+	bool set_parameter(const char *pname, int val);
+	bool set_parameter(const char *pname, scalar_t val);
+	bool set_parameter(const char *pname, const Vector2 &val);
+	bool set_parameter(const char *pname, const Vector3 &val);
+	bool set_parameter(const char *pname, const Vector4 &val);
+	bool set_parameter(const char *pname, const Matrix4x4 &val);
 
 	void set_update_handler(void (*func)(GfxProg*));
 
-	const char *get_shader_names() const;	
 	friend void set_gfx_program(GfxProg *prog);
 };
 	

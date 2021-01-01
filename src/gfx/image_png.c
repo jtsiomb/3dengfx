@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdlib.h>
 #include <png.h>
 #include "color_bits.h"
+#include "common/types.h"
 
 #define FILE_SIG_BYTES	8
 
@@ -48,7 +49,7 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	png_struct *png_ptr;
 	png_info *info_ptr;
 	int i;
-	unsigned long **lineptr, *pixels;
+	uint32_t **lineptr, *pixels;
 	int channel_bits, color_type, ilace_type, compression, filtering;
 	
 	if(!(png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0))) {
@@ -74,9 +75,9 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
 		
 	png_get_IHDR(png_ptr, info_ptr, xsz, ysz, &channel_bits, &color_type, &ilace_type, &compression, &filtering);
-	pixels = malloc(*xsz * *ysz * sizeof(unsigned long));
+	pixels = malloc(*xsz * *ysz * sizeof(uint32_t));
 	
-	lineptr = (unsigned long**)png_get_rows(png_ptr, info_ptr);
+	lineptr = (uint32_t**)png_get_rows(png_ptr, info_ptr);
 	
 	for(i=0; i<*ysz; i++) {
 		
@@ -87,7 +88,7 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 				unsigned char *ptr = (unsigned char*)lineptr[i];
 				for(j=0; j<*xsz; j++) {
 			
-					unsigned long pixel;
+					uint32_t pixel;
 					pixel = PACK_COLOR24(*(ptr+2), *(ptr+1), *ptr);
 					ptr+=3;
 					pixels[i * *xsz + j] = pixel;			
@@ -96,17 +97,19 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 			break;
 			
 		case PNG_COLOR_TYPE_RGB_ALPHA:
-			memcpy(&pixels[i * *xsz], lineptr[i], *xsz * sizeof(unsigned long));
+			memcpy(&pixels[i * *xsz], lineptr[i], *xsz * sizeof(uint32_t));
 			break;
 			
 		default:
 			png_destroy_read_struct(&png_ptr, &info_ptr, 0);
+			fclose(fp);
 			return 0;
 		}
 				
 	}
 	
 	png_destroy_read_struct(&png_ptr, &info_ptr, 0);
+	fclose(fp);
 	
 	return pixels;
 }

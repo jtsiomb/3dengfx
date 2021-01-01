@@ -1,7 +1,7 @@
 /*
 This file is part of the 3dengfx, 3d visualization system.
 
-Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
+Copyright (c) 2004, 2005, 2006 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,12 +26,42 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 		John Tsiombikas 2005
  */
 
+#include <float.h>
 #include "3dengfx_config.h"
 #include "gfx/curves.hpp"
 #include "ggen.hpp"
 
 #define GGEN_SOURCE
 #include "teapot.h"
+
+/* create_cube - (JT)
+ * creates a subdivided cube
+ */
+void create_cube(TriMesh *mesh, scalar_t size, int subdiv) {
+	TriMesh tmp;
+	Matrix4x4 mat;
+
+	Vector3 face_vec[] = {
+		Vector3(0, 0, -1),
+		Vector3(1, 0, 0),
+		Vector3(0, 0, 1),
+		Vector3(-1, 0, 0),
+		Vector3(0, 1, 0),
+		Vector3(0, -1, 0)
+	};
+
+	for(int i=0; i<6; i++) {
+		create_plane(i ? &tmp : mesh, face_vec[i], Vector2(size, size), subdiv);
+		mat.set_translation(face_vec[i] * (size / 2.0));
+
+		if(i) {
+			tmp.apply_xform(mat);
+			join_tri_mesh(mesh, mesh, &tmp);
+		} else {
+			mesh->apply_xform(mat);
+		}
+	}
+}
  
 /* CreatePlane - (JT)
  * creates a planar mesh of arbitrary subdivision
@@ -153,26 +183,28 @@ void create_cylinder(TriMesh *mesh, scalar_t rad, scalar_t len, bool caps, int u
 			circle[i].y = -len/2.0;
 			cap1->pos = circle[i];
 			cap1->normal = Vector3(0.0, -1.0, 0.0);
-			cap1->tex[0] = vptr->tex[1] = TexCoord((scalar_t)i / (scalar_t)udiv, 0.0);
+			//cap1->tex[0] = vptr->tex[1] = TexCoord((scalar_t)i / (scalar_t)udiv, 0.0);
+			cap1->tex[0].u = cap1->tex[1].u = (cap1->pos.x / rad) * 0.5 + 0.5;
+			cap1->tex[0].v = cap1->tex[1].v = (cap1->pos.z / rad) * 0.5 + 0.5;
 			
 			*cap2 = *cap1;
 			cap2->pos.y = len/2.0;
 			cap2->normal.y *= -1.0;
-			cap2->tex[0].v = cap2->tex[1].v = 1.0;
+			//cap2->tex[0].v = cap2->tex[1].v = 1.0;
 
 			cap1++;
 			cap2++;
 		}
 
-		*cap1 = Vertex(Vector3(0.0, -len/2.0, 0.0), 0.0, 0.0);
+		*cap1 = Vertex(Vector3(0.0, -len/2.0, 0.0), 0.5, 0.5);
 		cap1->normal = Vector3(0.0, -1.0, 0.0);
 
 		*cap2 = *cap1;
 		cap2->pos.y = len/2.0;
 		cap2->normal.y *= -1.0;
-		cap2->tex[0].v = cap2->tex[1].v = 1.0;
+		//cap2->tex[0].v = cap2->tex[1].v = 1.0;
 	}
-			
+	delete [] circle;
 
 	// triangulate
 	int tcount = 2 * udiv * (slices - 1) + (caps ? udiv * 2 : 0);
@@ -361,6 +393,152 @@ void create_torus(TriMesh *mesh, scalar_t circle_rad, scalar_t revolv_rad, int s
 	delete [] circle;
 }
 
+
+/* create_revolution - (JT)
+ * Creates a surface of revolution by rotating a curve around the Y axis.
+ */
+void create_revolution(TriMesh *mesh, const Curve &curve, int udiv, int vdiv) {
+	if(udiv < 3) udiv = 3;
+	if(vdiv < 1) vdiv = 1;
+
+	int slices = udiv;
+	int stacks = vdiv + 1;
+
+	// create the slice that will be revolved to create the mesh
+	Vector3 *slice = new Vector3[stacks];
+	Vector3 *slice_normal = new Vector3[stacks];
+	
+	for(int i=0; i<stacks; i++) {
+		scalar_t t = (scalar_t)i / (scalar_t)vdiv;
+		slice[i] = curve(t);
+
+		// calculate normal
+		Vector3 bitangent = (curve(t + 0.0001) - curve(t - 0.0001)).normalized();
+		Vector3 tp1 = slice[i].rotated(Vector3(0.0, DEG_TO_RAD(3), 0.0));
+		Vector3 tp2 = slice[i].rotated(Vector3(0.0, -DEG_TO_RAD(3), 0.0));
+		Vector3 tangent = (tp1 - tp2).normalized();
+
+		slice_normal[i] = cross_product(tangent, bitangent);
+	}
+	
+	int vcount = stacks * slices;
+	int quad_count = udiv * vdiv;
+	int tcount = quad_count * 2;
+	
+	Vertex *varray = new Vertex[vcount];
+	Triangle *tarray = new Triangle[tcount];
+
+	Vertex *vptr = varray;
+	Triangle *tptr = tarray;
+	
+	for(int i=0; i<slices; i++) {
+		Matrix4x4 rot;
+		rot.set_rotation(Vector3(0.0, two_pi * (scalar_t)i / (scalar_t)udiv, 0.0));
+		
+		for(int j=0; j<stacks; j++) {
+			// create the vertex
+			vptr->pos = slice[j].transformed(rot);
+			vptr->tex[0].u = vptr->tex[1].u = (scalar_t)i / (scalar_t)udiv;
+			vptr->tex[0].v = vptr->tex[1].v = (scalar_t)j / (scalar_t)vdiv;
+			vptr->normal = slice_normal[j].transformed(rot);
+			vptr++;
+
+			if(j < vdiv) {
+				// create the quad
+				Quad q;
+				q.vertices[0] = j + (i % slices) * stacks;
+				q.vertices[1] = j + ((i + 1) % slices) * stacks;
+				q.vertices[2] = (j + 1) + ((i + 1) % slices) * stacks;
+				q.vertices[3] = (j + 1) + (i % slices) * stacks;
+
+				// triangulate
+				tptr->vertices[0] = q.vertices[0];
+				tptr->vertices[1] = q.vertices[1];
+				tptr->vertices[2] = q.vertices[2];
+				tptr++;
+				tptr->vertices[0] = q.vertices[0];
+				tptr->vertices[1] = q.vertices[2];
+				tptr->vertices[2] = q.vertices[3];
+				tptr++;
+			}
+		}
+	}
+
+	mesh->set_data(varray, vcount, tarray, tcount);
+	delete [] varray;
+	delete [] tarray;
+	delete [] slice;
+	delete [] slice_normal;
+}
+
+/* create_revolution - helper function - (JT)
+ * accepts an array of data points, fits a spline through them and passes the rest
+ * to the real create_revolution defined above.
+ */
+void create_revolution(TriMesh *mesh, const Vector3 *data, int count, int udiv, int vdiv) {
+	CatmullRomSplineCurve spline;
+	for(int i=0; i<count; i++) {
+		spline.add_control_point(data[i]);
+	}
+	spline.set_arc_parametrization(true);
+
+	create_revolution(mesh, spline, udiv, vdiv);
+}
+
+/* create_extrusion - (JT)
+ * Takes a shape and extrudes it along a path.
+ */
+void create_extrusion(TriMesh *mesh, const Curve &shape, const Curve &path, int udiv, int vdiv, scalar_t start_scale, scalar_t end_scale) {
+	if(udiv < 3) udiv = 3;
+	Vector3 *shape_pt = new Vector3[udiv + 1];
+
+	for(int i=0; i<udiv; i++) {
+		shape_pt[i] = shape((scalar_t)i / (scalar_t)udiv);
+	}
+	shape_pt[udiv] = shape_pt[0];
+
+	// extrude along the spline
+	int slices = vdiv + 2;
+	int vcount = (udiv + 1) * slices;
+	Vertex *verts = new Vertex[vcount];
+	scalar_t dt = 1.0 / (vdiv + 1);
+
+	Vertex *vptr = verts;
+	for(int i=0; i<slices; i++) {
+		for(int j=0; j<=udiv; j++) {
+			// XXX FIX THIS
+			vptr->pos = shape_pt[j];
+			vptr->pos.y += dt * i;
+			scalar_t u = (scalar_t)j / (scalar_t)udiv;
+			scalar_t v = (scalar_t)i / (scalar_t)(vdiv + 1);
+			vptr->tex[0] = vptr->tex[1] = TexCoord(u, v);
+			vptr++;
+		}
+	}
+
+	delete [] shape_pt;
+
+	// triangulate
+	int tcount = 2 * udiv * (slices - 1);
+	Triangle *triangles = new Triangle[tcount];
+	Triangle *tptr = triangles;
+	int v = 0;
+	for(int i=0; i<slices-1; i++) {
+		for(int j=0; j<udiv; j++) {
+			*tptr++ = Triangle(v + udiv + 1, v + 1, v + udiv + 2);
+			*tptr++ = Triangle(v + udiv + 1, v, v + 1);
+			v++;
+		}
+		v++;
+	}
+
+	mesh->set_data(verts, vcount, triangles, tcount);
+	mesh->calculate_normals();
+
+	delete [] verts;
+	delete [] triangles;
+}
+
 /* CreateBezierPatch - (MG)
  * overloaded function that gets a vector3 array
  * and makes a single Bezier patch
@@ -427,22 +605,22 @@ void create_bezier_patch(TriMesh *mesh, const Vector3 *cp, int subdiv)
 	{
 		scalar_t tv = (scalar_t)j / (scalar_t)(vrow - 1);
 		BezierSpline uc;
-		uc.add_control_point(v[0].interpolate(tv));
-		uc.add_control_point(v[1].interpolate(tv));
-		uc.add_control_point(v[2].interpolate(tv));
-		uc.add_control_point(v[3].interpolate(tv));
+		uc.add_control_point(v[0](tv));
+		uc.add_control_point(v[1](tv));
+		uc.add_control_point(v[2](tv));
+		uc.add_control_point(v[3](tv));
 		
 		for (unsigned long i=0; i<vrow; i++)
 		{
 			scalar_t tu = (scalar_t)i / (scalar_t)(vrow - 1);
 			BezierSpline vc;
-			vc.add_control_point(u[0].interpolate(tu));
-			vc.add_control_point(u[1].interpolate(tu));
-			vc.add_control_point(u[2].interpolate(tu));
-			vc.add_control_point(u[3].interpolate(tu));
+			vc.add_control_point(u[0](tu));
+			vc.add_control_point(u[1](tu));
+			vc.add_control_point(u[2](tu));
+			vc.add_control_point(u[3](tu));
 
 			// get the position
-			Vector3 pos = uc.interpolate(tu);
+			Vector3 pos = uc(tu);
 
 			// get normal
 			Vector3 tan_u,tan_v;
@@ -597,8 +775,82 @@ void create_teapot(TriMesh *mesh, scalar_t size, int subdiv)
 	
 	create_bezier_mesh(mesh, vertices, patches, teapot_num_patches, subdiv);
 
+	mesh->calculate_normals();
+
 	// cleanup
 	delete [] patches;
 	delete [] vertices;
 }
 
+
+// fractal stuff ...
+
+/* create_landscape (JT)
+ * Creates a fractal landscape... (TODO: add algorithm description or something)
+ */
+void create_landscape(TriMesh *mesh, const Vector2 &size, int mesh_detail, scalar_t max_height, int iter, scalar_t roughness, int seed) {
+	create_plane(mesh, Vector3(0, 1, 0), size, mesh_detail);
+	roughness *= 0.25;
+
+	if(seed == GGEN_RANDOM_SEED) {
+		srand(time(0));
+	} else if(seed != GGEN_NO_RESEED) {
+		srand(seed);
+	}
+
+	scalar_t offs = max_height / (scalar_t)iter;
+
+	unsigned long vcount = mesh->get_vertex_array()->get_count();
+	Vertex *varray = mesh->get_mod_vertex_array()->get_mod_data();
+
+	for(int i=0; i<iter; i++) {
+		// pick a partitioning line (2d)
+		Vector2 pt1(frand(size.x) - size.x / 2.0, frand(size.y) - size.y / 2.0);
+		Vector2 pt2(frand(size.x) - size.x / 2.0, frand(size.y) - size.y / 2.0);
+
+		// find its normal
+		Vector2 normal(pt2.y - pt1.y, pt1.x - pt2.x);
+
+		// classify all points wrt. this line and raise them accordingly.
+		for(unsigned long j=0; j<vcount; j++) {
+			Vector3 *vpos = &varray[j].pos;
+			Vector2 vpos2d(vpos->x, vpos->z);
+			
+			scalar_t dist = dist_line(pt1, pt2, vpos2d);
+			
+			/* this was considered but it was producing extremely smooth
+			 * results, which looked unnatural.
+			 */
+			/* 
+			if(dot_product(normal, vpos2d - pt1) < 0.0) {
+				dist = -dist;
+			}
+			scalar_t sigmoid = (tanh(dist * size.x * size.y * roughness) + 1.0) * 0.5;
+			vpos->y += offs * sigmoid;
+			*/
+
+			if(dot_product(normal, vpos2d - pt1) > 0.0) {
+				scalar_t sigmoid = tanh(dist * size.x * size.y * roughness);
+				vpos->y += offs * sigmoid;
+			}
+		}
+	}
+
+	// normalize the landscape in the range [0, max_height)
+	scalar_t hmin = FLT_MAX, hmax = 0.0;
+	Vertex *vptr = varray;
+
+	for(unsigned long i=0; i<vcount; i++) {
+		if(vptr->pos.y > hmax) hmax = vptr->pos.y;
+		if(vptr->pos.y < hmin) hmin = vptr->pos.y;
+		vptr++;
+	}
+
+	vptr = varray;
+	for(unsigned long i=0; i<vcount; i++) {
+		vptr->pos.y = max_height * (vptr->pos.y - hmin) / (hmax - hmin);
+		vptr++;
+	}
+
+	mesh->calculate_normals();
+}

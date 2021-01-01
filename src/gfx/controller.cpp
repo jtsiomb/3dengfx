@@ -135,7 +135,7 @@ Vector3 MotionController::operator ()(unsigned long time) const {
 	case CTRL_CURVE:
 		{
 			scalar_t t = (scalar_t)(time - start_time) / (scalar_t)(end_time - start_time);
-			Vector3 vec = curve->interpolate(t);
+			Vector3 vec = (*curve)(t);
 			if(!(axis_flags & CTRL_X)) vec.x = 0;
 			if(!(axis_flags & CTRL_Y)) vec.y = 0;
 			if(!(axis_flags & CTRL_Z)) vec.z = 0;

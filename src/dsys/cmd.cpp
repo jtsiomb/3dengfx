@@ -151,6 +151,8 @@ static bool effect(const char *fxname, const char **args) {
 		fx = new FxFlash;
 	} else if(!strcmp(fxname, "overlay")) {
 		fx = new FxOverlay;
+	} else if(!strcmp(fxname, "fade")) {
+		fx = new FxFade;
 	} else {
 		error("unknown effect: %s, ignoring", fxname);
 		return false;

@@ -225,3 +225,34 @@ bool point_over_plane(const Plane &plane, const Vector3 &point)
 
 	return false;
 }
+
+
+static inline bool check_correct_winding(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &normal) {
+	Vector3 tri_normal = cross_product(v1 - v0, v2 - v0);
+	return dot_product(tri_normal, normal) > 0.0;
+}
+
+
+bool check_tri_ray_intersection(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Ray &ray) {
+	// find the cosine of the angle between the normal and the line
+	Vector3 normal = cross_product(v1 - v0, v2 - v0);
+	scalar_t dot = dot_product(normal, ray.dir);
+		
+	if(fabs(dot) < small_number) {
+		return false;
+	}
+
+	// further testing to verify intersection in the area of the triangle
+	scalar_t t = -(normal.x*(ray.origin.x - v0.x) + normal.y*(ray.origin.y - v0.y) + normal.z*(ray.origin.z - v0.z)) / (normal.x * ray.dir.x + normal.y * ray.dir.y + normal.z * ray.dir.z);
+	if(t > small_number) {
+		Vector3 intersect(ray.origin.x + ray.dir.x*t, ray.origin.y + ray.dir.y*t, ray.origin.z + ray.dir.z*t);
+
+		if(check_correct_winding(v0, v1, intersect, normal)
+			&& check_correct_winding(v1, v2, intersect, normal)
+			&& check_correct_winding(v2, v0, intersect, normal)) {
+			return true;
+		}
+	}
+
+	return false;
+}

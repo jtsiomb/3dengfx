@@ -110,3 +110,39 @@ bool RendCurve::render(unsigned long time) {
 
 	return true;
 }
+
+bool RendCurve::render_segm(float start, float end, unsigned long time) {
+	if(!curve) return false;
+	
+	set_matrix(XFORM_WORLD, get_prs(time).get_xform_matrix());
+	mat.set_glmaterial();
+
+	if(mat.tex[TEXTYPE_DIFFUSE]) {
+		set_texture(0, mat.tex[TEXTYPE_DIFFUSE]);
+		enable_texture_unit(0);
+		set_texture_coord_index(0, 0);
+		set_texture_unit_color(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+		set_texture_unit_alpha(0, TOP_MODULATE, TARG_TEXTURE, TARG_PREV);
+	}
+
+	set_alpha_blending(true);
+	set_zwrite(false);
+	set_blend_func(src_blend, dst_blend);
+
+	int line_count = curve->get_segment_count() * detail;
+	scalar_t dx = (end - start) / (scalar_t)line_count;
+	scalar_t t = start + dx;
+	Vector3 prev_pos = (*curve)(start);
+	for(int i=1; i<line_count; i++) {
+		Vector3 pos = (*curve)(t);
+		draw_line(Vertex(prev_pos, (float)i / (float)line_count), Vertex(pos, (float)(i + 1) / line_count), width, width, mat.diffuse_color);
+		prev_pos = pos;
+		t += dx;
+	}
+	
+	set_alpha_blending(false);
+	set_zwrite(true);
+	disable_texture_unit(0);
+
+	return true;
+}

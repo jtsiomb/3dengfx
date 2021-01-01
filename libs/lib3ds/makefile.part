@@ -1,0 +1,20 @@
+lib3ds_obj = \
+	libs/lib3ds/atmosphere.o \
+	libs/lib3ds/background.o \
+	libs/lib3ds/camera.o \
+	libs/lib3ds/chunk.o \
+	libs/lib3ds/ease.o \
+	libs/lib3ds/file.o \
+	libs/lib3ds/float.o \
+	libs/lib3ds/io.o \
+	libs/lib3ds/light.o \
+	libs/lib3ds/material.o \
+	libs/lib3ds/matrix.o \
+	libs/lib3ds/mesh.o \
+	libs/lib3ds/node.o \
+	libs/lib3ds/quat.o \
+	libs/lib3ds/shadow.o \
+	libs/lib3ds/tcb.o \
+	libs/lib3ds/tracks.o \
+	libs/lib3ds/vector.o \
+	libs/lib3ds/viewport.o

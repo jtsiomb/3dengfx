@@ -1,6 +1,5 @@
 /*
 This file is part of the 3dengfx, realtime visualization system.
-
 Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
@@ -25,9 +24,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "3dengfx_config.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
 #include <iostream>
 #include <list>
-#include <csignal>
 #include "opengl.h"
 #include "fxwt/fxwt.hpp"
 #include "fxwt/init.hpp"
@@ -41,6 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx/image.h"
 #include "common/config_parser.h"
 #include "common/err_msg.h"
+#include "dsys/dsys.hpp"
 
 using std::cout;
 using std::cerr;
@@ -106,6 +108,7 @@ namespace glext {
 	// - uniforms
 	PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocation;
 	PFNGLGETACTIVEUNIFORMARBPROC glGetActiveUniform;
+	PFNGLUNIFORM1IARBPROC glUniform1i;
 	PFNGLUNIFORM1FARBPROC glUniform1f;
 	PFNGLUNIFORM2FARBPROC glUniform2f;
 	PFNGLUNIFORM3FARBPROC glUniform3f;
@@ -159,9 +162,6 @@ GraphicsInitParameters *load_graphics_context_config(const char *fname) {
 	gip.stencil_bits = 8;
 	gip.dont_care_flags = 0;
 
-	set_log_filename("3dengfx.log");
-	set_verbosity(2);
-	
 	if(load_config_file(fname) == -1) {
 		error("%s: could not load config file", __func__);
 		return 0;
@@ -259,9 +259,9 @@ SysCaps get_system_capabilities() {
 		cptr++;
 	}
 
-	set_log_filename("gl_ext.log");
+	set_verbosity(2);
 	info("Supported extensions:\n-------------\n%s", ext_str);
-	set_log_filename("3dengfx.log");
+	set_verbosity(3);
 		
 	info("Rendering System Information:");
 
@@ -281,9 +281,11 @@ SysCaps get_system_capabilities() {
 	sys_caps.vertex_buffers = (bool)strstr(ext_str, "GL_ARB_vertex_buffer_object");
 	sys_caps.depth_texture = (bool)strstr(ext_str, "GL_ARB_depth_texture");
 	sys_caps.shadow_mapping = (bool)strstr(ext_str, "GL_ARB_shadow");
-	sys_caps.point_sprites = (bool)strstr(ext_str, "GL_ARB_point_sprites");
+	sys_caps.point_sprites = (bool)strstr(ext_str, "GL_ARB_point_sprite");
 	sys_caps.point_params = (bool)strstr(ext_str, "GL_ARB_point_parameters");
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &sys_caps.max_texture_units);
+	sys_caps.non_power_of_two_textures = (bool)strstr(ext_str, "GL_ARB_texture_non_power_of_two");
+	glGetIntegerv(GL_MAX_LIGHTS, &sys_caps.max_lights);
 	
 	sys_caps.prog.asm_vertex = (bool)strstr(ext_str, "GL_ARB_vertex_program");
 	sys_caps.prog.asm_pixel = (bool)strstr(ext_str, "GL_ARB_fragment_program");
@@ -313,7 +315,13 @@ SysCaps get_system_capabilities() {
 	info("Programmable pixel processing (glsl): %s", sys_caps.prog.glsl_pixel ? "yes" : "no");
 	info("Point sprites: %s", sys_caps.point_sprites ? "yes" : "no");
 	info("Point parameters: %s", sys_caps.point_params ? "yes" : "no");
+	info("Non power of 2 textures: %s", sys_caps.non_power_of_two_textures ? "yes" : "no");
 	info("Texture units: %d", sys_caps.max_texture_units);
+	info("Max lights: %d", sys_caps.max_lights);
+
+	if(!sys_caps.point_sprites && !sys_caps.point_params) {
+		warning("no point sprites support, falling back to billboards which *may* degrade particle system performance");
+	}
 
 	return sys_caps;
 }
@@ -346,10 +354,28 @@ void load_matrix_transpose_manual(const Matrix4x4 &mat) {
 
 //////////////// 3D Engine Initialization ////////////////
 
+static const char *signame(int sig) {
+	switch(sig) {
+	case SIGSEGV:
+		return "segmentation fault (SIGSEGV)";
+	case SIGILL:
+		return "illegal instruction (SIGILL)";
+	case SIGTERM:
+		return "termination signal (SIGTERM)";
+	case SIGFPE:
+		return "floating point exception (SIGFPE)";
+	case SIGINT:
+		return "interrupt signal (SIGINT)";
+	default:
+		return "unknown";
+	}
+	return "can't happen";
+}
+
 static void signal_handler(int sig) {
-	error("It seems this is the end... caught signal %d, exiting...\n", sig);
+	error("It seems this is the end... caught %s, exiting...", signame(sig));
 	destroy_graphics_context();
-	exit(-1);
+	exit(EXIT_FAILURE);
 }
 
 /* ---- create_graphics_context() ----
@@ -359,11 +385,7 @@ bool create_graphics_context(const GraphicsInitParameters &gip) {
 	
 	gparams = gip;
 
-	remove("3dengfx.log");
-	remove("gl_ext.log");
-
-	set_log_filename("3dengfx.log");
-	set_verbosity(2);
+	remove(get_log_filename());
 
 	if(!fxwt::init_graphics(&gparams)) {
 		return false;
@@ -377,28 +399,45 @@ bool create_graphics_context(const GraphicsInitParameters &gip) {
 
 #if GFX_LIBRARY == GTK
 	fxwt::init();
+	dsys::init();
 	return true;
 #else
 	if(!start_gl()) return false;
 	fxwt::init();
+	dsys::init();
 	return true;
 #endif	// GTK
+}
+
+/*
+ * short graphics context creation
+ * creates a graphics context (windowed or fullscreen)
+ * given only the wanted resolution and a fullscreen flag.
+ */
+bool create_graphics_context(int x, int y, bool fullscreen)
+{
+	GraphicsInitParameters gip;
+	gip.x = x;
+	gip.y = y;
+	gip.bpp = 32;
+	gip.depth_bits = 32;
+	gip.fullscreen = fullscreen;
+	gip.stencil_bits = 8;
+	gip.dont_care_flags = DONT_CARE_DEPTH | DONT_CARE_STENCIL | DONT_CARE_BPP;
+
+	return create_graphics_context(gip);
 }
 
 /* OpenGL startup after initialization */
 bool start_gl() {
 	SysCaps sys_caps = get_system_capabilities();
-	if(sys_caps.max_texture_units < 2) {
-		error("%s: Your system does not meet the minimum requirements (at least 2 texture units)", __func__);
-		return false;
-	}
 
 	glext::glActiveTexture = (PFNGLACTIVETEXTUREARBPROC)glGetProcAddress("glActiveTextureARB");
 	glext::glClientActiveTexture = (PFNGLCLIENTACTIVETEXTUREARBPROC)glGetProcAddress("glClientActiveTextureARB");
 	
 	if(!glext::glActiveTexture || !glext::glClientActiveTexture) {
-		error("%s: OpenGL implementation less than 1.3 and could not load multitexturing ARB extensions", __func__);
-		return false;
+		warning("No multitexturing support.");
+		sys_caps.multitex = false;
 	}
 
 	if(sys_caps.load_transpose) {
@@ -447,6 +486,7 @@ bool start_gl() {
 		
 		glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONARBPROC)glGetProcAddress("glGetUniformLocationARB");
 		glGetActiveUniform = (PFNGLGETACTIVEUNIFORMARBPROC)glGetProcAddress("glGetActiveUniformARB");
+		glUniform1i = (PFNGLUNIFORM1IARBPROC)glGetProcAddress("glUniform1iARB");
 		glUniform1f = (PFNGLUNIFORM1FARBPROC)glGetProcAddress("glUniform1fARB");
 		glUniform2f = (PFNGLUNIFORM2FARBPROC)glGetProcAddress("glUniform2fARB");
 		glUniform3f = (PFNGLUNIFORM3FARBPROC)glGetProcAddress("glUniform3fARB");
@@ -456,18 +496,36 @@ bool start_gl() {
 	}
 	
 	if(sys_caps.point_params) {
-		glPointParameterf = (PFNGLPOINTPARAMETERFARBPROC)glGetProcAddress("glPointParameterfARB");
-		glPointParameterfv = (PFNGLPOINTPARAMETERFVARBPROC)glGetProcAddress("glPointParameterfvARB");
+		glext::glPointParameterf = (PFNGLPOINTPARAMETERFARBPROC)glGetProcAddress("glPointParameterfARB");
+		glext::glPointParameterfv = (PFNGLPOINTPARAMETERFVARBPROC)glGetProcAddress("glPointParameterfvARB");
+
+		if(!glext::glPointParameterfv) {
+			error("error loading glPointParameterfv");
+			return false;
+		}
+		if(!glext::glPointParameterf) {
+			error("error loading glPointParameterf");
+			return false;
+		}
 	}
 
 	gc_valid = true;
-	set_verbosity(3);
 	
 	set_default_states();
 	return true;
 }
 
 void destroy_graphics_context() {
+	static bool destroy_called_again = false;
+
+	if(destroy_called_again) {
+		warning("Multiple destroy_graphics_context() calls");
+		return;
+	} else {
+		destroy_called_again = true;
+	}
+
+	dsys::clean_up();
 	if(!gc_valid) return;
 	gc_valid = false;
 	info("3d engine shutting down...");
@@ -498,11 +556,11 @@ void set_default_states() {
 	}
 
 	if(sys_caps.point_params) {
-		glPointParameterf(GL_POINT_SIZE_MIN_ARB, 1.0);
-		glPointParameterf(GL_POINT_SIZE_MAX_ARB, 256.0);
+		glext::glPointParameterf(GL_POINT_SIZE_MIN_ARB, 1.0);
+		glext::glPointParameterf(GL_POINT_SIZE_MAX_ARB, 256.0);
 
 		float quadratic[] = {0.0f, 0.0f, 0.01f};
-		glPointParameterfv(GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic);
+		glext::glPointParameterfv(GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic);
 	}
 }
 
@@ -532,6 +590,8 @@ void clear_zbuffer_stencil(scalar_t zval, unsigned char sval) {
 }
 
 void flip() {
+	glFlush();
+	glFinish();
 	fxwt::swap_buffers();
 }
 
@@ -575,6 +635,8 @@ void draw(const VertexArray &varray) {
 			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
 			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
 		}
+
+		glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	} else {
 		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->pos);
 		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->normal);
@@ -590,8 +652,6 @@ void draw(const VertexArray &varray) {
 	}
 	
 	glDrawArrays(primitive_type, 0, varray.get_count());
-	
-	if(use_vbo) glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -627,6 +687,8 @@ void draw(const VertexArray &varray, const IndexArray &iarray) {
 			int dim = ttype[i] == TEX_1D ? 1 : (ttype[i] == TEX_3D || ttype[i] == TEX_CUBE ? 3 : 2);
 			glTexCoordPointer(dim, GL_SCALAR_TYPE, sizeof(Vertex), (void*)((char*)&v.tex[coord_index[i]] - (char*)&v));
 		}
+
+		glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	} else {
 		glVertexPointer(3, GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->pos);
 		glNormalPointer(GL_SCALAR_TYPE, sizeof(Vertex), &varray.get_data()->normal);
@@ -643,13 +705,11 @@ void draw(const VertexArray &varray, const IndexArray &iarray) {
 
 	if(use_ibo) {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, iarray.get_buffer_object());
-		glDrawElements(primitive_type, iarray.get_count(), GL_UNSIGNED_SHORT, 0);
+		glDrawElements(primitive_type, iarray.get_count(), GL_UNSIGNED_INT, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
-		glDrawElements(primitive_type, iarray.get_count(), GL_UNSIGNED_SHORT, iarray.get_data());
+		glDrawElements(primitive_type, iarray.get_count(), GL_UNSIGNED_INT, iarray.get_data());
 	}
-	
-	if(use_ibo) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-	if(use_vbo) glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -665,7 +725,7 @@ void draw(const VertexArray &varray, const IndexArray &iarray) {
 /* draw_line(start_vertex, end_vertex, start_width, end_width)
  * Draws a line as a cylindrically billboarded elongated quad.
  */
-void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2) {	
+void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2, const Color &col) {
 	if(w2 < 0.0) w2 = w1;
 
 	Vector3 p1 = v1.pos;
@@ -687,10 +747,10 @@ void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2) {
 	load_xform_matrices();
 
 	Vertex quad[] = {
-		Vertex(Vector3(-w1, 0, 0), 0.0, v1.tex[0].u),
-		Vertex(Vector3(-w2, len, 0), 0.0, v2.tex[0].u),
-		Vertex(Vector3(w2, len, 0), 1.0, v2.tex[0].u),
-		Vertex(Vector3(w1, 0, 0), 1.0, v1.tex[0].u)
+		Vertex(Vector3(-w1, 0, 0), v1.tex[0].u, 0.0, col),
+		Vertex(Vector3(-w2, len, 0), v2.tex[0].u, 0.0, col),
+		Vertex(Vector3(w2, len, 0), v2.tex[0].u, 1.0, col),
+		Vertex(Vector3(w1, 0, 0), v1.tex[0].u, 1.0, col)
 	};
 
 	set_lighting(false);
@@ -709,8 +769,8 @@ void draw_point(const Vertex &pt, scalar_t size) {
 	Basis basis;
 	basis.k = -(cam_pos - p).normalized();
 	basis.j = Vector3(0, 1, 0);
-	basis.i = cross_product(basis.j, basis.k).normalized();
-	basis.j = cross_product(basis.k, basis.i).normalized();
+	basis.i = cross_product(basis.j, basis.k);
+	basis.j = cross_product(basis.k, basis.i);
 
 	world_matrix.set_translation(p);
 	world_matrix = world_matrix * Matrix4x4(basis.create_rotation_matrix());
@@ -732,15 +792,19 @@ void draw_point(const Vertex &pt, scalar_t size) {
 }
 
 
-void draw_full_quad(const Vector2 &corner1, const Vector2 &corner2, const Color &color) {
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+void draw_scr_quad(const Vector2 &corner1, const Vector2 &corner2, const Color &color, bool reset_xform) {
+	if(reset_xform) {
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+	}
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
 	glOrtho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
+
+	glDisable(GL_LIGHTING);
 
 	glBegin(GL_QUADS);
 	glColor4f(color.r, color.g, color.b, color.a);
@@ -754,9 +818,14 @@ void draw_full_quad(const Vector2 &corner1, const Vector2 &corner2, const Color 
 	glVertex3f(corner1.x, corner2.y, -0.5);
 	glEnd();
 
+	glEnable(GL_LIGHTING);
+
 	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+
+	if(reset_xform) {
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
 }
 
 int get_texture_unit_count() {
@@ -795,7 +864,7 @@ void set_color_write(bool red, bool green, bool blue, bool alpha) {
 
 void set_wireframe(bool enable) {
 	//set_primitive_type(enable ? LINE_LIST : TRIANGLE_LIST);
-	glPolygonMode(GL_FRONT, enable ? GL_LINE : GL_FILL);
+	glPolygonMode(GL_FRONT_AND_BACK, enable ? GL_LINE : GL_FILL);
 }
 	
 
@@ -873,10 +942,12 @@ void set_stencil_reference(unsigned int ref) {
 ///////////// texture & material states //////////////
 
 void set_point_sprites(bool enable) {
-	if(enable) {
-		glEnable(GL_POINT_SPRITE_ARB);
-	} else {
-		glDisable(GL_POINT_SPRITE_ARB);
+	if(sys_caps.point_sprites) {
+		if(enable) {
+			glEnable(GL_POINT_SPRITE_ARB);
+		} else {
+			glDisable(GL_POINT_SPRITE_ARB);
+		}
 	}
 }
 
@@ -930,13 +1001,21 @@ void set_material(const Material &mat) {
 	mat.set_glmaterial();
 }
 
+void use_vertex_colors(bool enable) {
+	if(enable) {
+		glEnable(GL_COLOR_MATERIAL);
+	} else {
+		glDisable(GL_COLOR_MATERIAL);
+	}
+}
+
 
 void set_render_target(Texture *tex, CubeMapFace cube_map_face) {
 	static std::stack<Texture*> rt_stack;
 	static std::stack<CubeMapFace> face_stack;
 	
 	Texture *prev = rt_stack.empty() ? 0 : rt_stack.top();
-	CubeMapFace prev_face;
+	CubeMapFace prev_face = CUBE_MAP_PX; // just to get rid of the uninitialized var warning
 	if(!face_stack.empty()) prev_face = face_stack.top();
 
 	if(tex == prev) return;
@@ -948,36 +1027,56 @@ void set_render_target(Texture *tex, CubeMapFace cube_map_face) {
 	
 	if(!tex) {
 		rt_stack.pop();
-		if(prev->get_type() == TEX_CUBE) face_stack.pop();
+		if(prev->get_type() == TEX_CUBE) {
+			face_stack.pop();
 
-		if(rt_stack.empty()) {
-			set_viewport(0, 0, gparams.x, gparams.y);
-		} else {
-			set_viewport(0, 0, rt_stack.top()->width, rt_stack.top()->height);
+			if(rt_stack.empty()) {
+				set_viewport(0, 0, gparams.x, gparams.y);
+			} else {
+				set_viewport(0, 0, rt_stack.top()->width, rt_stack.top()->height);
+			}
 		}
 	} else {
-		set_viewport(0, 0, tex->width, tex->height);
+		if(tex->get_type() == TEX_CUBE) {
+			set_viewport(0, 0, tex->width, tex->height);
+		}
 
 		rt_stack.push(tex);
 		if(tex->get_type() == TEX_CUBE) face_stack.push(cube_map_face);
 	}
 }
 
+void copy_texture(Texture *tex, bool full_screen) {
+	if(!tex) return;
+
+	int width = full_screen ? get_graphics_init_parameters()->x : tex->width;
+	int height = full_screen ? get_graphics_init_parameters()->y : tex->height;
+
+	set_texture(0, tex);
+	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, width, height);
+}
+
 // multitexturing interface
 
 void select_texture_unit(int tex_unit) {
-	glext::glActiveTexture(GL_TEXTURE0 + tex_unit);
-	glext::glClientActiveTexture(GL_TEXTURE0 + tex_unit);
+	if(sys_caps.multitex) {
+		glext::glActiveTexture(GL_TEXTURE0 + tex_unit);
+		glext::glClientActiveTexture(GL_TEXTURE0 + tex_unit);
+	}
 }
 
 void enable_texture_unit(int tex_unit) {
-	select_texture_unit(tex_unit);
-	glEnable(ttype[tex_unit]);
+	if(!tex_unit || (sys_caps.multitex && tex_unit < sys_caps.max_texture_units)) {
+		select_texture_unit(tex_unit);
+		glEnable(ttype[tex_unit]);
+	}
 }
 
 void disable_texture_unit(int tex_unit) {
-	select_texture_unit(tex_unit);
-	glDisable(ttype[tex_unit]);
+	if(!tex_unit || (sys_caps.multitex && tex_unit < sys_caps.max_texture_units)) {
+		select_texture_unit(tex_unit);
+		glDisable(ttype[tex_unit]);
+	}
 }
 
 void set_texture_unit_color(int tex_unit, TextureBlendFunction op, TextureBlendArgument arg1, TextureBlendArgument arg2, TextureBlendArgument arg3) {
@@ -1018,13 +1117,16 @@ void set_texture_constant(int tex_unit, const Color &col) {
 //void set_texture_coord_generator(int stage, TexGen tgen);
 
 void set_point_sprite_coords(int tex_unit, bool enable) {
-	select_texture_unit(tex_unit);
-	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, enable ? GL_TRUE : GL_FALSE);
+	if(sys_caps.point_params) {
+		select_texture_unit(tex_unit);
+		glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, enable ? GL_TRUE : GL_FALSE);
+	}
 }
 
 
 // programmable interface
 void set_gfx_program(GfxProg *prog) {
+	if(!sys_caps.prog.glslang) return;
 	if(prog) {
 		if(!prog->linked) {
 			prog->link();
@@ -1107,20 +1209,37 @@ void set_viewport(unsigned int x, unsigned int y, unsigned int xsize, unsigned i
 	glViewport(x, y, xsize, ysize);
 }
 
+// normalized set_viewport()
+void set_viewport_norm(float x, float y, float xsize, float ysize)
+{
+	glViewport((int) (x * gparams.x), (int)(y * gparams.y), 
+		(int) (xsize * gparams.x), int (ysize * gparams.y));
+}
+
 Matrix4x4 create_projection_matrix(scalar_t vfov, scalar_t aspect, scalar_t near_clip, scalar_t far_clip) {
-	
+#ifdef COORD_LHS
 	scalar_t hfov = vfov * aspect;
 	scalar_t w = 1.0f / (scalar_t)tan(hfov * 0.5f);
 	scalar_t h = 1.0f / (scalar_t)tan(vfov * 0.5f);
 	scalar_t q = far_clip / (far_clip - near_clip);
 	
 	Matrix4x4 mat;
-	//mat.set_scaling(Vector4(w, h, q, 0));
 	mat[0][0] = w;
 	mat[1][1] = h;
 	mat[2][2] = q;
 	mat[3][2] = 1.0f;
 	mat[2][3] = -q * near_clip;
+#else
+	scalar_t f = 1.0f / (scalar_t)tan(vfov * 0.5f);
+
+	Matrix4x4 mat;
+	mat[0][0] = f / aspect;
+	mat[1][1] = f;
+	mat[2][2] = (far_clip + near_clip) / (near_clip - far_clip);
+	mat[3][2] = -1.0f;
+	mat[2][3] = (2.0f * far_clip * near_clip) / (near_clip - far_clip);
+	mat[3][3] = 0;
+#endif
 	
 	return mat;
 }
@@ -1134,13 +1253,13 @@ bool screen_capture(char *fname, enum image_file_format fmt) {
 	int x = gparams.x;
 	int y = gparams.y;
 
-	unsigned long *pixels = new unsigned long[x * y];
+	uint32_t *pixels = new uint32_t[x * y];
 	glReadPixels(0, 0, x, y, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
 	
 	if(!fname) {
 		static char fname_buf[50];
 		fname = fname_buf;
-		sprintf(fname, "3dengfx_shot%02d.%s", scr_num++, suffix[fmt]);
+		sprintf(fname, "3dengfx_shot%04d.%s", scr_num++, suffix[fmt]);
 	}
 
 	unsigned int flags = get_image_save_flags();

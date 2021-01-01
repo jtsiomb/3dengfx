@@ -22,13 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define _N3DMATH2_TYPES_HPP_
 
 #include "3dengfx_config.h"
-
-
-#ifdef SINGLE_PRECISION_MATH
-typedef float scalar_t;
-#else
-typedef double scalar_t;
-#endif	// SINGLE_PRECISION_MATH
+#include "common/types.h"
 
 // -- class forward declarations --
 class Vector2;
@@ -38,6 +32,7 @@ class Vector4;
 class Matrix3x3;
 class Matrix4x4;
 class Quaternion;
+class SphVector;
 class Base;
 class Ray;
 

@@ -48,6 +48,7 @@ public:
 
 	Texture(int x = -1, int y = -1, TextureDim type = TEX_2D);
 	Texture(int x, TextureDim type = TEX_1D);
+	~Texture();
 
 	void add_frame();
 	void add_frame(const PixelBuffer &pbuf);

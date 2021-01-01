@@ -1,0 +1,103 @@
+PREFIX = /usr/local
+dbg = -g
+opt = -O3 -ffast-math
+arch = -march=i686
+cprefix = i586-mingw32msvc-
+CC = @echo -- compiling $< \(C\) ...; $(cprefix)gcc
+CXX = @echo -- compiling $< \(C++\) ...; $(cprefix)g++
+AR = @echo -- Archiving static lib ...; $(cprefix)ar
+RM = @echo -- Removing ...; rm -f
+#remember libname's numbers are: ABI version . revision . age
+
+inc_flags = -Isrc -Ilibs -I/usr/include -I/usr/local/include -I/usr/include/SDL -I/usr/local/include/SDL
+warn_flags = -Wall -Wno-sign-compare -Wno-strict-aliasing -Wno-char-subscripts
+
+CXXFLAGS = $(opt) $(arch) $(dbg) $(warn_flags) $(pic) $(inc_flags)
+CFLAGS = $(opt) $(arch) $(dbg) $(warn_flags) $(pic) $(inc_flags)
+
+include src/3dengfx/makefile.part
+include src/gfx/makefile.part
+include src/n3dmath2/makefile.part
+include src/dsys/makefile.part
+include src/common/makefile.part
+include src/fxwt/makefile.part
+include src/sim/makefile.part
+include libs/lib3ds/makefile.part
+
+# get all the object files in one variable $(obj)
+obj = $(3dengfx_obj) \
+	  $(gfx_obj) \
+	  $(n3dmath2_obj) \
+	  $(dsys_obj) \
+	  $(common_obj) \
+	  $(fxwt_obj) \
+	  $(sim_obj) \
+	  $(lib3ds_obj)
+
+.PHONY: all
+all: static
+
+.PHONY: static
+static: lib3dengfx.a
+
+lib3dengfx.a: 3dengfx-config $(obj)
+	$(AR) rcs $@ $(obj)
+
+-include $(obj:.o=.d)
+
+.cpp.d:
+	@rm -f $@; $(CXX) -MM $(CXXFLAGS) $< > $@
+
+.c.d:
+	@rm -f $@; $(CC) -MM $(CFLAGS) $< > $@
+
+
+.PHONY: clean
+clean:
+	$(RM) $(obj) lib3dengfx.a
+
+.PHONY: cleandep
+cleandep:
+	$(RM) $(obj:.o=.d)
+
+.PHONY: install
+install:
+	@echo "installing libraries to $(PREFIX)/lib ..."
+	@install lib3dengfx.a		$(PREFIX)/lib/
+	@install $(libname)			$(PREFIX)/lib/
+	@ln -s $(PREFIX)/lib/$(libname) $(PREFIX)/lib/$(soname)
+	@ln -s $(PREFIX)/lib/$(libname) $(PREFIX)/lib/lib3dengfx.so
+	@echo "installing binaries to $(PREFIX)/bin ..."
+	@install 3dengfx-config		$(PREFIX)/bin/3dengfx-config
+	@echo "installing headers to $(PREFIX)/include ..."
+	@install -d src/3dengfx		$(PREFIX)/include/3dengfx/3dengfx
+	@install -d src/gfx			$(PREFIX)/include/3dengfx/gfx
+	@install -d src/n3dmath2		$(PREFIX)/include/3dengfx/n3dmath2
+	@install -d src/fxwt			$(PREFIX)/include/3dengfx/fxwt
+	@install -d src/sim			$(PREFIX)/include/3dengfx/sim
+	@install -d src/common		$(PREFIX)/include/3dengfx/common
+	@install src/*.h				$(PREFIX)/include/3dengfx/
+	@install src/3dengfx/*.hpp	$(PREFIX)/include/3dengfx/3dengfx/
+	@install src/3dengfx/*.h		$(PREFIX)/include/3dengfx/3dengfx/
+	@install src/gfx/*.hpp		$(PREFIX)/include/3dengfx/gfx/
+	@install src/gfx/*.h			$(PREFIX)/include/3dengfx/gfx/
+	@install src/gfx/*.inl		$(PREFIX)/include/3dengfx/gfx/
+	@install src/n3dmath2/*.hpp	$(PREFIX)/include/3dengfx/n3dmath2/
+	@install src/n3dmath2/*.inl	$(PREFIX)/include/3dengfx/n3dmath2/
+	@install src/fxwt/*.hpp		$(PREFIX)/include/3dengfx/fxwt/
+	@install src/fxwt/*.h		$(PREFIX)/include/3dengfx/fxwt/
+	@install src/sim/*.hpp		$(PREFIX)/include/3dengfx/sim/
+	@install src/common/*.hpp	$(PREFIX)/include/3dengfx/common/
+	@install src/common/*.h		$(PREFIX)/include/3dengfx/common/
+	@install src/common/*.inl	$(PREFIX)/include/3dengfx/common/
+	@echo "don't forget to set LD_LIBRARY_PATH or run ldconfig if necessary"
+
+
+.PHONY: uninstall
+uninstall:
+	@echo "removing headers from $(PREFIX)/include ..."
+	@rm -rf $(PREFIX)/include/3dengfx
+	@echo "removing libraries from $(PREFIX)/lib ..."
+	@rm -f $(PREFIX)/lib/lib3dengfx.*
+	@echo "removing binaries from $(PREFIX)/bin ..."
+	@rm -f $(PREFIX)/bin/3dengfx-config

@@ -1,23 +1,23 @@
-3dengfx 0.1 - installation instructions
+3dengfx 0.5 - installation instructions
 ---------------------------------------
 
-3 step installation....
+./configure  (try with an -h parameter for options)
+make
+make install
 
-1) edit config.h (by hand :) and comment-out the line that says
-	#define SINGLE_PRECISION_MATH
-   if you wish to make the library use floats everywere instead of
-   doubles.
-   No other configuration options available yet
+By default the installation prefix is /usr/local.
+By default it used the native system interface for events, windows etc.
+By default it depends on libpng and libjpeg for texture loading.
 
-2) make
-3) make install
-
-that's all, ready to use, se README for details
-
-Requirements
-------------
+dependencies (optional depndencies are controlled by the configuration script)
 OpenGL
-SDL
-libpng
-libbz2 (not needed yet under windows, not used)
-Cg toolkit (from nvidia)
+SDL* (optional)
+GLUT* (optional)
+GTK* (optional)
+libpng (optional)
+libjpeg (optional)
+lib3ds
+freetype 2
+
+* SDL, GLUT or GTK are mutually exclusive and none of them are needed when
+  using the native interface, i.e. X11/Win32 (default)

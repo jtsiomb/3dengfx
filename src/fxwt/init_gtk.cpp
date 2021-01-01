@@ -23,7 +23,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * Author: John Tsiombikas 2004
  */
 
+#include "3dengfx_config.h"
+
 #if GFX_LIBRARY == GTK
+
+#include <stdlib.h>
+#include "init.hpp"
+#include "gfx_library.h"
+#include "3dengfx/3denginefx.hpp"
+#include "common/err_msg.h"
 
 GtkWidget *gl_window;
 GtkWidget *gl_drawing_area;

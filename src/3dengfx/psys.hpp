@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* Particle system
  *
  * Author: John Tsiombikas 2004
+ * Modified: John Tsiombikas 2005
  */
 
 #ifndef _PSYS_HPP_
@@ -57,17 +58,6 @@ public:
 };
 
 
-/* this is used only by the rendering code
- * to draw billboard particles. I just placed
- * it here for convinience.
- */
-struct ParticleVertex {
-	Vector3 pos;
-	Color col;
-	scalar_t size;
-};
-
-
 /* particle abstract base class.
  * Derived from XFormNode for controller functionality
  */
@@ -75,7 +65,7 @@ class Particle : public XFormNode {
 public:
 	Vector3 velocity;
 	scalar_t friction;
-	scalar_t size;
+	scalar_t size, size_start, size_end;
 	scalar_t birth_time, lifespan;
 
 	
@@ -94,9 +84,10 @@ class BillboardParticle : public Particle {
 public:
 	Texture *texture;
 	Color start_color, end_color;
-	Color color;
+	scalar_t rot, birth_angle;
 	
-	virtual ParticleVertex get_particle_vertex() const;
+	Color color;
+	scalar_t angle;
 	
 	virtual void update(const Vector3 &ext_force = Vector3());
 	virtual void draw() const;
@@ -112,19 +103,29 @@ class MeshParticle : public Particle {
 
 struct ParticleSysParams {
 	Fuzzy psize;			// particle size
+	scalar_t psize_end;		// end size (end of life)
 	Fuzzy lifespan;			// lifespan in seconds
 	Fuzzy birth_rate;		// birth rate in particles per second
 	Vector3 gravity;		// gravitual force to be applied to all particles
 	FuzzyVec3 shoot_dir;	// shoot direction (initial particle velocity)
 	scalar_t friction;		// friction of the environment
 	FuzzyVec3 spawn_offset;	// where to spawn in relation to position
+	Curve *spawn_offset_curve;	// a spawn curve in space, relative to position, offset still counts
+	Fuzzy spawn_offset_curve_area;
 	Texture *billboard_tex;	// texture used for billboards
 	Color start_color;		// start color
 	Color end_color;		// end color
+	scalar_t rot;			// particle rotation (radians / second counting from birth)
+	scalar_t glob_rot;		// particle emmiter rotation, particles inherit this
+
+	BlendingFactor src_blend, dest_blend;
 	
 	Texture *halo;			// halo texture
 	Color halo_color;		// halo color
 	Fuzzy halo_size;		// halo size
+	scalar_t halo_rot;		// halo rotation (radians / second)
+
+	bool big_particles;		// need support for big particles (i.e. don't use point sprites)
 
 	ParticleSysParams();
 };
@@ -139,6 +140,10 @@ enum ParticleType {PTYPE_PSYS, PTYPE_BILLBOARD, PTYPE_MESH};
  */
 class ParticleSystem : public Particle {
 protected:
+	scalar_t timeslice;
+
+	bool ready;
+	bool psprites_unsupported;
 	std::list<Particle*> particles;
 
 	ParticleSysParams psys_params;
@@ -146,12 +151,22 @@ protected:
 
 	scalar_t fraction;
 	scalar_t prev_update;
+	Vector3 prev_pos;
+
+	// current variables are calculated during each update()
+	scalar_t curr_time;
+	Vector3 curr_pos;
+	scalar_t curr_rot, curr_halo_rot;
 
 public:
 	ParticleSystem(const char *fname = 0);
 	virtual ~ParticleSystem();
 
+	virtual void reset();
+	virtual void set_update_interval(scalar_t timeslice);
+
 	virtual void set_params(const ParticleSysParams &psys_params);
+	virtual ParticleSysParams *get_params();
 	virtual void set_particle_type(ParticleType ptype);
 
 	virtual void update(const Vector3 &ext_force = Vector3());

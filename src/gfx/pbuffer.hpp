@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _PBUFFER_HPP_
 #define _PBUFFER_HPP_
 
+#include "common/byteorder.h"
+
 template <class T>
 class Buffer {
 public:
@@ -32,7 +34,7 @@ public:
 	~Buffer();
 };
 
-typedef unsigned long Pixel;
+typedef uint32_t Pixel;
 typedef Buffer<Pixel> PixelBuffer;
 
 // implementation

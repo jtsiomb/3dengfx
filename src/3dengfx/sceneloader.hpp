@@ -33,5 +33,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 void set_scene_data_path(const char *path);
 
 Scene *load_scene(const char *fname);
+TriMesh *load_mesh(const char *fname, const char *name = 0);
 
 #endif	// _SCENELOADER_H_

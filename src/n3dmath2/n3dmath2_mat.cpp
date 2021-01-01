@@ -100,11 +100,13 @@ void operator -=(Matrix3x3 &m1, const Matrix3x3 &m2) {
 }
 
 void operator *=(Matrix3x3 &m1, const Matrix3x3 &m2) {
+	Matrix3x3 res;
 	for(int i=0; i<3; i++) {
 		for(int j=0; j<3; j++) {
-			m1.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j];
+			res.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j];
 		}
 	}
+	memcpy(m1.m, res.m, 9 * sizeof(scalar_t));
 }
 
 Matrix3x3 operator *(const Matrix3x3 &mat, scalar_t scalar) {
@@ -402,11 +404,15 @@ void operator -=(Matrix4x4 &m1, const Matrix4x4 &m2) {
 }
 
 void operator *=(Matrix4x4 &m1, const Matrix4x4 &m2) {
+	Matrix4x4 res;
+	
 	for(int i=0; i<4; i++) {
 		for(int j=0; j<4; j++) {
-			m1.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j] + m1.m[i][3] * m2.m[3][j];
+			res.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j] + m1.m[i][3] * m2.m[3][j];
 		}
 	}
+
+	memcpy(m1.m, res.m, 16 * sizeof(scalar_t));
 }
 
 Matrix4x4 operator *(const Matrix4x4 &mat, scalar_t scalar) {

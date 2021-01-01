@@ -1,7 +1,294 @@
 #!/bin/sh
 
-echo 'Creating 3dengfx-config program'
-gcc -o 3dengfx-config inst/3dengfx_config.c -Isrc
+# this function detects the available C compiler and sets CC
+find_cc()
+{
+	echo 'Detecting C compiler ...'
+	
+	if [ "$CC" = '' ]; then
+		which gcc >/dev/null 2>/dev/null
+		if [ $? = 0 ]; then CC=gcc; fi
+	fi
 
-echo 'Creating installer program'
-gcc -o inst/inst inst/inst.c -Isrc
+	if [ "$CC" = '' ]; then
+		which cc >/dev/null 2>/dev/null
+		if [ $? = 0 ]; then CC=cc; fi
+	fi
+
+	if [ "$CC" = '' ]; then
+		echo '**ERROR**: cannot find C compiler, make sure you have cc or gcc in your path, or set the CC env. variable'
+		exit 1
+	else
+		echo "   found: $CC"
+	fi
+}
+
+# this function detects the available C++ compiler and sets CXX
+find_cxx()
+{
+	echo 'Detecting C++ compiler ...'
+	
+	# CXX is empty, try g++...
+	if [ "$CXX" = '' ]; then
+		which g++ >/dev/null 2>/dev/null
+		if [ $? = 0 ]; then CXX=g++; fi
+	fi
+
+	# CXX is empty, try c++...
+	if [ "$CXX" = '' ]; then
+		which c++ >/dev/null 2>/dev/null
+		if [ $? = 0 ]; then CXX=c++; fi
+	fi
+	
+	if [ "$CXX" = '' ]; then
+		echo '**ERROR**: cannot find C++ compiler, make sure you have c++ or g++ in your path, or set the CXX env. variable'
+		exit 1
+	else
+		echo "   found: $CXX"
+	fi
+}
+
+detect_arch()
+{
+	echo 'Determining architecture flag(s) ...'
+	unm=`uname -m`
+
+	case "$unm" in
+	i*86)
+		arch="-march=$unm"
+		;;
+	IP*)
+		if [ "`file /unix | grep mips-4`" = '' ]; then
+			arch="-mips3"
+		else
+			arch="-mips4"
+		fi
+		;;
+	esac
+
+	if [ "$arch" = '' ]; then
+		echo '    not found, using defaults'
+	else
+		echo "    found: $arch"
+	fi
+}
+
+
+# ----------------
+# main script body
+# ----------------
+echo 'configuring 3dengfx ...'
+
+prefix=/usr/local
+gfx=native
+png=yes
+jpeg=yes
+ft=no
+xf86vm=no
+coord=lhs
+opt=yes
+debug=yes
+
+os=`uname -s`
+
+# on IRIX, disable the XF86VidMode extension by default.
+if [ "`uname -s | grep IRIX`" != "" ]; then
+	xf86vm=no
+fi
+
+for arg
+do
+	case "$arg" in 
+	# set installation directory
+	--prefix=*)
+		value=`echo $arg | sed 's/--prefix=//'`
+		prefix=${value:-$prefix}
+		;;
+
+	# set gfx library
+	--with-gfxlib=*)
+		value=`echo $arg | sed 's/--with-gfxlib=//'`
+		case "$value" in
+		sdl|glut|native|gtk)
+			gfx=$value;;
+		esac
+		;;
+	
+	# select coordinate system
+	--with-coord=*)
+		value=`echo $arg | sed 's/--with-coord=//'`
+		case "$value" in
+		lhs|dx)
+			coord=lhs;;
+
+		rhs|gl)
+			coord=rhs;;
+		esac
+		;;
+
+	#enable/disable optimizations
+	--enable-opt)
+		opt=yes;;
+	--disable-opt)
+		opt=no;;
+
+	#enable/disable debugging symbols
+	--enable-debug)
+		debug=yes;;
+	--disable-debug)
+		debug=no;;
+	
+	#enable/disable png support
+	--enable-png)
+		png=yes;;
+	--disable-png)
+		png=no;;
+	
+	#enable/disable jpeg support
+	--enable-jpeg)
+		jpeg=yes;;
+	--disable-jpeg)
+		jpeg=no;;
+
+	#enable/disable freetype support
+	--enable-ft)
+		ft=yes;;
+	--disable-ft)
+		ft=no;;
+
+	--enable-xf86vm)
+		xf86vm=yes;;
+	--disable-xf86vm)
+		xf86vm=no;;
+
+	--help)
+		echo 'usage: ./configure [options]'
+		echo 'options:'
+		echo '  --prefix=<path>: installation path (default: /usr/local)'
+		echo '  --with-gfxlib=<sdl|glut|native|gtk> (default: native)'
+		echo '  --with-coord=<lhs|rhs> or <dx|gl> (default: lhs)'
+		echo '  --enable-opt: enable speed optimizations (default)'
+		echo '  --disable-opt: disable speed optimizations'
+		echo '  --enable-debug: include debugging symbols (default)'
+		echo '  --disable-debug: do not include debugging symbols'
+		echo '  --enable-png: enable png support, requires libpng (default)'
+		echo '  --disable-png: disable png support'
+		echo '  --enable-jpeg: enable jpeg support, requres libjpeg (default)'
+		echo '  --disable-jpeg: disable jpeg support'
+		echo '  --enable-ft: enable freetype support (default)'
+		echo '  --disable-ft: disable freetype support'
+		echo '  --enable-xf86vm: enable mode switching capability for native X11 builds'
+		echo '  --disable-xf86vm: disable mode switching capability for native X11 builds (default)'
+		echo '  --help: this help screen'
+		echo 'all invalid options are silently ignored.'
+		exit 0
+		;;
+	esac
+done
+
+find_cc
+find_cxx
+detect_arch
+
+echo "optimize for speed: $opt"
+echo "include debugging symbols: $debug"
+echo "prefix: $prefix"
+echo "gfxlib: $gfx"
+echo "coord: $coord"
+echo "png support: $png"
+echo "jpeg support: $jpeg"
+echo "freetype support: $ft"
+echo "video mode switching support: $xf86vm"
+
+# create makefile
+echo 'creating Makefile ...'
+echo '# This makefile is generated from the configure script, DO NOT EDIT!' >Makefile
+echo "PREFIX = $prefix" >>Makefile
+if [ "$debug" = 'yes' ]; then echo "dbg = -g" >>Makefile; fi
+if [ "$opt" = 'yes' ]; then echo "opt = -O1 -ffast-math -fomit-frame-pointer" >>Makefile; fi
+if [ "$arch" != '' ]; then echo "arch = $arch" >>Makefile; fi
+if [ "`uname -s | grep MINGW | wc -c`" = '0' ]; then echo "pic = -fPIC" >>Makefile; fi
+echo "CC = @echo -- compiling $< \\(C\\) ...; $CC" >>Makefile
+echo "CXX = @echo -- compiling $< \\(C++\\) ...; $CXX" >>Makefile
+echo "LINK = @echo -- Linking shared lib ...; $CXX" >>Makefile
+echo "AR = @echo -- Archiving static lib ...; ar" >>Makefile
+echo "RM = @echo -- Removing ...; rm -f" >>Makefile
+cat 'Makefile.in' >>Makefile
+
+# output config header
+echo 'creating 3dengfx_config.h ...'
+cfg_file=src/3dengfx_config.h
+
+echo '/* this header is created by the 3dengfx configuration script */' >$cfg_file
+echo '#ifndef _3DENGFX_CONFIG_H_' >>$cfg_file
+echo '#define _3DENGFX_CONFIG_H_' >>$cfg_file
+echo '' >>$cfg_file
+echo '#define USING_3DENGFX' >>$cfg_file
+echo '#define VER_STR	"0.5"' >>$cfg_file
+echo "#define PREFIX	\"$prefix\"" >>$cfg_file
+echo '' >>$cfg_file
+echo '#define SDL					1' >>$cfg_file
+echo '#define GLUT				2' >>$cfg_file
+echo '#define GTK					3' >>$cfg_file
+echo '#define GTKMM				4' >>$cfg_file
+echo '#define NATIVE				5' >>$cfg_file
+echo '#define NATIVE_X11			10' >>$cfg_file
+echo '#define NATIVE_WIN32		11' >>$cfg_file
+echo '' >>$cfg_file
+
+gfx_def=`echo $gfx | tr '[:lower:]' '[:upper:]'`
+echo "#define GFX_LIBRARY $gfx_def" >>$cfg_file
+echo '' >>$cfg_file
+
+echo '#define SINGLE_PRECISION_MATH' >>$cfg_file
+echo '' >>$cfg_file
+
+# handedness (left/right handed system)
+if [ "$coord" = "lhs" ]; then
+	echo '#define COORD_LHS' >>$cfg_file
+else
+	echo '#define COORD_RHS' >>$cfg_file
+fi
+echo '' >>$cfg_file
+
+# png support
+if [ "$png" = "no" ]; then
+	echo '#define IMGLIB_NO_PNG' >>$cfg_file
+	echo '' >>$cfg_file
+fi
+
+# jpeg support
+if [ "$jpeg" = "no" ]; then
+	echo '#define IMGLIB_NO_JPEG' >> $cfg_file
+	echo '' >>$cfg_file
+fi
+
+# freetype support
+if [ "$ft" = "no" ]; then
+	echo '#define FXWT_NO_FREETYPE' >>$cfg_file
+	echo '' >>$cfg_file
+fi
+
+# xf86vm support
+if [ "$xf86vm" = "yes" ]; then
+	echo '#define USE_XF86VIDMODE' >>$cfg_file
+	echo '' >>$cfg_file
+fi
+
+echo '#if GFX_LIBRARY == NATIVE' >>$cfg_file
+echo '#if defined(unix) || defined(__unix__)' >>$cfg_file
+echo '#define NATIVE_LIB		NATIVE_X11' >>$cfg_file
+echo '#elif defined(WIN32) || defined(__WIN32__)' >>$cfg_file
+echo '#define NATIVE_LIB		NATIVE_WIN32' >>$cfg_file
+echo '#endif	/* unix/win32 */' >>$cfg_file
+echo '#endif	/* GFX_LIBRARY == NATIVE */' >>$cfg_file
+echo '' >>$cfg_file
+
+echo '#endif	/* _3DENGFX_CONFIG_H_ */' >>$cfg_file
+
+# create additional programs
+
+echo 'Creating 3dengfx-config program ...'
+$CC -o 3dengfx-config inst/3dengfx_config.c -Isrc
+
+

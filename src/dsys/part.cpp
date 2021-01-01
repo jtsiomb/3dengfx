@@ -37,7 +37,7 @@ Part::Part(const char *name) {
 	
 	target = RT_FB;
 	clear_fb = false;
-	timer_reset(&timer);
+	//timer_reset(&timer);
 }
 
 Part::~Part() {
@@ -54,7 +54,8 @@ void Part::pre_draw() {
 		clear(Color(0, 0, 0));
 		clear_zbuffer_stencil(1.0f, 0);
 	}
-	time = timer_getmsec(&timer);
+	time = dsys::get_demo_time() - start_time;
+	//timer_getmsec(&timer);
 }
 
 void Part::post_draw() {
@@ -84,11 +85,12 @@ void Part::set_clear(bool enable) {
 }
 
 void Part::start() {
-	timer_start(&timer);
+	//timer_start(&timer);
+	start_time = dsys::get_demo_time();
 }
 
 void Part::stop() {
-	timer_stop(&timer);
+	//timer_stop(&timer);
 }
 
 void Part::set_target(RenderTarget targ) {
@@ -102,5 +104,7 @@ void Part::update_graphics() {
 }
 
 bool Part::operator <(const Part &part) const {
+	if(!name) return true;
+	if(!part.name) return false;
 	return strcmp(name, part.name) < 0;
 }

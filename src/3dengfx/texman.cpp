@@ -1,23 +1,21 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
+This file is part of 3dengfx, realtime visualization system.
+Copyright (C) 2004, 2005, 2006 John Tsiombikas <nuclear@siggraph.org>
 
-This file is part of the 3dengfx, realtime visualization system.
-
-3dengfx is free software; you can redistribute it and/or modify
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-3dengfx is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with 3dengfx; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 /* texture manager
  *
  * Author: John Tsiombikas 2004
@@ -43,14 +41,16 @@ static HashTable<string, Texture*> *textures;
 static Texture *normal_cubemap;
 
 static void delete_texture(Texture *tex) {
-	delete tex;
+	glDeleteTextures(1, &tex->tex_id);
+	glGetError();
+	//delete tex;
 }
 
 static void init_tex_man() {
 	if(textures) return;
 	textures = new HashTable<string, Texture*>;
 	textures->set_hash_function(string_hash);
-	textures->SetDataDestructor(delete_texture);
+	textures->set_data_destructor(delete_texture);
 }
 
 void add_texture(Texture *texture, const char *fname) {
@@ -88,6 +88,13 @@ Texture *get_texture(const char *fname) {
 	
 	Texture *tex;
 	if((tex = find_texture(fname))) return tex;
+
+	// first check to see if it's a custom file (cubemap).
+	if(is_cubemap(fname)) {
+		tex = load_cubemap(fname);
+		add_texture(tex, fname);
+		return tex;
+	}
 	
 	PixelBuffer pbuf;
 	
@@ -101,11 +108,21 @@ Texture *get_texture(const char *fname) {
 	
 	tex = new Texture;
 	tex->set_pixel_data(pbuf);
+	add_texture(tex, fname);
 	return tex;
 }
 
 
 void destroy_textures() {
+	static bool called_again = false;
+
+	if(called_again) {
+		warning("Multiple destroy_textures() calls");
+		return;
+	} else {
+		called_again = true;
+	}
+
 	info("Shutting down texture manager, destroying all textures...");
 	delete textures;
 	textures = 0;
@@ -170,7 +187,7 @@ static void create_normal_cube_map() {
 	static const int size = 32;
 	static const scalar_t fsize = (scalar_t)size;
 	static const scalar_t half_size = fsize / 2.0;
-	unsigned long *ptr;
+	Pixel *ptr;
 	
 	delete normal_cubemap;
 	normal_cubemap = new Texture(size, size, TEX_CUBE);
@@ -240,4 +257,104 @@ static void create_normal_cube_map() {
 		}
 	}
 	normal_cubemap->unlock(CUBE_MAP_NZ);
+}
+
+
+bool is_cubemap(const char *fname) {
+	FILE *fp = fopen(fname, "r");
+	if(!fp) {
+		return false;
+	}
+
+	char idstr[5];
+	fread(idstr, 1, 4, fp);
+	idstr[4] = 0;
+
+	fclose(fp);
+	return strcmp(idstr, "CUBE") == 0;
+}
+
+Texture *load_cubemap(const char *fname) {
+	FILE *fp = fopen(fname, "r");
+	if(!fp) {
+		error("could not open %s", fname);
+		return 0;
+	}
+
+	if(!is_cubemap(fname)) {
+		error("%s is not a cubemap", fname);
+		fclose(fp);
+		return 0;
+	}
+
+	char line[512];
+	unsigned int cube_size = 0;
+	unsigned long xsz = 0, ysz = 0;
+	void *img[6] = {0};
+
+	fgets(line, 512, fp);	// skip file id & text description
+	
+	if(fgets(line, 512, fp) && isdigit(*line)) {
+		cube_size = atoi(line);
+	}
+	
+	for(int i=0; i<6; i++) {
+		if(!fgets(line, 512, fp)) {
+			error("%s is not a complete cubemap file, EOF encountered", fname);
+			break;
+		}
+
+		if(line[strlen(line)-1] == '\n') {
+			line[strlen(line)-1] = 0;
+		}
+		
+		unsigned long x, y;
+		if(!(img[i] = load_image(line, &x, &y))) {
+			error("cubemap %s requires %s, which cannot be opened", fname, line);
+			break;
+		}
+
+		if(i > 0 && (x != xsz || y != ysz)) {
+			error("inconsistent cubemap %s, image sizes differ", fname);
+			break;
+		}
+		xsz = x;
+		ysz = y;
+
+		if(xsz != ysz) {
+			error("cubemap %s contains non-square textures", fname);
+			break;
+		}
+	}
+
+	fclose(fp);
+	
+	if(!img[5]) {
+		for(int i=0; i<6; i++) {
+			if(img[i]) free_image(img[i]);
+		}
+		return 0;
+	}
+	
+	if(xsz != cube_size) {
+		warning("cubemap %s loaded correctly, but wrong size in the header", fname);
+	}
+
+	Texture *cube = new Texture(cube_size, cube_size, TEX_CUBE);
+
+	CubeMapFace faces[] = {
+		CUBE_MAP_PX, CUBE_MAP_NX,
+		CUBE_MAP_PY, CUBE_MAP_NY,
+		CUBE_MAP_PZ, CUBE_MAP_NZ
+	};
+
+	for(int i=0; i<6; i++) {
+		cube->lock(faces[i]);
+		memcpy(cube->buffer, img[i], cube_size * cube_size * sizeof(Pixel));
+		cube->unlock(faces[i]);
+
+		free_image(img[i]);
+	}
+
+	return cube;
 }

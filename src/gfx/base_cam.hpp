@@ -77,6 +77,11 @@ public:
 	virtual void flip(bool x, bool y, bool z);
 
 	virtual const FrustumPlane *get_frustum() const;
+
+	virtual Matrix4x4 get_camera_matrix(unsigned long msec = XFORM_LOCAL_PRS) const = 0;
+	virtual Matrix4x4 get_projection_matrix() const;
+
+	virtual void activate(unsigned long msec = XFORM_LOCAL_PRS) const;
 };
 
 #endif	// _BASE_CAM_HPP_

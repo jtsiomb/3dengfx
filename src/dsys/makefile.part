@@ -1,0 +1,7 @@
+dsys_obj = \
+	src/dsys/dsys.o\
+	src/dsys/fx.o\
+	src/dsys/part.o\
+	src/dsys/scene_part.o\
+	src/dsys/script.o\
+	src/dsys/cmd.o

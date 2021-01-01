@@ -50,9 +50,19 @@ static char err_buf[ERR_BUF_SIZE];
 #define MAX_LOG_FNAME	256
 static char log_fname[MAX_LOG_FNAME];
 
+static const char *default_log_fname(void) {
+#if defined(unix) || defined(__unix__)
+	return "/tmp/3dengfx.log";
+#elif defined(WIN32) || defined(__WIN32__)
+	return "3dengfx.log";
+#else
+	return "3dengfx.log";
+#endif
+}
+
 static int open_log_file() {
 	if(log_fname[0] == 0) {
-		set_log_filename("program.log");
+		set_log_filename(default_log_fname());
 	}
 	
 	if((log_file = fopen(log_fname, "a"))) {
@@ -73,6 +83,13 @@ static void close_log_file() {
 
 void set_log_filename(const char *fname) {
 	strncpy(log_fname, fname, MAX_LOG_FNAME-1);
+}
+
+const char *get_log_filename(void) {
+	if(!*log_fname) {
+		return default_log_fname();
+	}
+	return log_fname;
 }
 
 void set_verbosity(int v) {

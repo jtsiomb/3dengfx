@@ -22,6 +22,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "base_cam.hpp"
 
+#ifdef USING_3DENGFX
+#include "3dengfx/3denginefx.hpp"
+#endif	// USING_3DENGFX
+
 FrustumPlane::FrustumPlane() {
 	a = b = c = d = 0;
 }
@@ -145,4 +149,24 @@ void BaseCamera::flip(bool x, bool y, bool z) {
 
 const FrustumPlane *BaseCamera::get_frustum() const {
 	return frustum;
+}
+
+Matrix4x4 BaseCamera::get_projection_matrix() const {
+#ifdef USING_3DENGFX
+	return create_projection_matrix(fov, aspect, near_clip, far_clip);
+#else
+	return Matrix4x4::identity_matrix;
+#endif	// USING_3DENGFX
+}
+
+void BaseCamera::activate(unsigned long msec) const {
+#ifdef USING_3DENGFX
+	set_matrix(XFORM_VIEW, get_camera_matrix(msec));
+
+	Matrix4x4 proj = get_projection_matrix();
+	set_matrix(XFORM_PROJECTION, proj);
+
+	engfx_state::view_mat_camera = (const Camera*)this;
+	const_cast<BaseCamera*>(this)->setup_frustum(proj * engfx_state::view_matrix);
+#endif	// USING_3DENGFX
 }

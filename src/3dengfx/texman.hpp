@@ -1,21 +1,20 @@
 /*
-This file is part of the 3dengfx, realtime visualization system.
+This file is part of 3dengfx, realtime visualization system.
+Copyright (C) 2004, 2005, 2006 John Tsiombikas <nuclear@siggraph.org>
 
-Copyright (c) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
-
-3dengfx is free software; you can redistribute it and/or modify
+This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-3dengfx is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with 3dengfx; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #ifndef _TEXMAN_HPP_
 #define _TEXMAN_HPP_
@@ -40,7 +39,9 @@ enum CubeMapIndex {
 };
 
 Texture *make_cube_map(Texture **tex_array);
-
 Texture *get_normal_cube();
+
+bool is_cubemap(const char *fname);
+Texture *load_cubemap(const char *fname);
 
 #endif	// _TEXMAN_HPP_

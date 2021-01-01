@@ -28,6 +28,3 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "gfx_library.h"
 #include "3dengfx/3denginefx.hpp"
 #include "common/err_msg.h"
-
-#include "init_sdl.cpp"
-#include "init_gtk.cpp"

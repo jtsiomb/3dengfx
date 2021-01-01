@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include "3dscene.hpp"
 #include "texman.hpp"
+#include "3denginefx.hpp"
 #include "common/err_msg.h"
 #include "dsys/fx.hpp"
 
@@ -35,7 +36,9 @@ Scene::Scene() {
 	halo_size = 10.0f;
 	use_fog = false;
 
-	memset(lights, 0, 8 * sizeof(Light*));
+	lights = new Light*[engfx_state::sys_caps.max_lights];
+	memset(lights, 0, engfx_state::sys_caps.max_lights * sizeof(Light*));
+	lcount = 0;
 
 	ambient_light = Color(0.0f, 0.0f, 0.0f);
 	manage_data = true;
@@ -60,7 +63,6 @@ Scene::Scene() {
 }
 
 Scene::~Scene() {
-
 	for(int i=0; i>6; i++) {
 		delete cubic_cam[i];
 	}
@@ -76,7 +78,7 @@ Scene::~Scene() {
 			delete *cam++;
 		}
 
-		for(int i=0; i<8; i++) {
+		for(int i=0; i<engfx_state::sys_caps.max_lights; i++) {
 			delete lights[i];
 		}
 
@@ -91,6 +93,7 @@ Scene::~Scene() {
 		}
 	}
 
+	delete [] lights;
 }
 
 void Scene::set_poly_count(unsigned long pcount) {
@@ -111,12 +114,8 @@ void Scene::add_camera(Camera *cam) {
 }
 
 void Scene::add_light(Light *light) {
-	for(int i=0; i<8; i++) {
-		if(!lights[i]) {
-			lights[i] = light;
-			break;
-		}
-	}
+	if(lcount >= engfx_state::sys_caps.max_lights) return;
+	lights[lcount++] = light;
 }
 
 void Scene::add_object(Object *obj) {
@@ -135,26 +134,69 @@ void Scene::add_particle_sys(ParticleSystem *p) {
 	psys.push_back(p);
 }
 
-void Scene::remove_object(const Object *obj) {
-	std::list<Object *>::iterator iter = objects.begin();
-	while(iter != objects.end()) {
-		if(obj == *iter) {
-			objects.erase(iter);
-			return;
-		}
-		iter++;
+/* adds a cubemapped skycube, by creating a cube with the correct
+ * texture coordinates to map into the cubemap texture.
+ */
+void Scene::add_skycube(scalar_t size, Texture *cubemap) {
+	Object *obj = new ObjCube(size, 4);
+	obj->get_mesh_ptr()->invert_winding();
+
+	// generate appropriate texture coordinates
+	unsigned int vcount = obj->get_vertex_count();
+	Vertex *vptr = obj->get_mod_vertex_data();
+
+	for(unsigned int i=0; i<vcount; i++) {
+		Vector3 vpos = vptr->pos.normalized();
+		(vptr++)->tex[0] = TexCoord(vpos.x, -vpos.y, vpos.z);
 	}
+
+	// setup material parameters
+	Material *mat = obj->get_material_ptr();
+	mat->ambient_color = mat->diffuse_color = mat->specular_color = 0.0;
+	mat->emissive_color = 1.0;
+	mat->set_texture(cubemap, TEXTYPE_DIFFUSE);
+
+	obj->set_texture_addressing(TEXADDR_CLAMP);
+
+	add_object(obj);
 }
 
-void Scene::remove_light(const Light *light) {
-	for(int i=0; i<8; i++) {
-		if(light == lights[i]) {
-			lights[i] = 0;
-			return;
+bool Scene::remove_light(const Light *light) {
+	int idx;
+	for(idx = 0; idx < lcount; idx++) {
+		if(light == lights[idx]) {
+			break;
 		}
 	}
+
+	if(idx < lcount) {
+		lights[idx] = 0;
+		for(int i=idx; i<lcount-1; i++) {
+			lights[i] = lights[i + 1];
+		}
+		return true;
+	}
+	
+	return false;
 }
 
+bool Scene::remove_object(const Object *obj) {
+	std::list<Object*>::iterator iter = find(objects.begin(), objects.end(), obj);
+	if(iter != objects.end()) {
+		objects.erase(iter);
+		return true;
+	}
+	return false;
+}
+
+bool Scene::remove_particle_sys(const ParticleSystem *p) {
+	std::list<ParticleSystem*>::iterator iter = find(psys.begin(), psys.end(), p);
+	if(iter != psys.end()) {
+		psys.erase(iter);
+		return true;
+	}
+	return false;
+}
 
 Camera *Scene::get_camera(const char *name) {
 	std::list<Camera *>::iterator iter = cameras.begin();
@@ -166,7 +208,7 @@ Camera *Scene::get_camera(const char *name) {
 }
 
 Light *Scene::get_light(const char *name) {
-	for(int i=0; i<8; i++) {
+	for(int i=0; i<lcount; i++) {
 		if(lights[i] && !strcmp(lights[i]->name.c_str(), name)) return lights[i];
 	}
 	return 0;
@@ -260,51 +302,117 @@ void Scene::set_background(const Color &bg) {
 
 void Scene::setup_lights(unsigned long msec) const {
 	int light_index = 0;
-	for(int i=0; i<8; i++) {
+	for(int i=0; i<lcount; i++) {
 		if(lights[i]) {
-			lights[i]->set_gllight(light_index++, msec);
+			lights[i]->set_gl_light(light_index++, msec);
 		}
 	}
 	glDisable(GL_LIGHT0 + light_index);
 }
 
+void Scene::set_shadows(bool enable) {
+	shadows = enable;
+}
+
 void Scene::render(unsigned long msec) const {
-	static int level = -1;
-	level++;
+	static int call_depth = -1;
+	call_depth++;
 	
-	::set_ambient_light(ambient_light);
-
-	bool rendered_cubemaps = false;
-	if(!level) {
-		poly_count = 0;
-		rendered_cubemaps = render_all_cube_maps(msec);
-		first_render = false;
-		frame_count++;
-
-		// update particle systems
-		psys::set_global_time(msec);
+	bool fb_dirty = false;
+	if(!call_depth) {
+		// ---- this part is guaranteed to be executed once for each frame ----
+		poly_count = 0;		// reset the polygon counter
 		
+		::set_ambient_light(ambient_light);
+		
+		// XXX: render_all_cube_maps() will call Scene::render() recursively as necessary.
+		fb_dirty = render_all_cube_maps(msec);
+		
+		
+		first_render = false;	// this is needed by the cubemap calculation routine
+								// to support 1st frame only cubemap calculation.
+		frame_count++;	// for statistics.
+
+		// --- update particle systems (not render) ---
+		psys::set_global_time(msec);
 		std::list<ParticleSystem*>::const_iterator iter = psys.begin();
 		while(iter != psys.end()) {
 			(*iter++)->update();
 		}
+		// TODO: also update other simulations here (see sim framework).
 	}
 
-	if(auto_clear || rendered_cubemaps) {
+	if(auto_clear || fb_dirty) {
 		clear(bg_color);
 		clear_zbuffer_stencil(1.0, 0);
 	}
 	
 	// set camera
 	if(!active_camera) {
-		level--;
+		call_depth--;
 		return;
 	}
 	active_camera->activate(msec);
-	
+
+	// set lights
 	setup_lights(msec);
 
-	// render objects
+	// render stuff
+	if(shadows) {
+		bool at_least_one = false;
+		for(int i=0; i<lcount; i++) {
+			if(!lights[i]->casts_shadows()) continue;
+			at_least_one = true;
+
+			glDisable(GL_LIGHT0 + i);
+			render_objects(msec);	// scene minus this shadow casting light.
+
+			set_zwrite(false);
+			set_lighting(false);
+			set_color_write(false, false, false, false);
+			set_stencil_buffering(true);
+			set_stencil_func(CMP_ALWAYS);
+
+			// render volume front faces
+			set_stencil_op(SOP_KEEP, SOP_KEEP, SOP_INC);
+			set_front_face(ORDER_CW);
+			render_svol(i, msec);
+			
+			// render volume back faces
+			set_stencil_op(SOP_KEEP, SOP_KEEP, SOP_DEC);
+			set_front_face(ORDER_CCW);
+			render_svol(i, msec);
+			
+			// restore states
+			set_stencil_op(SOP_KEEP, SOP_KEEP, SOP_KEEP);
+			set_front_face(ORDER_CW);
+						
+			set_color_write(true, true, true, true);
+			set_lighting(true);
+			set_zwrite(true);
+
+			clear_zbuffer(1.0);
+
+			set_stencil_buffering(true);
+			set_stencil_func(CMP_EQUAL);
+			set_stencil_reference(0);
+
+			glEnable(GL_LIGHT0 + i);
+
+			render_objects(msec);
+		}
+		set_stencil_buffering(false);
+		if(!at_least_one) render_objects(msec);
+	} else {
+		render_objects(msec);
+	}
+	
+	render_particles(msec);
+
+	call_depth--;
+}
+
+void Scene::render_objects(unsigned long msec) const {
 	std::list<Object *>::const_iterator iter = objects.begin();
 	while(iter != objects.end()) {
 		Object *obj = *iter++;
@@ -313,20 +421,48 @@ void Scene::render(unsigned long msec) const {
 
 		if(!rp.hidden) {
 			if(obj->render(msec)) {
-				poly_count += obj->get_tri_mesh_ptr()->get_triangle_array()->get_count();
+				poly_count += obj->get_mesh_ptr()->get_triangle_array()->get_count();
 			}
 		}
 	}
+}
 
-	// render particles
+void Scene::render_particles(unsigned long msec) const {
 	std::list<ParticleSystem*>::const_iterator piter = psys.begin();
 	while(piter != psys.end()) {
 		(*piter++)->draw();
 	}
-
-	level--;
 }
 
+// TODO: optimize this...
+void Scene::render_svol(int lidx, unsigned long msec) const {
+	std::list<Object *>::const_iterator iter = objects.begin();
+	while(iter != objects.end()) {
+		Object *obj = *iter++;
+		RenderParams rp = obj->get_render_params();
+
+		if(!rp.hidden && rp.cast_shadows && obj->get_material_ptr()->alpha > 0.995) {
+			Matrix4x4 xform = obj->get_prs(msec).get_xform_matrix();
+			Matrix4x4 inv_xform = xform.inverse();
+
+			Vector3 lt;
+			bool is_dir = false;
+			if(dynamic_cast<DirLight*>(lights[lidx])) {
+				lt = ((DirLight*)lights[lidx])->get_direction();
+				lt.transform(Matrix3x3(inv_xform));
+				is_dir = true;
+			} else {
+				lt = lights[lidx]->get_position(msec);
+				lt.transform(inv_xform);
+			}
+			
+			TriMesh *vol = obj->get_mesh_ptr()->get_shadow_volume(lt, is_dir);
+			set_matrix(XFORM_WORLD, xform);
+			draw(*vol->get_vertex_array(), *vol->get_index_array());
+			delete vol;
+		}
+	}
+}
 
 void Scene::render_cube_map(Object *obj, unsigned long msec) const {
 	Scene *non_const_this = const_cast<Scene*>(this);
@@ -357,7 +493,13 @@ void Scene::render_cube_map(Object *obj, unsigned long msec) const {
 		clear(bg_color);
 		clear_zbuffer_stencil(1.0, 0);
 		render(msec);
-		dsys::overlay(0, Vector2(0,0), Vector2(1,1), Color(0, 0, 0, 1 - mat->env_intensity));
+
+		Color overlay_color = mat->specular_color * mat->env_intensity;
+		set_alpha_blending(true);
+		set_blend_func(BLEND_ZERO, BLEND_SRC_COLOR);
+		dsys::overlay(0, Vector2(0,0), Vector2(1,1), overlay_color, 0, false);
+		set_alpha_blending(false);
+		
 		set_render_target(0);
 	}
 
@@ -393,12 +535,24 @@ bool Scene::render_all_cube_maps(unsigned long msec) const {
 		RenderParams rp = obj->get_render_params();
 		if(rp.hidden) continue;
 
-		if(mat->auto_refl) {
-			if(mat->auto_refl_upd > 1 && frame_count % mat->auto_refl_upd) continue;
-		} else {
-			if(!first_render) continue;
+		// if it is marked as a non-automatically updated reflection map, skip it.
+		if(!mat->auto_refl) {
+			continue;
+		}
+
+		// if auto-reflect is set for updating every nth frame,
+		// and this is not one of them, skip it.
+		if(mat->auto_refl_upd > 1 && frame_count % mat->auto_refl_upd) {
+			continue;
 		}
 		
+		// if auto-reflect is set to update only during the first frame,
+		// and this is not the first frame, skip it.
+		if(mat->auto_refl_upd == 0 && !first_render) {
+			continue;
+		}
+		
+		// ... otherwise, update the reflection in the cubemap.
 		if((env = mat->get_texture(TEXTYPE_ENVMAP))) {
 			if(env->get_type() == TEX_CUBE) {
 				did_some = true;
@@ -408,4 +562,55 @@ bool Scene::render_all_cube_maps(unsigned long msec) const {
 	}
 
 	return did_some;
+}
+
+#include "fxwt/text.hpp"
+#if defined(unix) || defined(__unix__)
+#include <unistd.h>
+#include <sys/stat.h>
+#endif	// __unix__
+
+void Scene::render_sequence(unsigned long start, unsigned long end, int fps, const char *out_dir) {
+#if defined(unix) || defined(__unix__)
+	// change to the specified directory
+	char curr_dir[PATH_MAX];
+	getcwd(curr_dir, PATH_MAX);
+
+	struct stat sbuf;
+	if(stat(out_dir, &sbuf) == -1) {
+		mkdir(out_dir, 0770);
+	}	
+	
+	chdir(out_dir);
+#endif	// __unix__
+
+	warning("Sequence rendering is experimental; this may make the program unresponsive while it renders, be patient.");
+
+	// render frames until we reach the end time
+	unsigned long time = start;
+	unsigned long dt = 1000 / fps;
+
+	while(time < end) {
+		render(time);
+		screen_capture();
+
+		// draw progress bar
+		scalar_t t = (scalar_t)time / (scalar_t)(end - start);
+		set_zbuffering(false);
+		set_lighting(false);
+		set_alpha_blending(true);
+		set_blend_func(BLEND_ONE_MINUS_DST_COLOR, BLEND_ZERO);
+		draw_scr_quad(Vector3(0.0, 0.49), Vector3(t, 0.51), Color(1, 1, 1));
+		set_blend_func(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+		set_alpha_blending(false);
+		set_lighting(true);
+		set_zbuffering(true);
+		
+		flip();
+		time += dt;
+	}
+
+#if defined(unix) || defined(__unix__)
+	chdir(curr_dir);
+#endif	// __unix__
 }

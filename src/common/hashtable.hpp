@@ -28,8 +28,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _HASHTABLE_HPP_
 #define _HASHTABLE_HPP_
 
+#include <iostream>
 #include <list>
 #include <vector>
+#include <algorithm>
 
 template <class KeyT, class ValT> 
 struct Pair {
@@ -59,7 +61,7 @@ public:
 
 	Pair<KeyType, ValType> *find(KeyType key);
 
-	void SetDataDestructor(void (*destructor)(ValType));
+	void set_data_destructor(void (*destructor)(ValType));
 };
 
 
@@ -75,14 +77,18 @@ template <class KeyType, class ValType>
 HashTable<KeyType, ValType>::~HashTable() {
 	for(unsigned long i=0; i<size; i++) {
 		if(data_destructor) {
+			std::list<ValType> hacklist;
+
 			typename std::list<Pair<KeyType, ValType> >::iterator iter = table[i].begin();
 			while(iter != table[i].end()) {
-				data_destructor(iter->val);
-				iter++;
+				if(std::find(hacklist.begin(), hacklist.end(), iter->val) == hacklist.end()) {
+					hacklist.push_back(iter->val);
+					data_destructor((iter++)->val);
+				}
 			}
 		}
 			
-		table[i].erase(table[i].begin(), table[i].end());
+		table[i].clear();
 	}
 }
 
@@ -133,7 +139,7 @@ Pair<KeyType, ValType> *HashTable<KeyType, ValType>::find(KeyType key) {
 }
 
 template <class KeyType, class ValType>
-void HashTable<KeyType, ValType>::SetDataDestructor(void (*destructor)(ValType)) {
+void HashTable<KeyType, ValType>::set_data_destructor(void (*destructor)(ValType)) {
 	data_destructor = destructor;
 }
 

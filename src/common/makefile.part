@@ -1,0 +1,8 @@
+common_obj =\
+	src/common/config_parser.o\
+	src/common/timer.o\
+	src/common/string_hash.o\
+	src/common/fps_counter.o\
+	src/common/err_msg.o\
+	src/common/locator.o\
+	src/common/byteorder.o

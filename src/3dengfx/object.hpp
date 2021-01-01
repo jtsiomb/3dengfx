@@ -46,38 +46,58 @@ struct RenderParams {
 	bool hidden;
 	bool show_normals;
 	scalar_t show_normals_scale;
+	bool highlight;
+	Color highlight_color;
+	scalar_t highlight_line_width;
 	bool two_sided;
-
+	bool use_vertex_color;
+	TextureAddressing taddr;
+	bool auto_normalize;
+	bool cast_shadows;
+	
 	RenderParams();
 };
 
+enum {
+	RMODE_COLOR			= 1,		// unused
+	RMODE_LIGHTING		= 2,		// unused
+	RMODE_TEXTURES		= 4,
+	RMODE_BLENDING		= 8,
+	RMODE_SHADERS		= 16,
+	RMODE_ALL			= 0xffff
+};
+
+// this bitfield determines which aspects of rendering will actually take place
+// it overrides all render parameters.
+extern unsigned long master_render_mode;
+
 class Object : public XFormNode {
 private:
-	TriMesh mesh;
-	Material mat;
 	Matrix4x4 world_mat;
 	RenderParams render_params;
 	BoundingVolume *bvol;
 	bool bvol_valid;
 	
-	//void render2tex_units();
-	//void render4tex_units();
-	
-	void render8tex_units();
 	void render_hack(unsigned long time);
 
 	void draw_normals();
+	void draw_highlight();
 	
 	void setup_bump_light(unsigned long time);
 	void update_bounding_volume();
 	
 public:
+	TriMesh mesh;
+	Material mat;
+	
 	Object();
 	Object(const TriMesh &mesh);
+	~Object();
 	
-	void set_tri_mesh(const TriMesh &mesh);
-	TriMesh *get_tri_mesh_ptr();
-	TriMesh get_tri_mesh() const;
+	void set_mesh(const TriMesh &mesh);
+	TriMesh *get_mesh_ptr();
+	TriMesh &get_mesh();
+	const TriMesh &get_mesh() const;
 
 	// shortcut functions for accessing the geometry easily
 	unsigned long get_vertex_count() const;
@@ -109,7 +129,14 @@ public:
 	void set_hidden(bool enable);
 	void set_show_normals(bool enable);
 	void set_show_normals_scale(scalar_t scale);
+	void set_highlight(bool enable);
+	void set_highlight_color(const Color &color);
+	void set_highlight_line_width(scalar_t width);
 	void set_auto_global(bool enable);
+	void set_use_vertex_color(bool enable);
+	void set_texture_addressing(TextureAddressing taddr);
+	void set_auto_normalize(bool enable);
+	void set_shadow_casting(bool enable);
 
 	void apply_xform(unsigned long time = XFORM_LOCAL_PRS);
 
@@ -117,6 +144,39 @@ public:
 	void normalize_normals();
 	
 	bool render(unsigned long time = XFORM_LOCAL_PRS);
+};
+
+
+// --- some convinient derived objects for geom. generation ---
+
+class ObjCube : public Object {
+public:
+	ObjCube(scalar_t sz, int subdiv);
+};
+
+class ObjPlane : public Object {
+public:
+	ObjPlane(const Vector3 &normal = Vector3(0, 1, 0), const Vector2 &size = Vector2(1, 1), int subdiv = 0);
+};
+
+class ObjCylinder : public Object {
+public:
+	ObjCylinder(scalar_t rad = 1.0, scalar_t len = 1.0, bool caps = true, int udiv = 12, int vdiv = 0);
+};
+
+class ObjSphere : public Object {
+public:
+	ObjSphere(scalar_t radius = 1.0, int subdiv = 5);
+};
+
+class ObjTorus : public Object {
+public:
+	ObjTorus(scalar_t circle_rad = 0.5, scalar_t revolv_rad = 1.0, int subdiv = 5);
+};
+
+class ObjTeapot : public Object {
+public:
+	ObjTeapot(scalar_t size = 1.0, int subdiv = 5);
 };
 
 #endif	// _OBJECT_HPP_

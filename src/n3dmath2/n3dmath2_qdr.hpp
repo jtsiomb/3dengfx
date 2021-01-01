@@ -109,5 +109,6 @@ public:
 
 // utility functions
 bool point_over_plane(const Plane &plane, const Vector3 &point);
+bool check_tri_ray_intersection(const Vector3 &v1, const Vector3 &v2, const Vector3 &v3, const Ray &ray);
 
 #endif	// _N3DMATH2_QDR_HPP_

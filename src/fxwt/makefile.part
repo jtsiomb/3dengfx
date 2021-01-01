@@ -1,0 +1,13 @@
+fxwt_obj =\
+	src/fxwt/fxwt.o\
+	src/fxwt/text.o\
+	src/fxwt/fxwt_sdl.o\
+	src/fxwt/init_sdl.o\
+	src/fxwt/fxwt_x.o\
+	src/fxwt/init_x.o\
+	src/fxwt/fxwt_win32.o\
+	src/fxwt/init_win32.o\
+	src/fxwt/fxwt_glut.o\
+	src/fxwt/init_glut.o\
+	src/fxwt/fxwt_gtk.o\
+	src/fxwt/init_gtk.o

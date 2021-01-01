@@ -23,9 +23,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * author: John Tsiombikas 2005
  */
 
+#ifndef _SDRMAN_HPP_
+#define _SDRMAN_HPP_
+
 #include "gfxprog.hpp"
 
 Shader add_shader_file(const char *fname, int sdr_type);
 Shader add_shader_string(const char *code, int sdr_type, const char *name = 0);
 Shader get_shader(const char *name, int sdr_type);
 void destroy_shaders();
+
+#endif	// _SDRMAN_HPP_

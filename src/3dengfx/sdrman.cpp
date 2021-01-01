@@ -38,11 +38,15 @@ using std::string;
 using namespace glext;
 static HashTable<string, Shader> *shaders;
 
+static void delete_object(GLhandleARB obj) {
+	glDeleteObject(obj);
+}
+
 static void init_sdr_man() {
 	if(shaders) return;
 	shaders = new HashTable<string, Shader>;
 	shaders->set_hash_function(string_hash);
-	shaders->SetDataDestructor(glDeleteObject);
+	shaders->set_data_destructor(delete_object);
 }
 
 static inline bool check_shader_caps(int sdr_type, const char *name) {

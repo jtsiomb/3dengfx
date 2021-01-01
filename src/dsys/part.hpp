@@ -29,7 +29,8 @@ namespace dsys {
 	class Part {
 	protected:
 		char *name;
-		ntimer timer;
+		//ntimer timer;
+		unsigned long start_time;
 		unsigned long time;
 		dsys::RenderTarget target;
 		bool clear_fb;

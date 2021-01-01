@@ -47,6 +47,7 @@ namespace engfx_state {
 }
 
 bool create_graphics_context(const GraphicsInitParameters &gip);
+bool create_graphics_context(int x, int y, bool fullscreen);
 bool start_gl();
 void destroy_graphics_context();
 void set_default_states();
@@ -62,9 +63,9 @@ void flip();
 void load_xform_matrices();
 void draw(const VertexArray &varray);
 void draw(const VertexArray &varray, const IndexArray &iarray);
-void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2 = -1.0);
+void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2 = -1.0, const Color &col = 1.0);
 void draw_point(const Vertex &pt, scalar_t size);
-void draw_full_quad(const Vector2 &corner1, const Vector2 &corner2, const Color &color = Color(1.0));
+void draw_scr_quad(const Vector2 &corner1, const Vector2 &corner2, const Color &color = Color(1.0), bool reset_xform = true);
 
 int get_texture_unit_count();
 
@@ -101,11 +102,13 @@ void set_texture_filtering(int tex_unit, TextureFilteringType tex_filter);
 void set_texture_addressing(int tex_unit, TextureAddressing uaddr, TextureAddressing vaddr);
 void set_texture_border_color(int tex_unit, const Color &color);
 void set_texture(int tex_unit, const Texture *tex);
-//void set_texture_factor(dword factor);
+//void set_texture_factor(unsigned int factor);
 void set_mip_mapping(bool enable);
 void set_material(const Material &mat);
+void use_vertex_colors(bool enable);
 
 void set_render_target(Texture *tex, CubeMapFace cube_map_face = CUBE_MAP_PX);
+void copy_texture(Texture *tex, bool full_screen = false);
 
 // multitexturing interface
 void select_texture_unit(int tex_unit);
@@ -127,14 +130,18 @@ void set_lighting(bool enable);
 //void set_color_vertex(bool enable);
 void set_ambient_light(const Color &ambient_color);
 void set_shading_mode(ShadeMode mode);
-void set_specular(bool enable);
+//void set_specular(bool enable);
 
 void set_bump_light(const Light *light);
 
 // Transformation Matrices
 void set_matrix(TransformType xform_type, const Matrix4x4 &mat, int num = 0);
 Matrix4x4 get_matrix(TransformType xform_type, int num = 0);
+
+// viewport
 void set_viewport(unsigned int x, unsigned int y, unsigned int xsize, unsigned int ysize);
+// normalized set_viewport()
+void set_viewport_norm(float x, float y, float xsize, float ysize);
 
 Matrix4x4 create_projection_matrix(scalar_t vfov, scalar_t aspect, scalar_t near, scalar_t far);
 

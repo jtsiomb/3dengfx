@@ -32,7 +32,7 @@ static struct ConfigOption cfg_opt;
 
 static char *config_file, *cfgptr;
 
-void set_parser_state(enum ParserState state, int value) {
+void set_parser_state(enum ParserState state, long value) {
 	switch(state) {
 	case PS_AssignmentSymbol:
 		sym_assign = (char)value;

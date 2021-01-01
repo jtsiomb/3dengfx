@@ -169,6 +169,14 @@ int get_next_command(DemoScript *ds, DemoCommand *cmd, unsigned long time) {
 	return 0;
 }
 
+void free_command(DemoCommand *cmd) {
+	int i;
+	for(i=0; i<cmd->argc; i++) {
+		free((void*)cmd->argv[i]);
+	}
+	free(cmd->argv);
+}
+
 long str_to_time(const char *str) {
 	long time;
 	

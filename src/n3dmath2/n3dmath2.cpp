@@ -132,6 +132,17 @@ Vector3 bezier_tangent(const Vector3 &p0, const Vector3 &p1, const Vector3 &p2, 
 	return p8 - p7;
 }
 
+
+// -- point / line distance in 2D --
+scalar_t dist_line(const Vector2 &p1, const Vector2 &p2, const Vector2 &p) {
+	if(p1.x == p2.x && p1.y == p2.y) return 0;	// avoid div/zero
+	scalar_t t = dot_product(p - p1, p2 - p1) / (p2 - p1).length_sq();
+
+	Vector2 pt = p1 + (p2 - p1) * t;
+	return (p - pt).length();
+}
+
+
 Basis::Basis() {
 	i = Vector3(1, 0, 0);
 	j = Vector3(0, 1, 0);

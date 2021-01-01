@@ -1,7 +1,7 @@
 /*
-Copyright 2004 John Tsiombikas <nuclear@siggraph.org>
-
 This file is part of the 3dengfx, realtime visualization system.
+
+Copyright (C) 2004, 2005 John Tsiombikas <nuclear@siggraph.org>
 
 3dengfx is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,7 +23,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * Author: John Tsiombikas 2004
  */
 
+#include "3dengfx_config.h"
+
 #if GFX_LIBRARY == SDL
+
+#include <stdlib.h>
+#include "init.hpp"
+#include "gfx_library.h"
+#include "3dengfx/3denginefx.hpp"
+#include "common/err_msg.h"
 
 bool fxwt::init_graphics(GraphicsInitParameters *gparams) {
 	info("Initializing SDL");
@@ -38,7 +46,7 @@ bool fxwt::init_graphics(GraphicsInitParameters *gparams) {
 		gparams->bpp = vid_inf->vfmt->BitsPerPixel;
 	}
 
-	info("Trying to set video mode %dx%dx%d, d:%d s:%d %s",gparams->x, gparams->y, gparams->bpp, gparams->depth_bits, gparams->stencil_bits, gparams->fullscreen ? "fullscreen" : "windowed");
+	info("Trying to set video mode %dx%dx%d, d:%d s:%d %s", gparams->x, gparams->y, gparams->bpp, gparams->depth_bits, gparams->stencil_bits, gparams->fullscreen ? "fullscreen" : "windowed");
 	
 	int rbits, gbits, bbits;
 	switch(gparams->bpp) {
@@ -47,8 +55,8 @@ bool fxwt::init_graphics(GraphicsInitParameters *gparams) {
 		break;
 		
 	case 16:
-		rbits = bbits = 6;
-		gbits = 5;
+		rbits = bbits = 5;
+		gbits = 6;
 		break;
 		
 	default:

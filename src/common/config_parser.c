@@ -47,7 +47,7 @@ void set_parser_state(enum ParserState state, long value) {
 		break;
 		
 	case PS_Seperators:
-		strncpy(seperators, (char*)value, 257);
+		strncpy(seperators, (char*)value, sizeof seperators - 1);
 		break;
 	}
 }

@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifdef IMGLIB_USE_PNG
 
 #include <stdlib.h>
+#include <string.h>
 #include <png.h>
 #include "color_bits.h"
 #include "common/types.h"
@@ -49,7 +50,7 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	png_struct *png_ptr;
 	png_info *info_ptr;
 	int i;
-	uint32_t **lineptr, *pixels;
+	uint32_t **lineptr, *pixels, width, height;
 	int channel_bits, color_type, ilace_type, compression, filtering;
 	
 	if(!(png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0))) {
@@ -74,30 +75,30 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
 		
-	png_get_IHDR(png_ptr, info_ptr, xsz, ysz, &channel_bits, &color_type, &ilace_type, &compression, &filtering);
-	pixels = malloc(*xsz * *ysz * sizeof(uint32_t));
+	png_get_IHDR(png_ptr, info_ptr, &width, &height, &channel_bits, &color_type, &ilace_type, &compression, &filtering);
+	pixels = malloc(width * height * sizeof(uint32_t));
 	
 	lineptr = (uint32_t**)png_get_rows(png_ptr, info_ptr);
 	
-	for(i=0; i<*ysz; i++) {
+	for(i=0; i<height; i++) {
 		
 		switch(color_type) {
 		case PNG_COLOR_TYPE_RGB:
 			{
 				int j;
 				unsigned char *ptr = (unsigned char*)lineptr[i];
-				for(j=0; j<*xsz; j++) {
+				for(j=0; j<width; j++) {
 			
 					uint32_t pixel;
 					pixel = PACK_COLOR24(*(ptr+2), *(ptr+1), *ptr);
 					ptr+=3;
-					pixels[i * *xsz + j] = pixel;			
+					pixels[i * width + j] = pixel;
 				}
 			}
 			break;
 			
 		case PNG_COLOR_TYPE_RGB_ALPHA:
-			memcpy(&pixels[i * *xsz], lineptr[i], *xsz * sizeof(uint32_t));
+			memcpy(&pixels[i * width], lineptr[i], width * sizeof(uint32_t));
 			break;
 			
 		default:
@@ -110,7 +111,9 @@ void *load_png(FILE *fp, unsigned long *xsz, unsigned long *ysz) {
 	
 	png_destroy_read_struct(&png_ptr, &info_ptr, 0);
 	fclose(fp);
-	
+
+	*xsz = width;
+	*ysz = height;
 	return pixels;
 }
 

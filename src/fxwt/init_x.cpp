@@ -135,10 +135,10 @@ bool fxwt::init_graphics(GraphicsInitParameters *gparams) {
 		return false;
 	}
 
-	// now if we don't have DONT_CARE_DEPTH in the dont_care_flags check for 
+	// now if we don't have DONT_CARE_DEPTH in the dont_care_flags check for
 	// exact depth buffer format, however consider 24 and 32 bit the same
 	if(!(gparams->dont_care_flags & DONT_CARE_DEPTH) && azbits != zbits) {
-		if(!(zbits == 32 && azbits == 24 || zbits == 24 && azbits == 32)) {
+		if(!((zbits == 32 && azbits == 24) || (zbits == 24 && azbits == 32))) {
 			error("%s: Could not set requested exact zbuffer depth", __func__);
 			XFree(vis_info);
 			XCloseDisplay(dpy);
@@ -231,7 +231,7 @@ bool fxwt::init_graphics(GraphicsInitParameters *gparams) {
 	long events = ExposureMask | StructureNotifyMask | KeyPressMask;	// expose and key events
 	events |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask;	// mouse events
 	XSelectInput(dpy, win, events);
-		
+
 	// set WM cooperation settings
 	Atom wm_delete = XInternAtom(dpy, "WM_DELETE_WINDOW", True);
 	XSetWMProtocols(dpy, win, &wm_delete, 1);

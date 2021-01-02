@@ -57,7 +57,7 @@ void dsys::radial_blur(Texture *tex, float ammount, const Vector2 &origin, bool 
 		v2 += origin;
 		
 		float alpha = (float)((quad_count-1) - i) / (float)quad_count;
-		dsys::overlay(tex, v1, v2, Color(1.0f, 1.0f, 1.0f, alpha), false);
+		dsys::overlay(tex, v1, v2, Color(1.0f, 1.0f, 1.0f, alpha), 0, false);
 		scale += dscale;
 	}
 

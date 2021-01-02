@@ -1,0 +1,17 @@
+*.o
+*.d
+*.swp
+*.a
+*.so*
+src/3dengfx_config.h
+3dengfx-config
+Makefile
+*.conf
+*.log
+examples/beginner/black_screen/black_screen
+examples/beginner/fractal_landscape/fractal_landscape
+examples/beginner/rend_tex/rend_tex
+examples/beginner/shadows/shadows
+examples/beginner/simple1/simple1
+examples/model_view/model_view
+examples/scene_view/scene_view

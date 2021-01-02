@@ -522,10 +522,7 @@ void Object::setup_bump_light(unsigned long time) {
 
 	
 	Vector3 *utan = new Vector3[vcount];
-	memset(utan, 0, vcount * sizeof(Vector3));
-
 	Vector3 *vtan = new Vector3[vcount];
-	memset(vtan, 0, vcount * sizeof(Vector3));
 
 	for(int i=0; i<tcount; i++) {
 		Vertex *v1 = &varray[tptr->vertices[0]];

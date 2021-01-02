@@ -187,7 +187,7 @@ GraphicsInitParameters *load_graphics_context_config(const char *fname) {
 			gip.x = atoi(cfgopt->str_value);
 			
 			char *ptr = cfgopt->str_value;
-			while(*ptr && *ptr != 'x') *ptr++;
+			while(*ptr && *ptr != 'x') ptr++;
 			if(!*ptr || !*(ptr+1) || !isdigit(*(ptr+1))) {
 				error("%s: error parsing config file %s", __func__, fname);
 				return 0;

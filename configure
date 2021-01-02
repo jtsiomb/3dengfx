@@ -83,7 +83,7 @@ prefix=/usr/local
 gfx=native
 png=yes
 jpeg=yes
-ft=no
+ft=yes
 xf86vm=no
 coord=lhs
 opt=yes
@@ -205,7 +205,7 @@ echo 'creating Makefile ...'
 echo '# This makefile is generated from the configure script, DO NOT EDIT!' >Makefile
 echo "PREFIX = $prefix" >>Makefile
 if [ "$debug" = 'yes' ]; then echo "dbg = -g" >>Makefile; fi
-if [ "$opt" = 'yes' ]; then echo "opt = -O1 -ffast-math -fomit-frame-pointer" >>Makefile; fi
+if [ "$opt" = 'yes' ]; then echo "opt = -O3 -ffast-math" >>Makefile; fi
 if [ "$arch" != '' ]; then echo "arch = $arch" >>Makefile; fi
 if [ "`uname -s | grep MINGW | wc -c`" = '0' ]; then echo "pic = -fPIC" >>Makefile; fi
 echo "CC = @echo -- compiling $< \\(C\\) ...; $CC" >>Makefile

@@ -15,6 +15,8 @@ void clean_up();
 void update_gfx();
 bool assign_shaders();
 
+GraphicsInitParameters *gip;
+
 Scene *scene;
 Camera *cam;
 std::list<Camera*> *cam_list;
@@ -22,14 +24,24 @@ std::list<Camera*>::iterator cam_iter;
 PointLight *cam_light;
 bool cam_light_on;
 ntimer timer;
-fps_counter fps;
 
 const char *title_str = "3dengfx scene viewer";
 const char *data_dir, *scene_file;
+const char *rend_dir = "frames/";
+
+bool render = false;
+unsigned long rend_start, rend_end;
+int fps = 25;
 
 const char *help_str = " [options] <scene file name>\n\n"
 	"-d <path>, --data <path>\n"
 	"\tSet the data file path, it will look there for the textures.\n\n"
+	"-r <start>-<end>, --render <start>-<end>\n"
+	"\tRender the scene during the specified interval as a targa sequence.\n\n"
+	"-f <fps>, --fps <fps>\n"
+	"\tSet the rendering framerate for -r.\n\n"
+	"-p <path>, --render-path <path>\n"
+	"\tSet the directory in which to render the sequnce for -r.\n\n"
 	"-h, --help\n"
 	"\tThis help screen\n\n";
 
@@ -39,6 +51,30 @@ int main(int argc, char **argv) {
 		if(argv[i][0] == '-') {
 			if(!strcmp(argv[i], "-d") || !strcmp(argv[i], "--data")) {
 				data_dir = argv[++i];
+			} else if(!strcmp(argv[i], "-r") || !strcmp(argv[i], "--render")) {
+				render = true;
+				i++;
+				char *dash;
+				if(!isdigit(argv[i][0]) || !(dash = strchr(argv[i], '-'))) {
+					cerr << "wrong argument to -r (--render): " << argv[i] << endl;
+					return -1;
+				}
+				rend_start = atol(argv[i]);
+
+				if(!isdigit(*++dash)) {
+					cerr << "wrong argument to -r (--render): " << argv[i] << endl;
+					return -1;
+				}
+				rend_end = atol(dash);
+
+			} else if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "--fps")) {
+				if(!isdigit(argv[++i][0])) {
+					cerr << "wrong argument to -f (--fps): " << argv[i] << endl;
+					return -1;
+				}
+				fps = atoi(argv[i]);
+			} else if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--render-path")) {
+				rend_dir = argv[++i];
 			} else if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
 				cout << "usage: " << argv[0] << help_str << endl;
 				return 0;
@@ -67,13 +103,12 @@ int main(int argc, char **argv) {
 bool init() {
 	const char *cfg_file = loc_get_path("3dengfx.conf", LOC_FILE_CONFIG);
 	
-	GraphicsInitParameters *gip;
 	if(!cfg_file || !(gip = load_graphics_context_config(cfg_file))) {
 		warning("couldn't %s the config file \"3dengfx.conf\", using defaults\n", cfg_file ? "load" : "locate");
 		
-		static GraphicsInitParameters init;
-		init.x = 800;
-		init.y = 600;
+		GraphicsInitParameters init;
+		init.x = render ? 512 : 800;
+		init.y = render ? 384 : 600;
 		init.bpp = 32;
 		init.depth_bits = 32;
 		init.fullscreen = false;
@@ -116,7 +151,13 @@ bool init() {
 	timer_reset(&timer);
 	timer_start(&timer);
 
-	fps_start(&fps, 0, 1000);
+	if(render) {
+		scene->render_sequence(rend_start, rend_end, fps, rend_dir);
+		unsigned long msec = timer_getmsec(&timer);
+		cout << "rendering took: " << (float)msec / 1000.0f << "s\n";
+		return false;
+	}
+
 	return true;
 }
 
@@ -128,12 +169,6 @@ void update_gfx() {
 	fxwt::print_text("3dengfx scene viewer", Vector2(0.01, 0.01), 0.045);
 
 	flip();
-
-	if(fps_frame_proc(&fps, timer_getmsec(&timer))) {
-		stringstream buf;
-		buf << title_str << " [frame-polygons: " << scene->get_frame_poly_count() << " fps: " << fps_get_frame_rate(&fps) << "]";
-		fxwt::set_window_title(buf.str().c_str());
-	}
 }
 
 void clean_up() {

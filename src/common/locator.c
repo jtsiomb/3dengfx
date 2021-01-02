@@ -16,7 +16,10 @@ NO WARANTY whatsoever is provided with this library, use it at your own risk.
 #endif	/* HAVE_CONFIG */
 
 #ifdef __unix__
+
+#ifndef __USE_BSD
 #define __USE_BSD	/* to include readlink() prototype */
+#endif
 #include <unistd.h>
 
 #define DIR_SEP		'/'

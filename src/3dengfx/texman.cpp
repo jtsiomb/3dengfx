@@ -56,7 +56,12 @@ static void init_tex_man() {
 void add_texture(Texture *texture, const char *fname) {
 	
 	if(!textures) init_tex_man();
-	
+
+	if(textures->find_first_val(texture)) {
+		error("trying to insert the same texture (%s) twice! ignoring.\n", fname ? fname : "unnamed");
+		return;
+	}
+
 	if(!fname) {	// enter a randomly named texture
 		textures->insert(tmpnam(0), texture);
 	} else {

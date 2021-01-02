@@ -179,4 +179,9 @@ public:
 	ObjTeapot(scalar_t size = 1.0, int subdiv = 5);
 };
 
+class ObjLandscape : public Object {
+public:
+	ObjLandscape(const Vector2 &size, int mesh_detail, scalar_t max_height, int iter, scalar_t roughness = 0.5, int seed = -1);
+};
+
 #endif	// _OBJECT_HPP_

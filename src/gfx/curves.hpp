@@ -50,7 +50,7 @@ protected:
 	scalar_t ease(scalar_t t) const;
 
 	Vector3 (*xform_cv)(const Vector3 &pt);
-	
+
 	virtual Vector3 interpolate(scalar_t t) const = 0;
 
 public:

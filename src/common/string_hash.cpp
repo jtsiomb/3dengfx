@@ -1,6 +1,7 @@
 // This code belongs to the public domain.
 
 #include <string>
+#include <string.h>
 
 /*
  * Hashing algorithm for strings from:

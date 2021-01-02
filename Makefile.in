@@ -64,6 +64,8 @@ install:
 	@echo "installing libraries to $(PREFIX)/lib ..."
 	@install lib3dengfx.a		$(PREFIX)/lib/
 	@install $(libname)			$(PREFIX)/lib/
+	@rm -f $(PREFIX)/lib/$(soname)
+	@rm -f $(PREFIX)/lib/lib3dengfx.so
 	@ln -s $(PREFIX)/lib/$(libname) $(PREFIX)/lib/$(soname)
 	@ln -s $(PREFIX)/lib/$(libname) $(PREFIX)/lib/lib3dengfx.so
 	@echo "installing binaries to $(PREFIX)/bin ..."
@@ -88,7 +90,6 @@ install:
 	@install src/sim/*.hpp		$(PREFIX)/include/3dengfx/sim/
 	@install src/common/*.hpp	$(PREFIX)/include/3dengfx/common/
 	@install src/common/*.h		$(PREFIX)/include/3dengfx/common/
-	@install src/common/*.inl	$(PREFIX)/include/3dengfx/common/
 	@echo "don't forget to set LD_LIBRARY_PATH or run ldconfig if necessary"
 
 

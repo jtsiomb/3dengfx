@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
-#include <3dengfx_config.h>
+#include "3dengfx_config.h"
 
 #if GFX_LIBRARY == SDL
 #define GFX_CFLAGS	"sdl-config --cflags"
-#define GFX_LIBS	"echo `sdl-config --libs` -lGL"
+#define GFX_LIBS	"sdl-config --libs"
 
 #elif GFX_LIBRARY == GTK
 #define GFX_CFLAGS	"pkg-config --cflags gtk+-2.0 gtkglext-1.0"
@@ -123,7 +123,7 @@ void print_libs_no_3dengfx(void) {
 	FILE *p;
 	int c;
 		
-	printf("%s %s ", LD_JPEG, LD_PNG);
+	printf("-lGL %s %s ", LD_JPEG, LD_PNG);
 
 	if((p = popen(GFX_LIBS, "r"))) {
 		while((c = fgetc(p)) != -1) {

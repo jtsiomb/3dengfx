@@ -719,6 +719,8 @@ std::vector<Edge> *TriMesh::get_contour_edges(const Vector3 &pov_or_dir, bool di
 		}
 	}
 
+	delete [] vert_edge;
+
 	return &cont_edges;
 }
 

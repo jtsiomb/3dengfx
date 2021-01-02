@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Simulation::Simulation(scalar_t timeslice) {
 	this->timeslice = timeslice;
+	prev_update = 0.0;
 	timer_reset(&timer);
 }
 
@@ -49,8 +50,8 @@ void Simulation::update() {
 }
 
 void Simulation::update(unsigned long msec) {
-	scalar_t time = (scalar_t)msec / 1000.0;
-	int updates_missed = (int)round((time - prev_update) / timeslice);
+	//scalar_t time = (scalar_t)msec / 1000.0;
+	int updates_missed = (int)round((msec - prev_update) / timeslice);
 
 	if(!updates_missed) return;	// less than a timeslice has elapsed, nothing to do
 

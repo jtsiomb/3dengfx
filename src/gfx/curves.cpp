@@ -51,12 +51,12 @@ void Curve::set_arc_parametrization(bool state) {
 	arc_parametrize = state;
 }
 
-#define Param	0
-#define ArcLen	1
+#define PARAM	0
+#define ARCLEN	1
 
 void Curve::sample_arc_lengths() {
-	const int samplesPerSegment = 30;
-	sample_count = get_segment_count() * samplesPerSegment;
+	const int samples_per_segment = 30;
+	sample_count = get_segment_count() * samples_per_segment;
 
 	arc_parametrize = false;	// to be able to interpolate with the original values
 
@@ -66,19 +66,19 @@ void Curve::sample_arc_lengths() {
 	for(int i=0; i<sample_count; i++) {
 		scalar_t t = step * (scalar_t)i;
 		Vector3 pos = interpolate(t);
-		samples[i][Param] = t;
+		samples[i][PARAM] = t;
 		if(!i) {
-			samples[i][ArcLen] = 0.0f;
+			samples[i][ARCLEN] = 0.0f;
 		} else {
-			samples[i][ArcLen] = (pos - prevpos).length() + samples[i-1][ArcLen];
+			samples[i][ARCLEN] = (pos - prevpos).length() + samples[i-1][ARCLEN];
 		}
 		prevpos = pos;
 	}
 
 	// normalize arc lenghts
-	scalar_t maxlen = samples[sample_count-1][ArcLen];
+	scalar_t maxlen = samples[sample_count-1][ARCLEN];
 	for(int i=0; i<sample_count; i++) {
-		samples[i][ArcLen] /= maxlen;
+		samples[i][ARCLEN] /= maxlen;
 	}
 
 	arc_parametrize = true;
@@ -87,11 +87,11 @@ void Curve::sample_arc_lengths() {
 static int binary_search(Vector2 *array, scalar_t key, int begin, int end) {
 	int middle = begin + ((end - begin)>>1);
 
-	if(array[middle][ArcLen] == key) return middle;
+	if(array[middle][ARCLEN] == key) return middle;
 	if(end == begin) return middle;
 
-	if(key < array[middle][ArcLen]) return binary_search(array, key, begin, middle);
-	if(key > array[middle][ArcLen]) return binary_search(array, key, middle+1, end);
+	if(key < array[middle][ARCLEN]) return binary_search(array, key, begin, middle);
+	if(key > array[middle][ARCLEN]) return binary_search(array, key, middle+1, end);
 	return -1;	// just to make the compiler shut the fuck up
 }
 
@@ -99,8 +99,8 @@ scalar_t Curve::parametrize(scalar_t t) const {
 	if(!samples) const_cast<Curve*>(this)->sample_arc_lengths();
 
 	int samplepos = binary_search(samples, t, 0, sample_count);
-	scalar_t par = samples[samplepos][Param];
-	scalar_t len = samples[samplepos][ArcLen];
+	scalar_t par = samples[samplepos][PARAM];
+	scalar_t len = samples[samplepos][ARCLEN];
 
 	// XXX: I can't remember the significance of this condition, I had xsmall_number here
 	// previously and if t was 0.9999 it broke. I just changed the number blindly which fixed
@@ -109,14 +109,14 @@ scalar_t Curve::parametrize(scalar_t t) const {
 
 	if(len < t) {
 		if(!samplepos) return par;
-		scalar_t prevlen = samples[samplepos-1][ArcLen];
-		scalar_t prevpar = samples[samplepos-1][Param];
+		scalar_t prevlen = samples[samplepos-1][ARCLEN];
+		scalar_t prevpar = samples[samplepos-1][PARAM];
 		scalar_t p = (t - prevlen) / (len - prevlen);
 		return prevpar + (par - prevpar) * p;
 	} else {
 		if(samplepos >= sample_count) return par;
-		scalar_t nextlen = samples[samplepos+1][ArcLen];
-		scalar_t nextpar = samples[samplepos+1][Param];
+		scalar_t nextlen = samples[samplepos+1][ARCLEN];
+		scalar_t nextpar = samples[samplepos+1][PARAM];
 		scalar_t p = (t - len) / (nextlen - len);
 		return par + (nextpar - par) * p;
 	}

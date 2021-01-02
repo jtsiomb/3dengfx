@@ -108,7 +108,7 @@ bool fxwt::init_graphics(GraphicsInitParameters *gparams) {
 	// now if we don't have DONT_CARE_DEPTH in the dont_care_flags check for 
 	// exact depth buffer format, however consider 24 and 32 bit the same
 	if(!(gparams->dont_care_flags & DONT_CARE_DEPTH) && azbits != gparams->depth_bits) {
-		if(!(gparams->depth_bits == 32 && azbits == 24 || gparams->depth_bits == 24 && azbits == 32)) {
+		if(!((gparams->depth_bits == 32 && azbits == 24) || (gparams->depth_bits == 24 && azbits == 32))) {
 			error("%s: Could not set requested exact zbuffer depth", __func__);
 			return false;
 		}

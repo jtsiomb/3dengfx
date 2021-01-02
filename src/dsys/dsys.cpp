@@ -20,9 +20,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "3dengfx_config.h"
 
+#include <limits.h>
 #include <iostream>
 #include <string>
 #include <map>
+#include <algorithm>
 #include "dsys.hpp"
 #include "part.hpp"
 #include "fx.hpp"
@@ -75,30 +77,29 @@ bool dsys::init() {
 
 	int next_size_x, next_size_y;
 	
-	rtex_size_x = best_tex_size(scrx - 1);
-	rtex_size_y = best_tex_size(scry - 1);
+	rtex_size_x = best_tex_size(scrx);
+	rtex_size_y = best_tex_size(scry);
 	
 	next_size_x = rtex_size_x * 2;
 	next_size_y = rtex_size_y * 2;
 		
 	info("allocating dsys render targets:");
 
-	//if (!engfx_state::sys_caps.non_power_of_two_textures)
-	//{
+	if (!engfx_state::sys_caps.non_power_of_two_textures)
+	{
 		// make a high-res texture and 3 low-res
 		for(int i=0; i<4; i++) {
-			int x = (i > 1) ? rtex_size_x : next_size_x;
-			int y = (i > 1) ? rtex_size_y : next_size_y;
+			int x = i ? rtex_size_x : next_size_x;
+			int y = i ? rtex_size_y : next_size_y;
 			tex[i] = new Texture(x, y);
 			info("  %d - %dx%d", i, x, y);
 		}
 
 		tex_mat[0].set_scaling(Vector3((float)scrx / (float)next_size_x, (float)scry / (float)next_size_y, 1));
-		tex_mat[1].set_scaling(Vector3((float)scrx / (float)next_size_x, (float)scry / (float)next_size_y, 1));
-
+		tex_mat[1] = Matrix4x4::identity_matrix;
 		tex_mat[2] = Matrix4x4::identity_matrix;
 		tex_mat[3] = Matrix4x4::identity_matrix;
-	/*}
+	}
 	else
 	{
 		for (int i=0; i<4; i++)
@@ -107,7 +108,7 @@ bool dsys::init() {
 			info("  %d - %dx%d", i, scrx, scry);
 			tex_mat[i] = Matrix4x4::identity_matrix;
 		}
-	}*/
+	}
 
 	strcpy(script_fname, "demoscript");
 
@@ -187,7 +188,6 @@ bool dsys::start_demo() {
 	return true;
 }
 
-#define PATH_MAX 2048
 static char curr_dir[PATH_MAX];
 
 bool dsys::render_demo(int fps, const char *out_dir) {

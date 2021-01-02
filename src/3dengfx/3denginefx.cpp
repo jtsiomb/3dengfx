@@ -327,7 +327,7 @@ SysCaps get_system_capabilities() {
 }
 
 const char *get_glerror_string(GLenum error) {
-	if(!error) return gl_error_string[0x506];
+	if(!error) return gl_error_string[0x506 - 0x500];
 	if(error < 0x500 || error > 0x505) error = 0x507;
 	return gl_error_string[error - 0x500];
 }
@@ -516,15 +516,6 @@ bool start_gl() {
 }
 
 void destroy_graphics_context() {
-	static bool destroy_called_again = false;
-
-	if(destroy_called_again) {
-		warning("Multiple destroy_graphics_context() calls");
-		return;
-	} else {
-		destroy_called_again = true;
-	}
-
 	dsys::clean_up();
 	if(!gc_valid) return;
 	gc_valid = false;
@@ -725,7 +716,7 @@ void draw(const VertexArray &varray, const IndexArray &iarray) {
 /* draw_line(start_vertex, end_vertex, start_width, end_width)
  * Draws a line as a cylindrically billboarded elongated quad.
  */
-void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2, const Color &col) {
+void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2, const Color &col) {	
 	if(w2 < 0.0) w2 = w1;
 
 	Vector3 p1 = v1.pos;
@@ -747,10 +738,10 @@ void draw_line(const Vertex &v1, const Vertex &v2, scalar_t w1, scalar_t w2, con
 	load_xform_matrices();
 
 	Vertex quad[] = {
-		Vertex(Vector3(-w1, 0, 0), v1.tex[0].u, 0.0, col),
-		Vertex(Vector3(-w2, len, 0), v2.tex[0].u, 0.0, col),
-		Vertex(Vector3(w2, len, 0), v2.tex[0].u, 1.0, col),
-		Vertex(Vector3(w1, 0, 0), v1.tex[0].u, 1.0, col)
+		Vertex(Vector3(-w1, 0, 0), 0.0, v1.tex[0].u, col),
+		Vertex(Vector3(-w2, len, 0), 0.0, v2.tex[0].u, col),
+		Vertex(Vector3(w2, len, 0), 1.0, v2.tex[0].u, col),
+		Vertex(Vector3(w1, 0, 0), 1.0, v1.tex[0].u, col)
 	};
 
 	set_lighting(false);
@@ -1027,19 +1018,15 @@ void set_render_target(Texture *tex, CubeMapFace cube_map_face) {
 	
 	if(!tex) {
 		rt_stack.pop();
-		if(prev->get_type() == TEX_CUBE) {
-			face_stack.pop();
+		if(prev->get_type() == TEX_CUBE) face_stack.pop();
 
-			if(rt_stack.empty()) {
-				set_viewport(0, 0, gparams.x, gparams.y);
-			} else {
-				set_viewport(0, 0, rt_stack.top()->width, rt_stack.top()->height);
-			}
+		if(rt_stack.empty()) {
+			set_viewport(0, 0, gparams.x, gparams.y);
+		} else {
+			set_viewport(0, 0, rt_stack.top()->width, rt_stack.top()->height);
 		}
 	} else {
-		if(tex->get_type() == TEX_CUBE) {
-			set_viewport(0, 0, tex->width, tex->height);
-		}
+		set_viewport(0, 0, tex->width, tex->height);
 
 		rt_stack.push(tex);
 		if(tex->get_type() == TEX_CUBE) face_stack.push(cube_map_face);

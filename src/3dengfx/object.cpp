@@ -407,8 +407,8 @@ void Object::render_hack(unsigned long time) {
 
 	if(mat.wireframe) ::set_wireframe(false);
 	if((master_render_mode & RMODE_BLENDING) &&
-			(render_params.handle_blending && mat.alpha < 1.0 - small_number) || 
-			(!render_params.handle_blending && render_params.blending)) {
+			((render_params.handle_blending && mat.alpha < 1.0 - small_number) || 
+			(!render_params.handle_blending && render_params.blending))) {
 		set_alpha_blending(false);
 	}
 	if(!render_params.zwrite) ::set_zwrite(true);
@@ -627,4 +627,8 @@ ObjTorus::ObjTorus(scalar_t circle_rad, scalar_t revolv_rad, int subdiv) {
 
 ObjTeapot::ObjTeapot(scalar_t size, int subdiv) {
 	create_teapot(get_mesh_ptr(), size, subdiv);
+}
+
+ObjLandscape::ObjLandscape(const Vector2 &size, int mesh_detail, scalar_t max_height, int iter, scalar_t roughness, int seed) {
+	create_landscape(get_mesh_ptr(), size, mesh_detail, max_height, iter, roughness, seed);
 }

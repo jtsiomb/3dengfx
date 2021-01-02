@@ -9,8 +9,7 @@ The original README at the end of 3dengfx development had the single line:
 
 Before that there was the release 0.1 README file, which is still available in
 the repository. You can find it by going back to the `oldsvn` tag. The rest of
-this file is written many years after the end of this project's development, in
-2021.
+this file was written many years after the end of this project's development.
 
 3dengfx was a 3D engine I started hacking on, right after I decided to move away
 from Windows and my previous DirectX 8 engine, to GNU/Linux and OpenGL, back in

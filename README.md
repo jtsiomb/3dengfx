@@ -1,7 +1,7 @@
-3dengfx
+![3dengfx](http://nuclear.mutantstargoat.com/sw/3dengfx/logo.png)
 =======
 
-![3dengfx logo](http://nuclear.mutantstargoat.com/sw/3dengfx/logo.png)
+![shots](http://nuclear.mutantstargoat.com/sw/3dengfx/shots/shotbar.png)
 
 The original README at the end of 3dengfx development had the single line:
 

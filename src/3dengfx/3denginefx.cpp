@@ -273,6 +273,7 @@ SysCaps get_system_capabilities() {
 
 	// fill the SysCaps structure
 	//SysCaps sys_caps;
+	sys_caps.multitex = (bool)strstr(ext_str, "GL_ARB_multitexture");
 	sys_caps.load_transpose = (bool)strstr(ext_str, "GL_ARB_transpose_matrix");
 	sys_caps.gen_mipmaps = (bool)strstr(ext_str, "GL_SGIS_generate_mipmap");
 	sys_caps.tex_combine_ops = (bool)strstr(ext_str, "GL_ARB_texture_env_combine");

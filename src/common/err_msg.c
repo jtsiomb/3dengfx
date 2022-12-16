@@ -106,7 +106,7 @@ void error(const char *str, ...) {
 	strcpy(err_buf, "E: ");
 		
 	va_start(arg_list, str);
-	vsnprintf(err_buf+3, ERR_BUF_SIZE, str, arg_list);
+	vsnprintf(err_buf+3, ERR_BUF_SIZE - 3, str, arg_list);
 	va_end(arg_list);
 	
 	if(verbosity > 0) {
@@ -127,7 +127,7 @@ void warning(const char *str, ...) {
 	strcpy(err_buf, "W: ");
 	
 	va_start(arg_list, str);
-	vsnprintf(err_buf+3, ERR_BUF_SIZE, str, arg_list);
+	vsnprintf(err_buf+3, ERR_BUF_SIZE - 3, str, arg_list);
 	va_end(arg_list);
 	
 	if(verbosity > 1) {
@@ -148,7 +148,7 @@ void info(const char *str, ...) {
 	strcpy(err_buf, "I: ");
 	
 	va_start(arg_list, str);
-	vsnprintf(err_buf+3, ERR_BUF_SIZE, str, arg_list);
+	vsnprintf(err_buf+3, ERR_BUF_SIZE - 3, str, arg_list);
 	va_end(arg_list);
 	
 	if(verbosity > 2) {
